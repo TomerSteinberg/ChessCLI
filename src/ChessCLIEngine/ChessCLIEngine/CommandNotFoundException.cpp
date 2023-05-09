@@ -1,5 +1,4 @@
 #include "CommandNotFoundException.h"
-#include <iostream>
 
 CommandNotFoundException::CommandNotFoundException(std::string cmd)
 {
