@@ -1,4 +1,4 @@
-#include "Command.h"
+#include "ICommand.h"
 #include "CommandFactory.h"
 
 
@@ -6,6 +6,6 @@
 class Parser
 {
 public:
-	static Command* parseCommand(std::string cmd);
+	static ICommand* parseCommand(std::string cmd);
 };
 

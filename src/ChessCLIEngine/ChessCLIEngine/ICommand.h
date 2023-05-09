@@ -4,10 +4,10 @@
 
 #pragma once
 
-class Command
+class ICommand
 {
 public:
-	Command(std::vector<std::string> args);
+	ICommand(std::vector<std::string> args);
 
 	virtual void execute(Context& ctx)=0;
 protected:

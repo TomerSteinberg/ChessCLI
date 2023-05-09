@@ -1,14 +1,14 @@
 #include <iostream>
 #include <string>
 #include <memory>
-#include "Command.h"
+#include "ICommand.h"
 #include "Parser.h"
 #include "Context.h"
 #include "Invoker.h"
 
 #define VERSION "v0.0.1"
 
-int main()
+int main(int argc, char** argv)
 {
 	std::string cmd;
 	Context ctx;
@@ -21,7 +21,7 @@ int main()
 		std::cout << "DuckEngine> ";
 		std::getline(std::cin, cmd);
 
-		Command* command = Parser::parseCommand(cmd);
+		ICommand* command = Parser::parseCommand(cmd);
 		Invoker::invoke(ctx, command);
 	}
 

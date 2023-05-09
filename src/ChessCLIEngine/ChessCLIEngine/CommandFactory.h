@@ -1,9 +1,12 @@
-#include "Command.h"
+#include "ICommand.h"
 #include <vector>
+#include <unordered_map>
+#include "HelpCommand.h"
+#include "CommandNotFoundException.h"
 
 #pragma once
 class CommandFactory
 {
-	static Command* createCommand(std::string cmdName, std::vector<std::string> args);
+	static ICommand* createCommand(std::string cmdName, std::vector<std::string> args);
 };
 
