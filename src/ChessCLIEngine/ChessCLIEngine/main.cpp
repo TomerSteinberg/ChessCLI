@@ -21,7 +21,9 @@ int main(int argc, char** argv)
 		std::cout << "DuckEngine> ";
 		std::getline(std::cin, cmd);
 
+		if (cmd == "") { continue; }
 		ICommand* command = Parser::parseCommand(cmd);
+		if (!command) { continue; }
 		Invoker::invoke(ctx, command);
 	}
 

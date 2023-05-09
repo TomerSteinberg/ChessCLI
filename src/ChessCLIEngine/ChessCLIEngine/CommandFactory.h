@@ -7,6 +7,7 @@
 #pragma once
 class CommandFactory
 {
+public:
 	static ICommand* createCommand(std::string cmdName, std::vector<std::string> args);
 };
 

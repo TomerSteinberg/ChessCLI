@@ -2,5 +2,5 @@
 
 const char* CommandNotFoundException::what() const noexcept
 {
-    return "Error: Command not found!\n";
+    return "Error: Command not found.\n";
 }
