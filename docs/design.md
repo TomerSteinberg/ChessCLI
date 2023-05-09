@@ -57,4 +57,5 @@ Duck Chess, Crazyhouse, Horde, 3 Check and Atomic
 * `Exit` [directory | none = saves to current directory] (`-n` | `--no-save` = won't save) - Leaves Game state and saves the game
 * `Evaluate` - Calculates the evaluation of the current position
 * `Analyze` (`-s` = switch turn, `-n` = number of moves to show, `-r` = show moves from worst to best) - Evaluates possible continuations
+* `Continue` - Play the move with the highest evaluation on the board
 
