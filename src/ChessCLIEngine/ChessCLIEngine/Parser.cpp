@@ -8,11 +8,14 @@
 ICommand* Parser::parseCommand(std::string cmd)
 {
     ICommand* command = nullptr;
-    std::vector<std::string> args = Parser::splitBySpace(cmd);
-    std::string commandName = args[0];
-    args.erase(args.begin());
+
     try
     {
+        std::vector<std::string> args = Parser::splitBySpace(cmd);
+        if (args.size() < 1) { return command; }
+
+        std::string commandName = args[0];
+        args.erase(args.begin());
         command = CommandFactory::createCommand(commandName, args);
     }
     catch (CommandNotFoundException& error)
