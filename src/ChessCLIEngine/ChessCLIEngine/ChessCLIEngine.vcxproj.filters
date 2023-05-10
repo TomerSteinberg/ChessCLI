@@ -36,7 +36,7 @@
     <ClCompile Include="HelpCommand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandNotFoundException.cpp">
+    <ClCompile Include="UnkownCommandException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,7 +59,7 @@
     <ClInclude Include="HelpCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandNotFoundException.h">
+    <ClInclude Include="UnkownCommandException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

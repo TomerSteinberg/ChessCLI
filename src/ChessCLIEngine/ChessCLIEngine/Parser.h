@@ -2,7 +2,7 @@
 #include "CommandFactory.h"
 #include <sstream>
 #include <iostream>
-#include "CommandNotFoundException.h"
+#include "UnkownCommandException.h"
 
 #pragma once
 class Parser

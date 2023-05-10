@@ -22,6 +22,6 @@ ICommand* CommandFactory::createCommand(std::string cmdName, std::vector<std::st
 	}
 	else
 	{
-		throw CommandNotFoundException(cmdName);
+		throw UnkownCommandException(cmdName);
 	}
 }

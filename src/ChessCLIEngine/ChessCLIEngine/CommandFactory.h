@@ -2,7 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "HelpCommand.h"
-#include "CommandNotFoundException.h"
+#include "UnkownCommandException.h"
 
 #pragma once
 class CommandFactory

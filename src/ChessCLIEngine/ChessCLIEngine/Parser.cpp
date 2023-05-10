@@ -18,7 +18,7 @@ ICommand* Parser::parseCommand(std::string cmd)
         args.erase(args.begin());
         command = CommandFactory::createCommand(commandName, args);
     }
-    catch (CommandNotFoundException& error)
+    catch (UnkownCommandException& error)
     {
         std::cout << error.what();
     }

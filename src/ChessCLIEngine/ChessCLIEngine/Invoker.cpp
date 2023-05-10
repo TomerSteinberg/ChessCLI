@@ -2,6 +2,9 @@
 
 void Invoker::invoke(Context& ctx, ICommand* cmd)
 {
-	cmd->execute(ctx);
-	delete cmd;
+	if (cmd)
+	{
+		cmd->execute(ctx);
+		delete cmd;
+	}
 }

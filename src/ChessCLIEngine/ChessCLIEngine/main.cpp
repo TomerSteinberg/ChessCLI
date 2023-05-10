@@ -7,7 +7,6 @@
 #include "Invoker.h"
 
 #define VERSION "v0.0.1"
-#define EMPTY_COMMAND ""
 
 int main(int argc, char** argv)
 {
@@ -22,9 +21,7 @@ int main(int argc, char** argv)
 		std::cout << "DuckEngine> ";
 		std::getline(std::cin, cmd);
 
-		if (cmd == EMPTY_COMMAND) { continue; }
 		ICommand* command = Parser::parseCommand(cmd);
-		if (!command) { continue; }
 		Invoker::invoke(ctx, command);
 	}
 
