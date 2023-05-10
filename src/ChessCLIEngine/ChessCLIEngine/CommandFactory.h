@@ -1,8 +1,12 @@
 #include "ICommand.h"
 #include <vector>
 #include <unordered_map>
-#include "HelpCommand.h"
+
 #include "UnkownCommandException.h"
+
+#include "HelpCommand.h"
+#include "ClearCommand.h"
+
 
 #pragma once
 class CommandFactory

@@ -2,10 +2,11 @@
 
 
 // pointer to a function that returns an ICommand object from a vector of strings
-using CreationTool = ICommand* (*) (std::vector<std::string>);
+using CreatorFunction = ICommand* (*) (std::vector<std::string>);
 
-std::unordered_map<std::string, CreationTool> CommandCreator = {
-	{"help", [](std::vector<std::string> args) {return static_cast<ICommand*>(new HelpCommand(args)); }}
+std::unordered_map<std::string, CreatorFunction> CommandCreator = {
+	{"help", [](std::vector<std::string> args) {return static_cast<ICommand*>(new HelpCommand(args)); }},
+	{"clear", [](std::vector<std::string> args) {return static_cast<ICommand*>(new ClearCommand(args)); }}
 };
 
 

@@ -1,9 +1,16 @@
 #include "HelpCommand.h"
 
+
 HelpCommand::HelpCommand(std::vector<std::string> args) : ICommand(args)
 {
 }
 
+
+/*
+* Help command execute for printing the Help menu
+* input: application state context
+* output: none
+*/
 void HelpCommand::execute(Context& ctx)
 {
 	std::cout 
