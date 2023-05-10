@@ -6,6 +6,7 @@
 
 #include "HelpCommand.h"
 #include "ClearCommand.h"
+#include "QuitCommand.h"
 
 
 #pragma once

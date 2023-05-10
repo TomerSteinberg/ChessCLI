@@ -6,7 +6,8 @@ using CreatorFunction = ICommand* (*) (std::vector<std::string>);
 
 std::unordered_map<std::string, CreatorFunction> CommandCreator = {
 	{"help", [](std::vector<std::string> args) {return static_cast<ICommand*>(new HelpCommand(args)); }},
-	{"clear", [](std::vector<std::string> args) {return static_cast<ICommand*>(new ClearCommand(args)); }}
+	{"clear", [](std::vector<std::string> args) {return static_cast<ICommand*>(new ClearCommand(args)); }},
+	{"quit", [](std::vector<std::string> args) {return static_cast<ICommand*>(new QuitCommand(args)); }}
 };
 
 
