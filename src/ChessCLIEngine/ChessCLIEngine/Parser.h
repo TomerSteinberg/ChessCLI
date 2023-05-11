@@ -8,7 +8,7 @@
 class Parser
 {
 public:
-	static ICommand* parseCommand(std::string cmd);
+	static std::unique_ptr<ICommand> parseCommand(std::string cmd);
 private:
 	static std::vector<std::string> splitBySpace(std::string cmd);
 };

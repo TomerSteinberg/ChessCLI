@@ -2,12 +2,12 @@
 
 
 // pointer to a function that returns an ICommand object from a vector of strings
-using CreatorFunction = ICommand* (*) (std::vector<std::string>);
+using CommandCreatorFunction = std::unique_ptr<ICommand> (*) (std::vector<std::string>);
 
-std::unordered_map<std::string, CreatorFunction> CommandCreator = {
-	{"help", [](std::vector<std::string> args) {return static_cast<ICommand*>(new HelpCommand(args)); }},
-	{"clear", [](std::vector<std::string> args) {return static_cast<ICommand*>(new ClearCommand(args)); }},
-	{"quit", [](std::vector<std::string> args) {return static_cast<ICommand*>(new QuitCommand(args)); }}
+std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
+	{"help", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<HelpCommand>(args)); }},
+	{"clear", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<ClearCommand>(args)); }},
+	{"quit", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<QuitCommand>(args)); }}
 };
 
 
@@ -16,7 +16,7 @@ std::unordered_map<std::string, CreatorFunction> CommandCreator = {
 * input: Command name (string), Command arguments (vector<string>)
 * output: Pointer to Command object
 */
-ICommand* CommandFactory::createCommand(std::string cmdName, std::vector<std::string> args)
+std::unique_ptr<ICommand> CommandFactory::createCommand(std::string cmdName, std::vector<std::string> args)
 {
 	if (CommandCreator.find(cmdName) != CommandCreator.end())	
 	{
