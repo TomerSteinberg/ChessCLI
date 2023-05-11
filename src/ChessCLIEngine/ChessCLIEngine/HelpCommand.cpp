@@ -5,6 +5,7 @@ HelpCommand::HelpCommand(std::vector<std::string> args) : ICommand(args)
 {
 }
 
+int HelpCommand::maxArg = 0;
 
 /*
 * Help command execute for printing the Help menu

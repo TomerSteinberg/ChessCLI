@@ -6,6 +6,9 @@ ClearCommand::ClearCommand(std::vector<std::string> args) :ICommand(args)
 }
 
 
+int ClearCommand::maxArg = 0;
+
+
 /*
 * Clear command execute which clears the console
 * input: Application state context

@@ -11,5 +11,7 @@ public:
 	HelpCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
+	static int maxArg;
+
 };
 

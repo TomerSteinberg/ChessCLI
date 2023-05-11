@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
@@ -152,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />

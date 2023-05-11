@@ -18,7 +18,7 @@ std::unique_ptr<ICommand> Parser::parseCommand(std::string cmd)
         args.erase(args.begin());
         command = CommandFactory::createCommand(commandName, args);
     }
-    catch (UnkownCommandException& error)
+    catch (std::exception& error)
     {
         std::cout << error.what();
     }

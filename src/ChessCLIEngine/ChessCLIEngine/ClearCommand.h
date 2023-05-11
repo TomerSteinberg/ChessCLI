@@ -17,5 +17,6 @@ public:
 	ClearCommand(std::vector<std::string> args);
 	void execute(Context& ctx);
 
+	static int maxArg;
 };
 
