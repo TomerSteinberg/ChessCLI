@@ -36,7 +36,16 @@
     <ClCompile Include="HelpCommand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandNotFoundException.cpp">
+    <ClCompile Include="UnkownCommandException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClearCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuitCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExceededMaxArgumentsException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,7 +68,16 @@
     <ClInclude Include="HelpCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandNotFoundException.h">
+    <ClInclude Include="UnkownCommandException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClearCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuitCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExceededMaxArgumentsException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

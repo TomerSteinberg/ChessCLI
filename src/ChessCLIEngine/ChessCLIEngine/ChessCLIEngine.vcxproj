@@ -139,7 +139,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CommandNotFoundException.cpp" />
+    <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="ExceededMaxArgumentsException.cpp" />
+    <ClCompile Include="QuitCommand.cpp" />
+    <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
     <ClCompile Include="ICommand.cpp" />
     <ClCompile Include="CommandFactory.cpp" />
@@ -149,7 +152,10 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CommandNotFoundException.h" />
+    <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="ExceededMaxArgumentsException.h" />
+    <ClInclude Include="QuitCommand.h" />
+    <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="CommandFactory.h" />

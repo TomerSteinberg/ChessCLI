@@ -5,9 +5,9 @@
 * input: command input (string)
 * output: pointer to a Command object
 */
-ICommand* Parser::parseCommand(std::string cmd)
+std::unique_ptr<ICommand> Parser::parseCommand(std::string cmd)
 {
-    ICommand* command = nullptr;
+    std::unique_ptr<ICommand> command = nullptr;
 
     try
     {
@@ -18,7 +18,7 @@ ICommand* Parser::parseCommand(std::string cmd)
         args.erase(args.begin());
         command = CommandFactory::createCommand(commandName, args);
     }
-    catch (CommandNotFoundException& error)
+    catch (std::exception& error)
     {
         std::cout << error.what();
     }

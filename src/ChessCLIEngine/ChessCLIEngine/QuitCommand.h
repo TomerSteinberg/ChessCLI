@@ -5,10 +5,10 @@
 #include "Context.h"
 
 
-class HelpCommand : public ICommand
+class QuitCommand : public ICommand
 {
 public:
-	HelpCommand(std::vector<std::string> args);
+	QuitCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
 	static int maxArg;
