@@ -1,13 +1,10 @@
 #include "CommandFactory.h"
 
 
-// pointer to a function that returns an ICommand object from a vector of strings
-using CommandCreatorFunction = std::unique_ptr<ICommand> (*) (std::vector<std::string>);
-
 std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
-	{"help", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<HelpCommand>(args)); }},
-	{"clear", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<ClearCommand>(args)); }},
-	{"quit", [](std::vector<std::string> args) {return std::unique_ptr<ICommand>(std::make_unique<QuitCommand>(args)); }}
+	{"help", [](std::vector<std::string> args) {return NEW_COMMAND(HelpCommand); }},
+	{"clear", [](std::vector<std::string> args) {return NEW_COMMAND(ClearCommand); }},
+	{"quit", [](std::vector<std::string> args) {return NEW_COMMAND(QuitCommand); }}
 };
 
 
