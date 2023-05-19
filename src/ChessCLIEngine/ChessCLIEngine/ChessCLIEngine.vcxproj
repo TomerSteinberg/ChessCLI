@@ -139,8 +139,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="IBoard.cpp" />
+    <ClCompile Include="Position.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
@@ -152,8 +156,12 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
+    <ClInclude Include="Game.h" />
+    <ClInclude Include="IBoard.h" />
+    <ClInclude Include="Position.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />

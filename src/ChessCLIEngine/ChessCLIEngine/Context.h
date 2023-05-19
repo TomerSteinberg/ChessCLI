@@ -1,14 +1,17 @@
 #pragma once
+#include "Game.h"
+
 class Context
 {
 public:
 	Context();
 
-	bool getInGame() const;
-	void setInGame(const bool val);
+	Game* getCurrGame() const;
+	void newGame(Game* game);
+	void deleteGame();
+
 
 private:
-	bool m_inGame;
-
+	Game* m_currGame;
 };
 
