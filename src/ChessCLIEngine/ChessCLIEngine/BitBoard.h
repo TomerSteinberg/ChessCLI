@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include "IBoard.h"
 
 
@@ -9,6 +8,7 @@
 #define SIDES 2
 
 #define GET_BIT(piece, square) (piece & (1ULL << square) ? 1 : 0)
+#define SET_BIT(piece, square) (piece |= (1ULL << square))
 
 typedef unsigned long long u64;
 
@@ -31,8 +31,13 @@ enum Pieces {
 
 class BitBoard : public IBoard
 {
+public:
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 
-
+	IBoard* move(std::string startPos, std::string endPos);
+	std::string getFEN();
+	void printBoard();
+	void printBoardUnicode();
 
 
 private:
