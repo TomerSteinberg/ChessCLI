@@ -43,7 +43,7 @@ public:
 private:
 	u64 _pieces[SIDES][NUMBER_OF_PIECES];
 	
-	
+	u64 getUnifiedBoard();
 
 
 };

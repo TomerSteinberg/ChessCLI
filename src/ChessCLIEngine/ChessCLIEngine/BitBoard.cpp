@@ -34,7 +34,12 @@ void BitBoard::printBoardUnicode()
 {
 }
 
-
+/*
+* Method to get the unified board defined as a single bitboard that represents 
+* the location of all the pieces without distingushing piece type
+* input: None
+* output: a unified bitboard that contains all the pieces (u64) 
+*/
 u64 BitBoard::getUnifiedBoard()
 {
     u64 unifiedBoard = 0ULL;
