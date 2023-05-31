@@ -8,6 +8,9 @@
 
 #define VERSION "v0.0.1"
 
+#define DEBUG 0
+#if DEBUG
+
 int main(int argc, char** argv)
 {
 	std::string cmd;
@@ -27,3 +30,12 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
+#else
+	int main(int argc, char** argv)
+	{
+		
+		return 0;
+	}
+
+#endif

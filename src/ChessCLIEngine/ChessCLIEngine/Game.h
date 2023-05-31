@@ -11,7 +11,6 @@ class Game
 {
 public:
 	Game(std::string fen);
-	Game(std::string pgnPath);
 	Game();
 
 
