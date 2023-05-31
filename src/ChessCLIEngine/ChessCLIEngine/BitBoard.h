@@ -46,8 +46,8 @@ public:
 
 
 private:
-	u64 _pieces[SIDES][NUMBER_OF_PIECES];
-	u64 _attackPatterns[SIDES][NUMBER_OF_PIECES];
+	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
+	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES];
 
 	u64 getUnifiedBoard();
 	

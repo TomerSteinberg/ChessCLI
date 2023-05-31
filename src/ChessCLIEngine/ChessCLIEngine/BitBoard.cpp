@@ -7,7 +7,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES])
     {
         for (int j = 0; j < NUMBER_OF_PIECES; j++)
         {
-            this->_pieces[i][j] = pieces[i][j];
+            this->m_pieces[i][j] = pieces[i][j];
         }
     }
     // TODO: Calculate piece attack patterns
@@ -20,8 +20,8 @@ BitBoard::BitBoard()
     {
         for (int j = 0; j < NUMBER_OF_PIECES; j++)
         {
-            this->_pieces[i][j] = 0ULL;
-            this->_attackPatterns[i][j] = 0ULL;
+            this->m_pieces[i][j] = 0ULL;
+            this->m_attackPatterns[i][j] = 0ULL;
         }
     }
 }
@@ -65,7 +65,7 @@ void BitBoard::printPieceBitBoard(int color, int piece)
         std::cout << BOARD_HEIGHT - i << " ";
         for (int j = 0; j < BOARD_HEIGHT; j++)
         {
-            std::cout << GET_BIT(this->_pieces[color][piece], (j + i * 8)) << " ";
+            std::cout << GET_BIT(this->m_pieces[color][piece], (j + i * 8)) << " ";
         }
         std::cout << std::endl;
     }
@@ -85,7 +85,7 @@ u64 BitBoard::getUnifiedBoard()
     {
         for (int j = 0; j < NUMBER_OF_PIECES; j++)
         {
-            unifiedBoard |= this->_pieces[i][j];
+            unifiedBoard |= this->m_pieces[i][j];
         }
     }
     return unifiedBoard;
