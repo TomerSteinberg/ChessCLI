@@ -1,13 +1,15 @@
 #pragma once
 #include "IBoard.h"
-
+#include <iostream>
 
 #define NUMBER_OF_PIECES 6
 #define BLACK 0
 #define WHITE 1
 #define SIDES 2
+#define BOARD_HEIGHT 8
+#define BOARD_WIDTH 8
 
-#define GET_BIT(piece, square) (piece & (1ULL << square) ? 1 : 0)
+#define GET_BIT(piece, square) ((piece & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(piece, square) (piece |= (1ULL << square))
 
 typedef unsigned long long u64;
@@ -33,17 +35,24 @@ class BitBoard : public IBoard
 {
 public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
+	BitBoard();
 
 	IBoard* move(std::string startPos, std::string endPos);
 	std::string getFEN();
+
 	void printBoard();
 	void printBoardUnicode();
+	void printPieceBitBoard(int color, int piece);
 
 
 private:
 	u64 _pieces[SIDES][NUMBER_OF_PIECES];
-	
+	u64 _attackPatterns[SIDES][NUMBER_OF_PIECES];
+
 	u64 getUnifiedBoard();
+	
+	u64 calcBlackPawnAtkPattern(u64 pawns);
+	u64 calcWhitePawnAtkPattern(u64 pawns);
 
 
 };
