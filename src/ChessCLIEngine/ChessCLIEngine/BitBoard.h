@@ -3,6 +3,7 @@
 #include <iostream>
 
 #define NUMBER_OF_PIECES 6
+#define NUMBER_OF_SQUARES 64
 #define BLACK 0
 #define WHITE 1
 #define SIDES 2
@@ -47,13 +48,12 @@ public:
 
 private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES];
+	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
 
 	u64 getUnifiedBoard();
 	
-	u64 calcBlackPawnAtkPattern(u64 pawns);
-	u64 calcWhitePawnAtkPattern(u64 pawns);
-
+	u64 calcBlackPawnAtkPattern(int square);
+	u64 calcWhitePawnAtkPattern(int square);
 
 };
 

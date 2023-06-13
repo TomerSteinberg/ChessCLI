@@ -20,8 +20,11 @@ BitBoard::BitBoard()
     {
         for (int j = 0; j < NUMBER_OF_PIECES; j++)
         {
+            for (int k = 0; k < NUMBER_OF_SQUARES; k++)
+            {
+                this->m_attackPatterns[i][j][k] = 0ULL;
+            }
             this->m_pieces[i][j] = 0ULL;
-            this->m_attackPatterns[i][j] = 0ULL;
         }
     }
 }
@@ -65,7 +68,7 @@ void BitBoard::printPieceBitBoard(int color, int piece)
         std::cout << BOARD_HEIGHT - i << " ";
         for (int j = 0; j < BOARD_HEIGHT; j++)
         {
-            std::cout << GET_BIT(this->m_pieces[color][piece], (j + i * 8)) << " ";
+            std::cout << GET_BIT(this->m_pieces[color][piece], (i * 8) + j) << " ";
         }
         std::cout << std::endl;
     }
@@ -91,7 +94,7 @@ u64 BitBoard::getUnifiedBoard()
     return unifiedBoard;
 }
 
-u64 BitBoard::calcBlackPawnAtkPattern(u64 pawns)
+u64 BitBoard::calcBlackPawnAtkPattern(int square)
 {
     return u64();
 }
@@ -102,7 +105,26 @@ u64 BitBoard::calcBlackPawnAtkPattern(u64 pawns)
 * input: pawn bitboard (u64)
 * output: pawn attack pattern bitboard (u64)
 */
-u64 BitBoard::calcWhitePawnAtkPattern(u64 pawns)
+u64 BitBoard::calcWhitePawnAtkPattern(int square)
 {
-    return u64();
+    if (square < 8) // if the white pawn is on the 8th rank
+    {
+        return 0ULL;
+    }
+    
+    const u64 hFileMask = 9259542123273814144ULL; // mask for entire H file
+    const u64 aFileMask = 72340172838076673ULL; // mask for entire A file
+
+    u64 board = 0ULL;
+    u64 attack = board;
+    SET_BIT(board, square);
+    if (!(board & hFileMask))
+    {
+        attack = board >> 7;
+    }
+    if (!(board & aFileMask))
+    {
+        attack = attack | (board >> 9);
+    }
+    return attack;
 }
