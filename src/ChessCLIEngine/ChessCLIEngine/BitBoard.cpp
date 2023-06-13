@@ -94,6 +94,12 @@ u64 BitBoard::getUnifiedBoard()
     return unifiedBoard;
 }
 
+
+/*
+* Method for calculating the black pawn attack patterns
+* input: square the pawn is on
+* output: pawn attack pattern (u64)
+*/
 u64 BitBoard::calcBlackPawnAtkPattern(int square)
 {
     return u64();
@@ -102,8 +108,8 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
 
 /*
 * Method for calculating the white pawn attack patterns
-* input: pawn bitboard (u64)
-* output: pawn attack pattern bitboard (u64)
+* input: square the pawn is on
+* output: pawn attack pattern (u64)
 */
 u64 BitBoard::calcWhitePawnAtkPattern(int square)
 {
