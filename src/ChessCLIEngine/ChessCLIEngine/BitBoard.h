@@ -52,8 +52,8 @@ private:
 
 	u64 getUnifiedBoard();
 	
-	u64 calcBlackPawnAtkPattern(int square);
 	u64 calcWhitePawnAtkPattern(int square);
+	u64 calcBlackPawnAtkPattern(int square);
 
 };
 

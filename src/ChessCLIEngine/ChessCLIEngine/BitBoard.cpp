@@ -102,7 +102,28 @@ u64 BitBoard::getUnifiedBoard()
 */
 u64 BitBoard::calcBlackPawnAtkPattern(int square)
 {
-    return u64();
+    if (square > 55) // if the black pawn is on the 1st rank
+    {
+        return 0ULL;
+    }
+
+    const u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
+    const u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+
+    u64 board = 0ULL;
+    u64 attack = board;
+    SET_BIT(board, square);
+
+
+    if (!(board & hFileMask))
+    {
+        attack = board << 9;
+    }
+    if (!(board & aFileMask))
+    {
+        attack = attack | (board << 7);
+    }
+    return attack;
 }
 
 
@@ -118,12 +139,14 @@ u64 BitBoard::calcWhitePawnAtkPattern(int square)
         return 0ULL;
     }
     
-    const u64 hFileMask = 9259542123273814144ULL; // mask for entire H file
-    const u64 aFileMask = 72340172838076673ULL; // mask for entire A file
+    const u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
+    const u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
 
     u64 board = 0ULL;
     u64 attack = board;
     SET_BIT(board, square);
+
+
     if (!(board & hFileMask))
     {
         attack = board >> 7;
