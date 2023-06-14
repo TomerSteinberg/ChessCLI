@@ -96,6 +96,40 @@ u64 BitBoard::getUnifiedBoard()
 
 
 /*
+* Method for calculating the knights attack pattern
+* input: square the knight is on
+* output: knight attack pattern (u64)
+*/
+u64 BitBoard::calcKnightAtkPattern(int square)
+{
+    constexpr u64 allSquareMask = 18446744073709551615ULL;
+    constexpr u64 abFileMask = 217020518514230019ULL; // Mask for both A and B files
+    constexpr u64 hgFileMask = 13889313184910721216ULL; // Mask for both H and G files
+    u64 board = 0ULL;
+    u64 attack = 0ULL;
+    SET_BIT(board, square);
+
+    // knight attack offsets
+    attack = board >> 17 | board >> 15;
+    attack = attack | board << 17 | board << 15;
+    attack = attack | board >> 6 | board >> 10;
+    attack = attack | board << 6 | board << 10;
+
+    if (board & abFileMask)
+    {
+        // mask XOR fully set mask = flipping all bits 
+        // removing out of bound moves 
+        attack = attack & (hgFileMask ^ allSquareMask);
+    }
+    else if (board & hgFileMask)
+    {
+        attack = attack & (abFileMask ^ allSquareMask);
+    }
+    return attack;
+}
+
+
+/*
 * Method for calculating the black pawn attack patterns
 * input: square the pawn is on
 * output: pawn attack pattern (u64)
@@ -126,39 +160,6 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
     return attack;
 }
 
-
-/*
-* Method for calculating the knights attack pattern
-* input: square the knight is on
-* output: knight attack pattern (u64)
-*/
-u64 BitBoard::calcKnightAtkPattern(int square)
-{
-    constexpr u64 allSquareMask = 18446744073709551615ULL;
-    constexpr u64 abFileMask = 217020518514230019ULL; // Mask for both A and B files
-    constexpr u64 hgFileMask = 13889313184910721216ULL; // Mask for both H and G files
-    u64 board = 0ULL;
-    u64 attack = 0ULL;
-    SET_BIT(board, square);
-
-    // knight attack offsets
-    attack = board >> 17 | board >> 15;
-    attack = attack | board << 17 | board << 15;
-    attack = attack | board >> 6 | board >> 10;
-    attack = attack | board << 6 | board << 10;
-
-    if (board & abFileMask)
-    {
-        // mask XOR fully set mask = flipping all bits 
-        // attack & to remove out of bound moves 
-        attack = attack & (hgFileMask ^ allSquareMask);
-    }
-    else if (board & hgFileMask)
-    {
-        attack = attack & (abFileMask ^ allSquareMask);
-    }
-    return attack;
-}
 
 /*
 * Method for calculating the white pawn attack patterns

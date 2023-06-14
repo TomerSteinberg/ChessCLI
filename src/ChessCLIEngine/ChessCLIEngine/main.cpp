@@ -33,6 +33,9 @@ int main(int argc, char** argv)
 
 #else
 #include "BitBoard.h"
+	
+	// for debugging and testing bitboard
+
 	int main(int argc, char** argv)
 	{
 		u64  attack = 0ULL;
