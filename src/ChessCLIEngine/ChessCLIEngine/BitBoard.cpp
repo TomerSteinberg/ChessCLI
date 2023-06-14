@@ -96,6 +96,44 @@ u64 BitBoard::getUnifiedBoard()
 
 
 /*
+* Method for calculating the king attack patterns
+* input: square the king is on
+* output: king attack pattern (u64)
+*/
+u64 BitBoard::calcKingAtkPattern(int square)
+{
+    constexpr u64 allSquareMask = 18446744073709551615ULL;
+    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
+    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+
+    u64 board = 0ULL;
+    u64 attack = board;
+    SET_BIT(board, square);
+       
+    // king attack offsets
+    attack = board >> 1;
+    attack = attack | board << 1;
+    attack = attack | board >> 7;
+    attack = attack | board >> 9;
+    attack = attack | board << 7;
+    attack = attack | board << 9;
+    attack = attack | board >> 8;
+    attack = attack | board << 8;
+
+    if (board & aFileMask)
+    {
+        // mask XOR fully set mask = flipping all bits 
+        // removing out of bound moves 
+        attack = attack & (hFileMask ^ allSquareMask);
+    }
+    else if (board & hFileMask)
+    {
+        attack = attack & (aFileMask ^ allSquareMask);
+    }
+    return attack;
+}
+
+/*
 * Method for calculating the knights attack pattern
 * input: square the knight is on
 * output: knight attack pattern (u64)
@@ -141,8 +179,8 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
         return 0ULL;
     }
 
-    const u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
-    const u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
+    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
 
     u64 board = 0ULL;
     u64 attack = board;

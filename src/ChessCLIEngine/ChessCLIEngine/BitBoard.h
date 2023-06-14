@@ -52,12 +52,9 @@ private:
 
 	u64 getUnifiedBoard();
 
-	//====== Attack Patterns ======\\
-	
-	// Knight
+	//====== Attack Patterns ======//
+	u64 calcKingAtkPattern(int square);
 	u64 calcKnightAtkPattern(int square);
-
-	// Pawn
 	u64 calcWhitePawnAtkPattern(int square);
 	u64 calcBlackPawnAtkPattern(int square);
 

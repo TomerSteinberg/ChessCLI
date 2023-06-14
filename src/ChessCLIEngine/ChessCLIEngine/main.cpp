@@ -33,12 +33,14 @@ int main(int argc, char** argv)
 
 #else
 #include "BitBoard.h"
+#include <iostream>
 	
 	// for debugging and testing bitboard
 
 	int main(int argc, char** argv)
 	{
 		u64  attack = 0ULL;
+		int square = 0;
 		for (int i = 0; i < BOARD_WIDTH; i++)
 		{
 			for (int j = 0; j < BOARD_HEIGHT; j++)

@@ -12,7 +12,7 @@ std::unique_ptr<ICommand> Parser::parseCommand(std::string cmd)
     try
     {
         std::vector<std::string> args = Parser::splitBySpace(cmd);
-        if (args.size() < 1) { return command; }
+        if (args.size() < 1) { return nullptr; }
 
         std::string commandName = args[0];
         args.erase(args.begin());
