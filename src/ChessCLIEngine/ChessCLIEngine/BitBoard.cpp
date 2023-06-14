@@ -102,7 +102,7 @@ u64 BitBoard::getUnifiedBoard()
 */
 u64 BitBoard::calcBlackPawnAtkPattern(int square)
 {
-    if (square > 55) // if the black pawn is on the 1st rank
+    if (square >= a1) // if the black pawn is on the 1st rank
     {
         return 0ULL;
     }
@@ -128,19 +128,52 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
 
 
 /*
+* Method for calculating the knights attack pattern
+* input: square the knight is on
+* output: knight attack pattern (u64)
+*/
+u64 BitBoard::calcKnightAtkPattern(int square)
+{
+    constexpr u64 allSquareMask = 18446744073709551615ULL;
+    constexpr u64 abFileMask = 217020518514230019ULL; // Mask for both A and B files
+    constexpr u64 hgFileMask = 13889313184910721216ULL; // Mask for both H and G files
+    u64 board = 0ULL;
+    u64 attack = 0ULL;
+    SET_BIT(board, square);
+
+    // knight attack offsets
+    attack = board >> 17 | board >> 15;
+    attack = attack | board << 17 | board << 15;
+    attack = attack | board >> 6 | board >> 10;
+    attack = attack | board << 6 | board << 10;
+
+    if (board & abFileMask)
+    {
+        // mask XOR fully set mask = flipping all bits 
+        // attack & to remove out of bound moves 
+        attack = attack & (hgFileMask ^ allSquareMask);
+    }
+    else if (board & hgFileMask)
+    {
+        attack = attack & (abFileMask ^ allSquareMask);
+    }
+    return attack;
+}
+
+/*
 * Method for calculating the white pawn attack patterns
 * input: square the pawn is on
 * output: pawn attack pattern (u64)
 */
 u64 BitBoard::calcWhitePawnAtkPattern(int square)
 {
-    if (square < 8) // if the white pawn is on the 8th rank
+    if (square <= h8) // if the white pawn is on the 8th rank
     {
         return 0ULL;
     }
     
-    const u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
-    const u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
+    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
 
     u64 board = 0ULL;
     u64 attack = board;

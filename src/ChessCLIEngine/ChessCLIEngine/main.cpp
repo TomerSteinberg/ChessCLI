@@ -8,7 +8,7 @@
 
 #define VERSION "v0.0.1"
 
-#define DEBUG false
+#define DEBUG true
 #if !DEBUG
 
 int main(int argc, char** argv)
@@ -35,15 +35,16 @@ int main(int argc, char** argv)
 #include "BitBoard.h"
 	int main(int argc, char** argv)
 	{
-		u64 pawnAtk = 0ULL;
+		u64  attack = 0ULL;
 		for (int i = 0; i < BOARD_WIDTH; i++)
 		{
 			for (int j = 0; j < BOARD_HEIGHT; j++)
 			{
-				std::cout << GET_BIT(pawnAtk, (i * 8) + j) << " ";
+				std::cout << GET_BIT(attack, (i * 8) + j) << " ";
 			}
 			std::cout << "\n";
 		}
+		std::cout << attack;
 		return 0;
 	}
 

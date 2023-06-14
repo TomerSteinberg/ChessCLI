@@ -51,7 +51,13 @@ private:
 	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
 
 	u64 getUnifiedBoard();
+
+	//====== Attack Patterns ======\\
 	
+	// Knight
+	u64 calcKnightAtkPattern(int square);
+
+	// Pawn
 	u64 calcWhitePawnAtkPattern(int square);
 	u64 calcBlackPawnAtkPattern(int square);
 
