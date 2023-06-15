@@ -248,6 +248,11 @@ u64 BitBoard::calcQueenAtkPattern(int square)
 }
 
 
+/*
+* Function to calculate a single rook direction
+* input: board (initially with piece location), number of bits to shift, shr|shl
+* output: full rook direction
+*/
 u64 BitBoard::calcSingleRookDirection(u64 board, int direction, bool isLeft)
 {
     constexpr u64 aFileMask = 72340172838076673ULL; // mask for A file
@@ -277,7 +282,7 @@ u64 BitBoard::calcSingleBishopDirection(u64 board, int direction, bool isLeft)
     constexpr u64 firstRankMask = 18374686479671623680ULL; // mask for first rank
     if (!board)
         return 0ULL;
-    // TODO: Fix this
+    // TODO: Finish this
 
     board = isLeft ? board << direction : board >> direction;
     return calcSingleBishopDirection(board, direction, isLeft) | board;
