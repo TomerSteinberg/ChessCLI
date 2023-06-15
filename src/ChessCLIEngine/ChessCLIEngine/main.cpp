@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	int main(int argc, char** argv)
 	{
 		u64  attack = 0ULL;
-		int square = 0;
+		attack = BitBoard::calcBishopAtkPattern(a1);
 		for (int i = 0; i < BOARD_WIDTH; i++)
 		{
 			for (int j = 0; j < BOARD_HEIGHT; j++)

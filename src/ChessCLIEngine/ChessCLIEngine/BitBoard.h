@@ -57,6 +57,12 @@ private:
 	u64 calcKnightAtkPattern(int square);
 	u64 calcWhitePawnAtkPattern(int square);
 	u64 calcBlackPawnAtkPattern(int square);
+	u64 calcRookAtkPattern(int square);
+	u64 calcQueenAtkPattern(int square);
+	u64 calcBishopAtkPattern(int square);
+
+	static u64 calcSingleRookDirection(u64 board, int direction, bool isLeft);
+	static u64 calcSingleBishopDirection(u64 board, int direction, bool isLeft);
 
 };
 
