@@ -46,7 +46,6 @@ public:
 	void printPieceBitBoard(int color, int piece);
 
 
-	static u64 calcBishopAtkPattern(int square);
 private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
@@ -58,8 +57,9 @@ private:
 	u64 calcKnightAtkPattern(int square);
 	u64 calcWhitePawnAtkPattern(int square);
 	u64 calcBlackPawnAtkPattern(int square);
-	u64 calcQueenAtkPattern(int square);
 	u64 calcRookAtkPattern(int square);
+	u64 calcBishopAtkPattern(int square);
+	u64 calcQueenAtkPattern(int square);
 
 };
 

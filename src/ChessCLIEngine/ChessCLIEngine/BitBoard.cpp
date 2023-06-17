@@ -243,7 +243,30 @@ u64 BitBoard::calcRookAtkPattern(int square)
     SET_BIT(board, square);
     u64 attack = 0ULL;
 
-    
+    int f = 0, r = 0;
+    int rank = square / 8;
+    int file = square % 8;
+
+    for (r = rank + 1; r <= 7; r++)
+    {
+        attack |= (1ULL << ((r * 8) + file));
+    }
+
+    for (r = rank -1; r >= 0; r--)
+    {
+        attack |= (1ULL << ((r * 8) + file));
+    }
+
+    for (f = file + 1; f <= 7; f++)
+    {
+        attack |= (1ULL << ((rank * 8) + f));
+    }
+
+    for (f = file - 1;f >= 0; f--)
+    {
+        attack |= (1ULL << ((rank * 8) + f));
+    }
+
     return attack;
 }
 
