@@ -102,7 +102,6 @@ u64 BitBoard::getUnifiedBoard()
 */
 u64 BitBoard::calcKingAtkPattern(int square)
 {
-    constexpr u64 allSquareMask = 18446744073709551615ULL;
     constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
     constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
 
@@ -124,11 +123,11 @@ u64 BitBoard::calcKingAtkPattern(int square)
     {
         // mask XOR fully set mask = flipping all bits 
         // removing out of bound moves 
-        attack = attack & (hFileMask ^ allSquareMask);
+        attack = attack & (hFileMask ^ ULLONG_MAX);
     }
     else if (board & hFileMask)
     {
-        attack = attack & (aFileMask ^ allSquareMask);
+        attack = attack & (aFileMask ^ ULLONG_MAX);
     }
     return attack;
 }
@@ -208,6 +207,7 @@ u64 BitBoard::calcBishopAtkPattern(int square)
     u64 board = 0ULL;
     SET_BIT(board, square);
     u64 attack = 0ULL;
+
     int f = 0, r = 0;
     int rank = square / 8;
     int file = square % 8;
