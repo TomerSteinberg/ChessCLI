@@ -10,7 +10,8 @@
 #include "QuitCommand.h"
 
 #pragma once
-#define CREATE_COMMAND_OBJECT(x) args.size() <= x::maxArg ? std::unique_ptr<ICommand>(std::make_unique<x>(args)) : throw ExceededMaxArgumentsException(args.size(), x::maxArg)
+#define CREATE_COMMAND_OBJECT(objType) args.size() <= objType::maxArg ? \
+	std::unique_ptr<ICommand>(std::make_unique<objType>(args)) : throw ExceededMaxArgumentsException(args.size(), objType::maxArg)
 
 // pointer to a function that returns an ICommand object from a vector of strings
 using CommandCreatorFunction = std::unique_ptr<ICommand>(*) (std::vector<std::string>);
