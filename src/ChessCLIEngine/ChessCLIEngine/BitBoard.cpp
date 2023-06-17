@@ -274,7 +274,7 @@ u64 BitBoard::calcRookAtkPattern(int square)
 */
 u64 BitBoard::calcQueenAtkPattern(int square)
 {
-    return this->calcBishopAtkPattern(square) | this->calcRookAtkPattern(square);
+    return calcBishopAtkPattern(square) | calcRookAtkPattern(square);
 }
 
 
