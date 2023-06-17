@@ -10,8 +10,8 @@
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
 
-#define GET_BIT(piece, square) ((piece & (1ULL << square)) ? 1 : 0)
-#define SET_BIT(piece, square) (piece |= (1ULL << square))
+#define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
+#define SET_BIT(board, square) (board |= (1ULL << square))
 
 typedef unsigned long long u64;
 
@@ -46,6 +46,7 @@ public:
 	void printPieceBitBoard(int color, int piece);
 
 
+	static u64 calcBishopAtkPattern(int square);
 private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
@@ -57,12 +58,8 @@ private:
 	u64 calcKnightAtkPattern(int square);
 	u64 calcWhitePawnAtkPattern(int square);
 	u64 calcBlackPawnAtkPattern(int square);
-	u64 calcRookAtkPattern(int square);
 	u64 calcQueenAtkPattern(int square);
-	u64 calcBishopAtkPattern(int square);
-
-	static u64 calcSingleRookDirection(u64 board, int direction, bool isLeft);
-	static u64 calcSingleBishopDirection(u64 board, int direction, bool isLeft);
+	u64 calcRookAtkPattern(int square);
 
 };
 

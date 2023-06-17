@@ -140,7 +140,6 @@ u64 BitBoard::calcKingAtkPattern(int square)
 */
 u64 BitBoard::calcKnightAtkPattern(int square)
 {
-    constexpr u64 allSquareMask = 18446744073709551615ULL;
     constexpr u64 abFileMask = 217020518514230019ULL; // Mask for both A and B files
     constexpr u64 hgFileMask = 13889313184910721216ULL; // Mask for both H and G files
     u64 board = 0ULL;
@@ -157,11 +156,11 @@ u64 BitBoard::calcKnightAtkPattern(int square)
     {
         // mask XOR fully set mask = flipping all bits 
         // removing out of bound moves 
-        attack = attack & (hgFileMask ^ allSquareMask);
+        attack = attack & (hgFileMask ^ ULLONG_MAX);
     }
     else if (board & hgFileMask)
     {
-        attack = attack & (abFileMask ^ allSquareMask);
+        attack = attack & (abFileMask ^ ULLONG_MAX);
     }
     return attack;
 }
@@ -209,11 +208,26 @@ u64 BitBoard::calcBishopAtkPattern(int square)
     u64 board = 0ULL;
     SET_BIT(board, square);
     u64 attack = 0ULL;
+    int f = 0, r = 0;
+    int rank = square / 8;
+    int file = square % 8;
 
-    attack |= calcSingleBishopDirection(board, 9, true);
-    attack |= calcSingleBishopDirection(board, 9, false);
-    attack |= calcSingleBishopDirection(board, 7, true);
-    attack |= calcSingleBishopDirection(board, 7, false);
+    // bishop moving shl 9
+    for(r = rank + 1, f = file + 1; r <= 7 && f <= 7; r++, f++)
+    { attack |= (1ULL << ((r * 8) + f)); }
+
+    // bishop moving shr 9
+    for(r = rank + -1, f = file - 1; r >= 0 && f >= 0; r--, f--)
+    { attack |= (1ULL << ((r * 8) + f)); }
+
+    // bishop moving shr 7
+    for(r = rank - 1, f = file + 1; r >= 0 && f <= 7; r--, f++)
+    { attack |= (1ULL << ((r * 8) + f)); }
+
+    // bishop moving shl 7
+    for(r = rank + 1, f = file - 1; r <= 7 && f >= 0; r++, f--)
+    { attack |= (1ULL << ((r * 8) + f)); }
+    
     return attack;
 }
 
@@ -229,10 +243,7 @@ u64 BitBoard::calcRookAtkPattern(int square)
     SET_BIT(board, square);
     u64 attack = 0ULL;
 
-    attack |= calcSingleRookDirection(board, 8, true);
-    attack |= calcSingleRookDirection(board, 8, false);
-    attack |= calcSingleRookDirection(board, 1, true);
-    attack |= calcSingleRookDirection(board, 1, false);
+    
     return attack;
 }
 
@@ -245,47 +256,6 @@ u64 BitBoard::calcRookAtkPattern(int square)
 u64 BitBoard::calcQueenAtkPattern(int square)
 {
     return this->calcBishopAtkPattern(square) | this->calcRookAtkPattern(square);
-}
-
-
-/*
-* Function to calculate a single rook direction
-* input: board (initially with piece location), number of bits to shift, shr|shl
-* output: full rook direction
-*/
-u64 BitBoard::calcSingleRookDirection(u64 board, int direction, bool isLeft)
-{
-    constexpr u64 aFileMask = 72340172838076673ULL; // mask for A file
-    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for H file
-    constexpr u64 eigthRankMask = 255ULL; // mask for eight rank
-    constexpr u64 firstRankMask = 18374686479671623680ULL; // mask for first rank
-    if (!board)
-        return 0ULL;
-    if (board & aFileMask && direction == 1 && !isLeft)
-        return 0ULL;
-    if (board & hFileMask && direction == 1 && isLeft)
-        return 0ULL;
-    if (board & firstRankMask && direction >= 8 && isLeft)
-       return 0ULL; 
-    if (board & eigthRankMask && direction >= 8 && !isLeft)
-        return 0ULL;
-
-    board = isLeft ? board << direction : board >> direction;
-    return calcSingleRookDirection(board, direction, isLeft) | board;
-}
-
-u64 BitBoard::calcSingleBishopDirection(u64 board, int direction, bool isLeft)
-{
-    constexpr u64 aFileMask = 72340172838076673ULL; // mask for A file
-    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for H file
-    constexpr u64 eigthRankMask = 255ULL; // mask for eight rank
-    constexpr u64 firstRankMask = 18374686479671623680ULL; // mask for first rank
-    if (!board)
-        return 0ULL;
-    // TODO: Finish this
-
-    board = isLeft ? board << direction : board >> direction;
-    return calcSingleBishopDirection(board, direction, isLeft) | board;
 }
 
 
