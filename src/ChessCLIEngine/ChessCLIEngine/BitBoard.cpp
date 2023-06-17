@@ -247,25 +247,21 @@ u64 BitBoard::calcRookAtkPattern(int square)
     int rank = square / 8;
     int file = square % 8;
 
+    // rook shl 8
     for (r = rank + 1; r <= 7; r++)
-    {
-        attack |= (1ULL << ((r * 8) + file));
-    }
+    { attack |= (1ULL << ((r * 8) + file)); }
 
+    // rook shr 8
     for (r = rank -1; r >= 0; r--)
-    {
-        attack |= (1ULL << ((r * 8) + file));
-    }
+    { attack |= (1ULL << ((r * 8) + file)); }
 
+    // rook shl 1
     for (f = file + 1; f <= 7; f++)
-    {
-        attack |= (1ULL << ((rank * 8) + f));
-    }
+    { attack |= (1ULL << ((rank * 8) + f)); }
 
+    // rook shr 1
     for (f = file - 1;f >= 0; f--)
-    {
-        attack |= (1ULL << ((rank * 8) + f));
-    }
+    { attack |= (1ULL << ((rank * 8) + f)); }
 
     return attack;
 }
