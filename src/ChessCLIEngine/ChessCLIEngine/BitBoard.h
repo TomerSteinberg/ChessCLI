@@ -49,7 +49,7 @@ public:
 
 private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	AttackDictionary m_attackPatterns;
+	const AttackDictionary m_attackPatterns;
 	u64 getUnifiedBoard();
 
 	//====== Attack Patterns ======//

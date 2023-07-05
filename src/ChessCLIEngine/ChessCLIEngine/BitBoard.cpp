@@ -1,9 +1,8 @@
 #include "BitBoard.h"
 
 // TODO: change parameter change from u64 array to string (FEN string) 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES])
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
-    this->m_attackPatterns = AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]); 
     for (int color = 0; color < SIDES; color++)
     {
         this->m_attackPatterns[color] = std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>(new std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]);
@@ -43,6 +42,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES])
 }
 
 
+// using shallow copy to avoid unnecessary computation 
 BitBoard::BitBoard(BitBoard& other) : m_attackPatterns(other.m_attackPatterns)
 {
     for (int color = 0; color < SIDES; color++)
