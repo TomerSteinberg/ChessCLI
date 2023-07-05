@@ -1,10 +1,10 @@
 #pragma once
-#include "Position.h"
 #include <list>
 #include <string>
+#include "IBoard.h"
 
 
-#define DEFAULT_STARTING_POSITION "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define DEFAULT_STARTING_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 
 class Game
@@ -16,8 +16,8 @@ public:
 
 
 private:
-	std::list<Position*> m_moves;
-	Position* m_currPosition;
+	std::list<IBoard*> m_moves;
+	IBoard* m_currPosition;
 
 
 };

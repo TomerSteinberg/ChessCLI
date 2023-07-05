@@ -1,6 +1,7 @@
 #pragma once
 #include "IBoard.h"
 #include <iostream>
+#include <memory>
 
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
@@ -14,8 +15,9 @@
 #define SET_BIT(board, square) (board |= (1ULL << square))
 
 typedef unsigned long long u64;
+// 3d array of shared pointers in shape of attack dictionary
+typedef std::shared_ptr<std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]> AttackDictionary;
 
-// squares
 enum Squares{
 	a8, b8, c8, d8, e8, f8, g8, h8,
 	a7, b7, c7, d7, e7, f7, g7, h7,
@@ -36,7 +38,7 @@ class BitBoard : public IBoard
 {
 public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
-	BitBoard();
+	BitBoard(BitBoard& other);
 
 	IBoard* move(std::string startPos, std::string endPos);
 	std::string getFEN();
@@ -45,21 +47,21 @@ public:
 	void printBoardUnicode();
 	void printPieceBitBoard(int color, int piece);
 
-
 private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	u64 m_attackPatterns[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
-
+	AttackDictionary m_attackPatterns;
 	u64 getUnifiedBoard();
 
 	//====== Attack Patterns ======//
-	u64 calcWhitePawnAtkPattern(int square);
-	u64 calcBlackPawnAtkPattern(int square);
-	u64 calcKnightAtkPattern(int square);
-	u64 calcRookAtkPattern(int square);
-	u64 calcBishopAtkPattern(int square);
-	u64 calcKingAtkPattern(int square);
-	u64 calcQueenAtkPattern(int square);
+	static u64 calcWhitePawnAtkPattern(int square);
+	static u64 calcBlackPawnAtkPattern(int square);
+	static u64 calcKnightAtkPattern(int square);
+	static u64 calcRookAtkPattern(int square);
+	static u64 calcBishopAtkPattern(int square);
+	static u64 calcKingAtkPattern(int square);
+	static u64 calcQueenAtkPattern(int square);
 
 };
+
+
 

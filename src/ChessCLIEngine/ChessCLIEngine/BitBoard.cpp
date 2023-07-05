@@ -1,30 +1,55 @@
 #include "BitBoard.h"
 
-
+// TODO: change parameter change from u64 array to string (FEN string) 
 BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES])
 {
-    for (int i = 0; i < SIDES; i++)
+    this->m_attackPatterns = AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]); 
+    for (int color = 0; color < SIDES; color++)
     {
-        for (int j = 0; j < NUMBER_OF_PIECES; j++)
+        this->m_attackPatterns[color] = std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>(new std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]);
+        for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            this->m_pieces[i][j] = pieces[i][j];
+            this->m_attackPatterns[color][piece] = std::shared_ptr<u64[NUMBER_OF_SQUARES]>(new u64[NUMBER_OF_SQUARES]);
+            this->m_pieces[color][piece] = pieces[color][piece];
         }
     }
-    // TODO: Calculate piece attack patterns
+
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        u64 attack = 0ULL;
+        this->m_attackPatterns[WHITE][pawn][square] = BitBoard::calcWhitePawnAtkPattern(square);
+        this->m_attackPatterns[BLACK][pawn][square] = BitBoard::calcBlackPawnAtkPattern(square);
+
+        attack = BitBoard::calcKnightAtkPattern(square);
+        this->m_attackPatterns[WHITE][knight][square] = attack;
+        this->m_attackPatterns[BLACK][knight][square] = attack;
+
+        attack = BitBoard::calcBishopAtkPattern(square);
+        this->m_attackPatterns[WHITE][bishop][square] = attack;
+        this->m_attackPatterns[BLACK][bishop][square] = attack;
+
+        attack = BitBoard::calcKingAtkPattern(square);
+        this->m_attackPatterns[WHITE][king][square] = attack;
+        this->m_attackPatterns[BLACK][king][square] = attack;
+
+        attack = BitBoard::calcRookAtkPattern(square);
+        this->m_attackPatterns[WHITE][rook][square] = attack;
+        this->m_attackPatterns[BLACK][rook][square] = attack;
+
+        attack = BitBoard::calcQueenAtkPattern(square);
+        this->m_attackPatterns[WHITE][queen][square] = attack;
+        this->m_attackPatterns[BLACK][queen][square] = attack;
+    }
 }
 
 
-BitBoard::BitBoard()
+BitBoard::BitBoard(BitBoard& other) : m_attackPatterns(other.m_attackPatterns)
 {
-    for (int i = 0; i < SIDES; i++)
+    for (int color = 0; color < SIDES; color++)
     {
-        for (int j = 0; j < NUMBER_OF_PIECES; j++)
+        for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            for (int k = 0; k < NUMBER_OF_SQUARES; k++)
-            {
-                this->m_attackPatterns[i][j][k] = 0ULL;
-            }
-            this->m_pieces[i][j] = 0ULL;
+            this->m_pieces[color][piece] = other.m_pieces[color][piece];
         }
     }
 }
@@ -74,6 +99,7 @@ void BitBoard::printPieceBitBoard(int color, int piece)
     }
     std::cout << "  a b c d e f g h" << std::endl;
 }
+
 
 /*
 * Method to get the unified board defined as a single bitboard that represents 
@@ -177,8 +203,8 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
         return 0ULL;
     }
 
-    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
-    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the  H file
+    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the  A file
 
     u64 board = 0ULL;
     u64 attack = board;
@@ -290,8 +316,8 @@ u64 BitBoard::calcWhitePawnAtkPattern(int square)
         return 0ULL;
     }
     
-    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the entire H file
-    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the entire A file
+    constexpr u64 hFileMask = 9259542123273814144ULL; // mask for the  H file
+    constexpr u64 aFileMask = 72340172838076673ULL; // mask for the  A file
 
     u64 board = 0ULL;
     u64 attack = board;
