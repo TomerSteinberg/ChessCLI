@@ -1,7 +1,8 @@
 #include "BitBoard.h"
 
-// TODO: change parameter change from u64 array to string (FEN string) 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
+
+// TODO: change parameter from u64 array to string (FEN string) 
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES])),  m_currColor(WHITE)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -41,22 +42,36 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(Attac
     }
 }
 
-
-// using shallow copy to avoid unnecessary computation 
-BitBoard::BitBoard(BitBoard& other) : m_attackPatterns(other.m_attackPatterns)
+// Using shallow copy to avoid unnecessary computation 
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, bool color) : m_attackPatterns(attackPatterns), m_currColor(color)
 {
     for (int color = 0; color < SIDES; color++)
     {
         for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            this->m_pieces[color][piece] = other.m_pieces[color][piece];
+            this->m_pieces[color][piece] = pieces[color][piece];
         }
     }
 }
 
 
-IBoard* BitBoard::move(std::string startPos, std::string endPos)
+/*
+* Method for playing a move. Instead of changing the current bitboard it generates a new 
+* bitboard with an updated state
+* input: start and end square of move
+* output: bitboard after move was played
+*/
+BitBoard* BitBoard::move(int startSquare, int endSquare)
 {
+    u64 board = 0ULL;
+    SET_BIT(board, startSquare);
+    u64 currColorBoard = this->m_currColor ? getWhiteOccupancy() : getBlackOccupancy();
+
+    if (!(board & currColorBoard))
+    {
+        throw std::exception(); // TODO: add specific exception
+    }
+
     return nullptr;
 }
 
@@ -79,7 +94,7 @@ void BitBoard::printBoardUnicode()
 
 /*
 * Method for printing a specific bitBoard in the chess board
-* input: Color and piece index of the board
+* input: Color and piece index of the board (int, int)
 * output: None
 */
 void BitBoard::printPieceBitBoard(int color, int piece)
@@ -102,12 +117,12 @@ void BitBoard::printPieceBitBoard(int color, int piece)
 
 
 /*
-* Method to get the unified board defined as a single bitboard that represents 
+* Method to get the occupancy board defined as a single bitboard that represents 
 * the location of all the pieces without distingushing piece type
 * input: None
-* output: a unified bitboard that contains all the pieces (u64) 
+* output: a occupancy bitboard that contains all the pieces (u64) 
 */
-u64 BitBoard::getUnifiedBoard()
+u64 BitBoard::getOccupancy() const
 {
     u64 unifiedBoard = 0ULL;
     for (int i = 0; i < SIDES; i++)
@@ -122,8 +137,57 @@ u64 BitBoard::getUnifiedBoard()
 
 
 /*
+* Method to get the white occupancy board with the location of all white pieces
+* input: None
+* output: a occupancy bitboard that contains all white pieces (u64)
+*/
+u64 BitBoard::getWhiteOccupancy() const
+{
+    u64 unifiedBoard = 0ULL;
+    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    {
+        unifiedBoard |= this->m_pieces[WHITE][i];
+    }
+    return unifiedBoard;
+}
+
+
+/*
+* Method to get the black occupancy board with the location of all black pieces
+* input: None
+* output: a occupancy bitboard that contains all black pieces (u64)
+*/
+u64 BitBoard::getBlackOccupancy() const
+{
+    u64 unifiedBoard = 0ULL;
+    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    {
+        unifiedBoard |= this->m_pieces[BLACK][i];
+    }
+    return unifiedBoard;
+}
+
+
+/*
+* Method for counting the bits in a bitboard
+* input: board to count the bits of (u64)
+* output: number of set bits in input board (int)
+*/
+inline int BitBoard::bitCount(u64 board)
+{
+    int count = 0;
+    while (board)
+    {
+        board &= board - 1;
+        count++;
+    }
+    return count;
+}
+
+
+/*
 * Method for calculating the king attack patterns
-* input: square the king is on
+* input: square the king is on (int)
 * output: king attack pattern (u64)
 */
 u64 BitBoard::calcKingAtkPattern(int square)
@@ -160,7 +224,7 @@ u64 BitBoard::calcKingAtkPattern(int square)
 
 /*
 * Method for calculating the knights attack pattern
-* input: square the knight is on
+* input: square the knight is on (int)
 * output: knight attack pattern (u64)
 */
 u64 BitBoard::calcKnightAtkPattern(int square)
@@ -193,7 +257,7 @@ u64 BitBoard::calcKnightAtkPattern(int square)
 
 /*
 * Method for calculating the black pawn attack patterns
-* input: square the pawn is on
+* input: square the pawn is on (int)
 * output: pawn attack pattern (u64)
 */
 u64 BitBoard::calcBlackPawnAtkPattern(int square)
@@ -225,7 +289,7 @@ u64 BitBoard::calcBlackPawnAtkPattern(int square)
 
 /*
 * Method for calculating the bishop attack pattern
-* input: square the bishop is on
+* input: square the bishop is on (int)
 * output: bishop attack pattern (u64)
 */
 u64 BitBoard::calcBishopAtkPattern(int square)
@@ -260,7 +324,7 @@ u64 BitBoard::calcBishopAtkPattern(int square)
 
 /*
 * Method for calculating the rook attack pattern
-* input: square the rook is on
+* input: square the rook is on (int)
 * output: rook attack pattern (u64)
 */
 u64 BitBoard::calcRookAtkPattern(int square)
@@ -295,7 +359,7 @@ u64 BitBoard::calcRookAtkPattern(int square)
 
 /*
 * Method for calculating the queen attack pattern
-* input: square the queen is on
+* input: square the queen is on (int)
 * output: queen attack pattern (u64)
 */
 u64 BitBoard::calcQueenAtkPattern(int square)
@@ -306,7 +370,7 @@ u64 BitBoard::calcQueenAtkPattern(int square)
 
 /*
 * Method for calculating the white pawn attack pattern
-* input: square the pawn is on
+* input: square the pawn is on (int)
 * output: pawn attack pattern (u64)
 */
 u64 BitBoard::calcWhitePawnAtkPattern(int square)

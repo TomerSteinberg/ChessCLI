@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -143,7 +143,6 @@
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="IBoard.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
@@ -159,7 +158,6 @@
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="IBoard.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />

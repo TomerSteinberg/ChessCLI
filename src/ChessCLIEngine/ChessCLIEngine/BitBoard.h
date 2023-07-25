@@ -1,5 +1,4 @@
 #pragma once
-#include "IBoard.h"
 #include <iostream>
 #include <memory>
 
@@ -34,13 +33,13 @@ enum Pieces {
 	pawn, knight, bishop, rook, queen, king
 };
 
-class BitBoard : public IBoard
+class BitBoard
 {
 public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
-	BitBoard(BitBoard& other);
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, bool color);
 
-	IBoard* move(std::string startPos, std::string endPos);
+	BitBoard* move(int startSquare, int endSquare);
 	std::string getFEN();
 
 	void printBoard();
@@ -48,9 +47,16 @@ public:
 	void printPieceBitBoard(int color, int piece);
 
 private:
+	const bool m_currColor;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
-	u64 getUnifiedBoard();
+
+	
+	u64 getOccupancy() const;
+	u64 getWhiteOccupancy() const; 
+	u64 getBlackOccupancy() const; 
+	
+	static inline int bitCount(u64 board);
 
 	//====== Attack Patterns ======//
 	static u64 calcWhitePawnAtkPattern(int square);
