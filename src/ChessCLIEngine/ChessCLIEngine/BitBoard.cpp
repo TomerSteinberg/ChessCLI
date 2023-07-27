@@ -2,8 +2,11 @@
 
 
 // TODO: change parameter from u64 array to string (FEN string) 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES])),  m_currColor(WHITE)
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
+    // side flag | w castle flag | wl castle flag|b castle flag| bl castle flag | en passant flag 
+    this->m_moveFlags = 0b11111;
+
     for (int color = 0; color < SIDES; color++)
     {
         this->m_attackPatterns[color] = std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>(new std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]);
@@ -43,7 +46,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(Attac
 }
 
 // Using shallow copy to avoid unnecessary computation 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, bool color) : m_attackPatterns(attackPatterns), m_currColor(color)
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, uint8_t flags) : m_attackPatterns(attackPatterns), m_moveFlags(flags)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -61,19 +64,26 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attack
 * input: start and end square of move
 * output: bitboard after move was played
 */
-BitBoard* BitBoard::move(int startSquare, int endSquare)
+std::unique_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
 {
+    int piece = 0;
+    bool color = this->m_moveFlags & 0b1;
     u64 board = 0ULL;
-    SET_BIT(board, startSquare);
-    u64 currColorBoard = this->m_currColor ? getWhiteOccupancy() : getBlackOccupancy();
 
+    SET_BIT(board, startSquare);
+    u64 currColorBoard = color ? getWhiteOccupancy() : getBlackOccupancy();
+    
     if (!(board & currColorBoard))
     {
-        throw std::exception(); // TODO: add specific exception
+        throw MissingPieceException(startSquare, color);
     }
+    piece = getPieceMoved(startSquare, color);
+
+
 
     return nullptr;
 }
+
 
 std::string BitBoard::getFEN()
 {
@@ -115,6 +125,28 @@ void BitBoard::printPieceBitBoard(int color, int piece)
     std::cout << "  a b c d e f g h" << std::endl;
 }
 
+
+/*
+* Helper function for finding which piece is on the given square
+* input: square a piece is on
+* output: piece identifier value (int)
+*/
+int BitBoard::getPieceMoved(int square, bool color)
+{
+    u64 board = 0ULL;
+    SET_BIT(board, square);
+    int piece = 0;
+
+    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    {
+        if (board & this->m_pieces[color][i])
+        {
+            piece = i;
+            break;
+        }
+    }
+    return piece;
+}
 
 /*
 * Method to get the occupancy board defined as a single bitboard that represents 

@@ -15,8 +15,8 @@ public:
 
 
 private:
-	std::list<BitBoard*> m_moves;
-	BitBoard* m_currPosition;
+	std::list<std::shared_ptr<BitBoard>> m_moves;
+	std::shared_ptr<BitBoard> m_currPosition;
 
 
 };

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <memory>
 
+#include "MissingPieceException.h"
+
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
 #define BLACK 0
@@ -37,9 +39,9 @@ class BitBoard
 {
 public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, bool color);
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, uint8_t flags);
 
-	BitBoard* move(int startSquare, int endSquare);
+	std::unique_ptr<BitBoard> move(int startSquare, int endSquare);
 	std::string getFEN();
 
 	void printBoard();
@@ -47,11 +49,12 @@ public:
 	void printPieceBitBoard(int color, int piece);
 
 private:
-	const bool m_currColor;
+	uint8_t m_moveFlags;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
 
-	
+	int getPieceMoved(int square, bool color);
+
 	u64 getOccupancy() const;
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
