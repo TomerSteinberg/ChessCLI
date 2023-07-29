@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "MissingPieceException.h"
+#include "IllegalMoveException.h"
 
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
@@ -18,6 +19,7 @@
 typedef unsigned long long u64;
 // 3d array of shared pointers in shape of attack dictionary
 typedef std::shared_ptr<std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]> AttackDictionary;
+
 
 enum Squares{
 	a8, b8, c8, d8, e8, f8, g8, h8,
@@ -53,11 +55,19 @@ private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
 
-	int getPieceMoved(int square, bool color);
+	int getPieceType(int square, bool color);
+	int getLsbIndex(u64 board);
+
+	bool isCheck();
 
 	u64 getOccupancy() const;
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
+	u64 getAttackSqrs(const bool side);
+
+	u64 removeBishopBlockedAtk(int square, u64 atk);
+	u64 removeRookBlockedAtk(int square, u64 atk);
+	u64 removeQueenBlockedAtk(int square, u64 atk);
 	
 	static inline int bitCount(u64 board);
 

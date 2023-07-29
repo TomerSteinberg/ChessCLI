@@ -68,16 +68,24 @@ std::unique_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
 {
     int piece = 0;
     bool color = this->m_moveFlags & 0b1;
-    u64 board = 0ULL;
+    u64 startPos = 0ULL;
+    u64 endPos = 0ULL;
 
-    SET_BIT(board, startSquare);
+    SET_BIT(startPos, startSquare);
+    SET_BIT(endPos, endSquare);
     u64 currColorBoard = color ? getWhiteOccupancy() : getBlackOccupancy();
     
-    if (!(board & currColorBoard))
+    if (!(startPos & currColorBoard))
     {
         throw MissingPieceException(startSquare, color);
     }
-    piece = getPieceMoved(startSquare, color);
+    piece = getPieceType(startSquare, color);
+
+    if (!(this->m_attackPatterns[color][piece][startSquare] & endPos))
+    {
+        throw IllegalMoveException();
+    }
+
 
 
 
@@ -127,11 +135,11 @@ void BitBoard::printPieceBitBoard(int color, int piece)
 
 
 /*
-* Helper function for finding which piece is on the given square
+* Method for finding which piece is on the given square
 * input: square a piece is on
 * output: piece identifier value (int)
 */
-int BitBoard::getPieceMoved(int square, bool color)
+int BitBoard::getPieceType(int square, bool color)
 {
     u64 board = 0ULL;
     SET_BIT(board, square);
@@ -146,6 +154,34 @@ int BitBoard::getPieceMoved(int square, bool color)
         }
     }
     return piece;
+}
+
+
+/*
+* Method for getting the index of the least significant bit (LSB) in a given
+* bitboard
+* input: bitboard (u64)
+* output: index of LSB in given board
+*/
+int BitBoard::getLsbIndex(u64 board)
+{
+    if (!board)
+    {
+        return -1;
+    }
+    return this->bitCount((board & -board) - 1);
+}
+
+
+/*
+* Method for checking if the king is in check
+* input: None
+* output: true if the king is in check, false otherwise.
+*/
+bool BitBoard::isCheck()
+{
+    bool color = this->m_moveFlags & 0b1;
+    return this->m_pieces[color][king] & this->getAttackSqrs(color);
 }
 
 /*
@@ -197,6 +233,166 @@ u64 BitBoard::getBlackOccupancy() const
         unifiedBoard |= this->m_pieces[BLACK][i];
     }
     return unifiedBoard;
+}
+
+/*
+* Method for getting all the attacked squares of a given side on the board
+* input: side (white|black) (bool)
+* output: bitboard of all attacked squares (u64)
+*/
+u64 BitBoard::getAttackSqrs(const bool side)
+{
+    u64 attack = 0ULL;
+    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    {
+        u64 board = this->m_pieces[side][i];
+        while (board)
+        {
+            int index = getLsbIndex(board);
+            u64 pattern = this->m_attackPatterns[side][i][index];
+            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern); }
+            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern); }
+            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern); }
+
+            attack |= pattern;
+            board &= board - 1;
+        }
+    }
+    return attack;
+}
+
+
+/*
+* Method for removing blocked attack squares from a bishop attack pattern
+* input: piece square and attack pattern
+* output: attack pattern without blocked squares
+*/
+u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk)
+{
+    int f = 0, r = 0;
+    int rank = square / 8;
+    int file = square % 8;
+    bool isBlocked = false;
+    u64 occupied = this->getOccupancy();
+
+    // bishop moving shl 9
+    for (r = rank + 1, f = file + 1, isBlocked = false; r <= 7 && f <= 7; r++, f++)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + f)) & occupied;
+    }
+
+    // bishop moving shr 9
+    for (r = rank + -1, f = file - 1, isBlocked = false; r >= 0 && f >= 0; r--, f--)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + f)) & occupied;
+    }
+
+    // bishop moving shr 7
+    for (r = rank - 1, f = file + 1, isBlocked = false; r >= 0 && f <= 7; r--, f++)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + f)) & occupied;
+    }
+
+    // bishop moving shl 7
+    for (r = rank + 1, f = file - 1, isBlocked = false; r <= 7 && f >= 0; r++, f--)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + f)) & occupied;
+    }
+
+    return atk;
+}
+
+
+/*
+* Method for removing blocked attack squares from a rook attack pattern
+* input: piece square and attack pattern
+* output: attack pattern without blocked squares
+*/
+u64 BitBoard::removeRookBlockedAtk(int square, u64 atk)
+{
+    int f = 0, r = 0;
+    int rank = square / 8;
+    int file = square % 8;
+    bool isBlocked = false;
+    u64 occupied = this->getOccupancy();
+
+    // rook shl 8
+    for (r = rank + 1, isBlocked = false; r <= 7; r++)
+    {
+        if(isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + file));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + file)) & occupied;
+
+    }
+
+    // rook shr 8
+    for (r = rank - 1, isBlocked = false; r >= 0; r--)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((r * 8) + file));
+            continue;
+        }
+        isBlocked = (1ULL << ((r * 8) + file)) & occupied;
+    }
+
+    // rook shl 1
+    for (f = file + 1, isBlocked = false; f <= 7; f++)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((rank * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((rank * 8) + f)) & occupied;
+    }
+
+    // rook shr 1
+    for (f = file - 1, isBlocked = false; f >= 0; f--)
+    {
+        if (isBlocked)
+        {
+            atk ^= (1ULL << ((rank * 8) + f));
+            continue;
+        }
+        isBlocked = (1ULL << ((rank * 8) + f)) & occupied;
+    }
+
+    return atk;
+}
+
+
+/*
+* Method for removing blocked attack squares from a queen attack pattern
+* input: piece square and attack pattern
+* output: attack pattern without blocked squares
+*/
+u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk)
+{
+    return this->removeBishopBlockedAtk(square, atk) | this->removeRookBlockedAtk(square, atk);
 }
 
 

@@ -85,7 +85,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
@@ -141,6 +141,8 @@
   <ItemGroup>
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="IllegalMoveException.cpp" />
+    <ClCompile Include="MissingPieceException.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
@@ -156,6 +158,8 @@
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="IllegalMoveException.h" />
+    <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="QuitCommand.h" />

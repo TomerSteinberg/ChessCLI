@@ -48,13 +48,16 @@
     <ClCompile Include="ExceededMaxArgumentsException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IBoard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="BitBoard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MissingPieceException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IllegalMoveException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,13 +92,16 @@
     <ClInclude Include="ExceededMaxArgumentsException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IBoard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="BitBoard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MissingPieceException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IllegalMoveException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

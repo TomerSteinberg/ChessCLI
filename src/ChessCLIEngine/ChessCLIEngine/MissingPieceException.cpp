@@ -3,7 +3,7 @@
 MissingPieceException::MissingPieceException(int square, bool color)
 {
     std::string side = color ? "white" : "black";
-    this->errMsg = "Illegal move: There is no " + side + " piece on " + std::to_string(square);
+    this->errMsg = "Illegal move: There is no " + side + " piece on " + std::to_string(square) + "\n";
 }
 
 const char* MissingPieceException::what() const noexcept
