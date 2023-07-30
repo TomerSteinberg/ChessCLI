@@ -4,8 +4,8 @@
 // TODO: change parameter from u64 array to string (FEN string) 
 BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
-    // side flag | w castle flag | wl castle flag|b castle flag| bl castle flag | en passant flag 
-    this->m_moveFlags = 0b11111;
+    // side flag | w castle flag | wl castle flag|b castle flag| bl castle flag | en passant flag | checkmate flag
+    this->m_moveFlags = 0b111110;
 
     for (int color = 0; color < SIDES; color++)
     {
@@ -46,7 +46,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(Attac
 }
 
 // Using shallow copy to avoid unnecessary computation 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, uint8_t flags) : m_attackPatterns(attackPatterns), m_moveFlags(flags)
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags) : m_attackPatterns(attackPatterns), m_moveFlags(flags)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -64,32 +64,51 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attack
 * input: start and end square of move
 * output: bitboard after move was played
 */
-std::unique_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
+std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
 {
+    std::shared_ptr<BitBoard> afterMove = nullptr;
+    int target = -1;
     int piece = 0;
     bool color = this->m_moveFlags & 0b1;
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
+    u64 pieceAtkPtrn = 0ULL;
+    u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
+    uint8_t nextFlags = this->m_moveFlags;
 
+    this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
     u64 currColorBoard = color ? getWhiteOccupancy() : getBlackOccupancy();
-    
-    if (!(startPos & currColorBoard))
-    {
-        throw MissingPieceException(startSquare, color);
-    }
+    u64 fullOccupancy = this->getOccupancy();
+
+    if (!(startPos & currColorBoard)) { throw MissingPieceException(startSquare, color); }
+    if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
+
     piece = getPieceType(startSquare, color);
+    pieceAtkPtrn = this->m_attackPatterns[color][piece][startSquare];
+    if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn); }
+    if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn); }
+    if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn); }
 
-    if (!(this->m_attackPatterns[color][piece][startSquare] & endPos))
+    if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
+
+    if (endPos & fullOccupancy)
     {
-        throw IllegalMoveException();
+        target = this->getPieceType(endSquare, !color);
     }
+    
+    SET_BIT(nextPosition[color][piece], endSquare);
+    POP_BIT(nextPosition[color][piece], startSquare);
+    if (target != -1) { POP_BIT(nextPosition[!color][target], endSquare); } // removing captured piece
 
+    nextFlags ^= 0b1; // changing color
+    afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags);
 
+    if(this->isCheck(color) && afterMove->isCheck(color)) {   throw IllegalMoveException("You're in check"); }
+    if (afterMove->isCheck(color)) {   throw IllegalMoveException("You can't move into check"); }
 
-
-    return nullptr;
+    return afterMove;
 }
 
 
@@ -143,7 +162,7 @@ int BitBoard::getPieceType(int square, bool color)
 {
     u64 board = 0ULL;
     SET_BIT(board, square);
-    int piece = 0;
+    int piece = -1;
 
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
     {
@@ -178,9 +197,8 @@ int BitBoard::getLsbIndex(u64 board)
 * input: None
 * output: true if the king is in check, false otherwise.
 */
-bool BitBoard::isCheck()
+bool BitBoard::isCheck(bool color)
 {
-    bool color = this->m_moveFlags & 0b1;
     return this->m_pieces[color][king] & this->getAttackSqrs(color);
 }
 
@@ -393,6 +411,23 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 atk)
 u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk)
 {
     return this->removeBishopBlockedAtk(square, atk) | this->removeRookBlockedAtk(square, atk);
+}
+
+
+/*
+* Method for copying the current state of the board
+* input: array of bitboards to copy into
+* output: None
+*/
+void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES])
+{
+    for (int i = 0; i < SIDES; i++)
+    {
+        for (int j = 0; j < NUMBER_OF_PIECES; j++)
+        {
+            pieces[i][j] = this->m_pieces[i][j];
+        }
+    }
 }
 
 

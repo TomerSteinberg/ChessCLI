@@ -15,11 +15,11 @@
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
+#define POP_BIT(board, square) (GET_BIT(board, square) ? board ^= (1ULL << square) : 0)
 
 typedef unsigned long long u64;
 // 3d array of shared pointers in shape of attack dictionary
 typedef std::shared_ptr<std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]> AttackDictionary;
-
 
 enum Squares{
 	a8, b8, c8, d8, e8, f8, g8, h8,
@@ -41,11 +41,12 @@ class BitBoard
 {
 public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], AttackDictionary& attackPatterns, uint8_t flags);
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags);
 
-	std::unique_ptr<BitBoard> move(int startSquare, int endSquare);
+	std::shared_ptr<BitBoard> move(int startSquare, int endSquare);
 	std::string getFEN();
 
+	bool isCheck(bool color);
 	void printBoard();
 	void printBoardUnicode();
 	void printPieceBitBoard(int color, int piece);
@@ -57,9 +58,8 @@ private:
 
 	int getPieceType(int square, bool color);
 	int getLsbIndex(u64 board);
-
-	bool isCheck();
-
+	static inline int bitCount(u64 board);
+	
 	u64 getOccupancy() const;
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
@@ -69,7 +69,7 @@ private:
 	u64 removeRookBlockedAtk(int square, u64 atk);
 	u64 removeQueenBlockedAtk(int square, u64 atk);
 	
-	static inline int bitCount(u64 board);
+	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 
 	//====== Attack Patterns ======//
 	static u64 calcWhitePawnAtkPattern(int square);
