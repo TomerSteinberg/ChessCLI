@@ -64,23 +64,28 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * input: start and end square of move
 * output: bitboard after move was played
 */
-std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
+std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION)
 {
     std::shared_ptr<BitBoard> afterMove = nullptr;
-    int target = -1;
+    int target = NO_CAPTURE;
     int piece = 0;
-    bool color = this->m_moveFlags & 0b1;
+    const bool color = this->m_moveFlags & 0b1;
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
     u64 pieceAtkPtrn = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
+    const u64 promotionMask = this->getPromotionMask();
+
+    if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
+    { throw InvalidPromotionException(); }
 
     this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
     u64 currColorBoard = color ? getWhiteOccupancy() : getBlackOccupancy();
     u64 fullOccupancy = this->getOccupancy();
+    u64 oppositeColorBoard = currColorBoard ^ fullOccupancy;
 
     if (!(startPos & currColorBoard)) { throw MissingPieceException(startSquare, color); }
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
@@ -88,8 +93,19 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
     piece = getPieceType(startSquare, color);
     pieceAtkPtrn = this->m_attackPatterns[color][piece][startSquare];
     if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn); }
-    if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn); }
-    if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn); }
+    else if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn); }
+    else if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn); }
+    else if (piece == pawn)
+    {
+        u64 pawnMovement = this->getPawnMovementPattern(startSquare);
+        if(pawnMovement & endPos && !(pawnMovement & fullOccupancy))
+        {
+            throw IllegalMoveException();
+        }
+        pieceAtkPtrn &= oppositeColorBoard;
+        pieceAtkPtrn |= pawnMovement;
+
+    }
 
     if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
 
@@ -98,9 +114,9 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare)
         target = this->getPieceType(endSquare, !color);
     }
     
-    SET_BIT(nextPosition[color][piece], endSquare);
+    SET_BIT(nextPosition[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
     POP_BIT(nextPosition[color][piece], startSquare);
-    if (target != -1) { POP_BIT(nextPosition[!color][target], endSquare); } // removing captured piece
+    if (target != NO_CAPTURE) { POP_BIT(nextPosition[!color][target], endSquare); } // removing captured piece
 
     nextFlags ^= 0b1; // changing color
     afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags);
@@ -199,7 +215,7 @@ int BitBoard::getLsbIndex(u64 board)
 */
 bool BitBoard::isCheck(bool color)
 {
-    return this->m_pieces[color][king] & this->getAttackSqrs(color);
+    return this->m_pieces[color][king] & this->getAttackSqrs(!color);
 }
 
 /*
@@ -277,6 +293,17 @@ u64 BitBoard::getAttackSqrs(const bool side)
         }
     }
     return attack;
+}
+
+/*
+* Method that gives the appropriate promotion mask depending on the current
+* color turn
+* input: None
+* output: Promotion rank mask (u64)
+*/
+u64 BitBoard::getPromotionMask()
+{
+    return this->m_moveFlags & 0b1 ? 255ULL : 18374686479671623680ULL;
 }
 
 
@@ -411,6 +438,34 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 atk)
 u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk)
 {
     return this->removeBishopBlockedAtk(square, atk) | this->removeRookBlockedAtk(square, atk);
+}
+
+
+/*
+* Method for getting the movement pattern of a pawn based on the color 
+* and square the pawn is on
+* input: square the pawn is on
+* output: movement pattern seperate to the attack pattern (u64)
+*/
+u64 BitBoard::getPawnMovementPattern(int square)
+{
+    constexpr u64 doubleJumpMask = 71776119061282560ULL;
+    u64 ptrn = 0ULL;
+    u64 movement = 0ULL;
+    SET_BIT(ptrn, square);
+    bool color = this->m_moveFlags & 0b1;
+    bool isDoubleJump = ptrn & doubleJumpMask;
+    u64 occupancy = this->getOccupancy();
+    u64 temp = ptrn;
+
+    for (int i = 0; i < 1 + isDoubleJump; i++)
+    {
+        temp |= color ? ptrn >> 8 : ptrn << 8;
+        if (temp & occupancy) { break;  }
+        movement |= color ? ptrn >> 8 : ptrn << 8;
+    }
+
+    return movement;
 }
 
 

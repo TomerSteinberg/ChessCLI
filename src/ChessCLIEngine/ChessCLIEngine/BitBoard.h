@@ -4,7 +4,10 @@
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
+#include "InvalidPromotionException.h"
 
+#define NO_CAPTURE -1
+#define NO_PROMOTION -1
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
 #define BLACK 0
@@ -43,7 +46,7 @@ public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags);
 
-	std::shared_ptr<BitBoard> move(int startSquare, int endSquare);
+	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION);
 	std::string getFEN();
 
 	bool isCheck(bool color);
@@ -64,10 +67,12 @@ private:
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
 	u64 getAttackSqrs(const bool side);
+	u64 getPromotionMask();
 
 	u64 removeBishopBlockedAtk(int square, u64 atk);
 	u64 removeRookBlockedAtk(int square, u64 atk);
 	u64 removeQueenBlockedAtk(int square, u64 atk);
+	u64 getPawnMovementPattern(int square);
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 
