@@ -1,10 +1,12 @@
 #pragma once
 #include <iostream>
+#include <vector>
 #include <memory>
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
 #include "InvalidPromotionException.h"
+#include "GameOverException.h"
 
 #define NO_CAPTURE -1
 #define NO_PROMOTION -1
@@ -50,14 +52,30 @@ public:
 	std::string getFEN();
 
 	bool isCheck(bool color);
+	bool isMate();
+	bool isStale();
+
 	void printBoard();
 	void printBoardUnicode();
 	void printPieceBitBoard(int color, int piece);
 
 private:
+
+	/* Move flags:
+	* LSB - Side flag
+	* White castle
+	* White long castle
+	* Black castle
+	* Black long castle
+	* En passant
+	* Checkmate
+	* MSB - Stalemate
+	*/
 	uint8_t m_moveFlags;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
+
+	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false);
 
 	int getPieceType(int square, bool color);
 	int getLsbIndex(u64 board);
@@ -72,6 +90,7 @@ private:
 	u64 removeBishopBlockedAtk(int square, u64 atk);
 	u64 removeRookBlockedAtk(int square, u64 atk);
 	u64 removeQueenBlockedAtk(int square, u64 atk);
+	u64 removePawnIllegalAtk(u64 atk);
 	u64 getPawnMovementPattern(int square);
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);

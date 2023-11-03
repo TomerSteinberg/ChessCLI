@@ -141,7 +141,9 @@
   <ItemGroup>
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="GameOverException.cpp" />
     <ClCompile Include="IllegalMoveException.cpp" />
+    <ClCompile Include="InvalidPromotionException.cpp" />
     <ClCompile Include="MissingPieceException.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
@@ -158,7 +160,9 @@
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="GameOverException.h" />
     <ClInclude Include="IllegalMoveException.h" />
+    <ClInclude Include="InvalidPromotionException.h" />
     <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />

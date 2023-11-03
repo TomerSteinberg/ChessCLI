@@ -35,18 +35,18 @@ int main(int argc, char** argv)
 #include "BitBoard.h"
 #include <iostream>
 	
-	// for debugging and testing bitboard
+// for debugging and testing bitboard
 
-	int main(int argc, char** argv)
+int main(int argc, char** argv)
+{
+	for (int i = 0; i < BOARD_WIDTH; i++)
 	{
-		for (int i = 0; i < BOARD_WIDTH; i++)
+		for (int j = 0; j < BOARD_HEIGHT; j++)
 		{
-			for (int j = 0; j < BOARD_HEIGHT; j++)
-			{
-			}
-			std::cout << "\n";
 		}
-		return 0;
+		std::cout << "\n";
 	}
+	return 0;
+}
 
 #endif
