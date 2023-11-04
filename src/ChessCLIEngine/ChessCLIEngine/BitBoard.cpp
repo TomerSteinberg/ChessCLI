@@ -4,7 +4,6 @@
 // TODO: change parameter from u64 array to string (FEN string) 
 BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
-    // side flag | w castle flag | wl castle flag|b castle flag| bl castle flag | en passant flag | checkmate flag | stalemate flag
     this->m_moveFlags = 0b1111100;
 
     for (int color = 0; color < SIDES; color++)
@@ -134,14 +133,65 @@ std::string BitBoard::getFEN()
 }
 
 
+/*
+* Method for printing a Chess board with letters indication pieces and . indicating empty square
+* Input: None
+* Output: None
+*/
 void BitBoard::printBoard()
 {
-
+    std::unordered_map<int, char> printMap = { {-1, '.'},{pawn, 'p'}, {knight, 'n'},
+        {bishop, 'b'}, {rook, 'r'}, {queen, 'q'}, {king, 'k'}};
+    int piece = -1;
+    char printPiece;
+    for (int i = 0; i < BOARD_WIDTH; i++)
+    {
+        std::cout << BOARD_HEIGHT - i << " ";
+        for (int j = 0; j < BOARD_HEIGHT; j++)
+        {
+            piece = this->getPieceType((i * 8) + j, WHITE);
+            printPiece = printMap[piece];
+            if (piece == -1) 
+            {
+                piece = this->getPieceType((i * 8) + j, BLACK); 
+                if (piece != -1) { printPiece = printMap[piece] - 32; }
+            }
+            std::cout << printPiece << " ";
+        }
+        std::cout << "\n";
+    }
+    std::cout << "  a b c d e f g h" << std::endl;
 }
 
 
+/*
+* Method for printing a Chess board with unicode pieces and . indicating empty square
+* Input: None
+* Output: None
+*/
 void BitBoard::printBoardUnicode()
 {
+    std::unordered_map<int, char> printMap = { {-1, '.'},{pawn, 'p'}, {knight, 'n'},
+        {bishop, 'b'}, {rook, 'r'}, {queen, 'q'}, {king, 'k'} };
+    int piece = -1;
+    char printPiece;
+    for (int i = 0; i < BOARD_WIDTH; i++)
+    {
+        std::cout << BOARD_HEIGHT - i << " ";
+        for (int j = 0; j < BOARD_HEIGHT; j++)
+        {
+            piece = this->getPieceType((i * 8) + j, WHITE);
+            printPiece = printMap[piece];
+            if (piece == -1)
+            {
+                piece = this->getPieceType((i * 8) + j, BLACK);
+                if (piece != -1) { printPiece = printMap[piece] - 32; }
+            }
+            std::cout << printPiece << " ";
+        }
+        std::cout << "\n";
+    }
+    std::cout << "  a b c d e f g h" << std::endl;
 }
 
 
@@ -258,7 +308,7 @@ bool BitBoard::isCheck(bool color)
 bool BitBoard::isMate()
 {
 
-    return false // will implement later
+    return false; // will implement later
 
 
     /*bool color = this->m_moveFlags & 0b1;
