@@ -134,60 +134,37 @@ std::string BitBoard::getFEN()
 
 
 /*
-* Method for printing a Chess board with letters indication pieces and . indicating empty square
-* Input: None
+* Method for printing a Chess board with either letters or unicode characters
+* Input: isUnicode - flag for which printing type
 * Output: None
 */
-void BitBoard::printBoard()
+void BitBoard::printBoard(bool isUnicode=false)
 {
-    std::unordered_map<int, char> printMap = { {-1, '.'},{pawn, 'p'}, {knight, 'n'},
-        {bishop, 'b'}, {rook, 'r'}, {queen, 'q'}, {king, 'k'}};
+    std::unordered_map<int, std::vector<char>> printMap = { 
+        {-1, {'.'}}, // empty square
+        {pawn, {'p', 'P', '\u2659', '\u265F'}},
+        {knight, {'n', 'N', '\u2658', '\u265E'}},
+        {bishop, {'b', 'B', '\u2657', '\u265D'}},
+        {rook, {'r', 'R', '\u2656', '\u265C'}},
+        {queen, {'q', 'Q', '\u2655', '\u265B'}},
+        {king, {'k', 'K', '\u2654', '\u265A'}}
+    };
+
     int piece = -1;
-    char printPiece;
     for (int i = 0; i < BOARD_WIDTH; i++)
     {
         std::cout << BOARD_HEIGHT - i << " ";
         for (int j = 0; j < BOARD_HEIGHT; j++)
         {
+            int printType = isUnicode ? 2 : 0;
             piece = this->getPieceType((i * 8) + j, WHITE);
-            printPiece = printMap[piece];
             if (piece == -1) 
             {
                 piece = this->getPieceType((i * 8) + j, BLACK); 
-                if (piece != -1) { printPiece = printMap[piece] - 32; }
+                if (piece != -1) { printType += 1; }
+                else { printType = 0; }
             }
-            std::cout << printPiece << " ";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "  a b c d e f g h" << std::endl;
-}
-
-
-/*
-* Method for printing a Chess board with unicode pieces and . indicating empty square
-* Input: None
-* Output: None
-*/
-void BitBoard::printBoardUnicode()
-{
-    std::unordered_map<int, char> printMap = { {-1, '.'},{pawn, 'p'}, {knight, 'n'},
-        {bishop, 'b'}, {rook, 'r'}, {queen, 'q'}, {king, 'k'} };
-    int piece = -1;
-    char printPiece;
-    for (int i = 0; i < BOARD_WIDTH; i++)
-    {
-        std::cout << BOARD_HEIGHT - i << " ";
-        for (int j = 0; j < BOARD_HEIGHT; j++)
-        {
-            piece = this->getPieceType((i * 8) + j, WHITE);
-            printPiece = printMap[piece];
-            if (piece == -1)
-            {
-                piece = this->getPieceType((i * 8) + j, BLACK);
-                if (piece != -1) { printPiece = printMap[piece] - 32; }
-            }
-            std::cout << printPiece << " ";
+            std::cout << printMap[piece][printType] << " ";
         }
         std::cout << "\n";
     }
