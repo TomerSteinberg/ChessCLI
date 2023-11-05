@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INVALID_PROMOTION_EXCEPTION_H
+#define INVALID_PROMOTION_EXCEPTION_H
+
 #include <exception>
 #include <string>
 
@@ -11,3 +13,4 @@ private:
     std::string errMsg;
 };
 
+#endif

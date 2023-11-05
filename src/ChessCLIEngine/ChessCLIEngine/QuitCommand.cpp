@@ -5,7 +5,7 @@ QuitCommand::QuitCommand(std::vector<std::string> args) : ICommand(args)
 }
 
 
-int QuitCommand::maxArg = 0;
+unsigned int QuitCommand::maxArg = 0;
 
 
 /*

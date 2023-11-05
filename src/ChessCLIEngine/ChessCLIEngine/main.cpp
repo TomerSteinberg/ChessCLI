@@ -34,18 +34,16 @@ int main(int argc, char** argv)
 #else
 #include "BitBoard.h"
 #include <iostream>
-	
+#include <io.h>
+#include <fcntl.h>
+
+
 // for debugging and testing bitboard
 
 int main(int argc, char** argv)
 {
-	for (int i = 0; i < BOARD_WIDTH; i++)
-	{
-		for (int j = 0; j < BOARD_HEIGHT; j++)
-		{
-		}
-		std::cout << "\n";
-	}
+	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	test.printBoard(true);
 	return 0;
 }
 

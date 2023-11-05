@@ -1,7 +1,9 @@
+#ifndef ILLEGAL_MOVE_EXCEPTION_H
+#define ILLEGAL_MOVE_EXCEPTION_H
+
 #include <exception>
 #include <iostream>
 #include <string>
-#pragma once
 
 class IllegalMoveException : public std::exception
 {
@@ -12,4 +14,6 @@ public:
 private:
     std::string errMsg;
 };
+
+#endif
 

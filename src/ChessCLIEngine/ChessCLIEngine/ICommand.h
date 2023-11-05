@@ -1,8 +1,11 @@
+#ifndef ICOMMAND_H
+#define ICOMMAND_H
+#pragma once
+
 #include "Context.h"
 #include <vector>
 #include <string>
 
-#pragma once
 
 class ICommand
 {
@@ -15,3 +18,4 @@ protected:
 
 };
 
+#endif

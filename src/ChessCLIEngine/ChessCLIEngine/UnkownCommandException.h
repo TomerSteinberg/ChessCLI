@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UNKOWN_COMMAND_EXCEPTION_H
+#define UNKOWN_COMMAND_EXCEPTION_H
+
 #include <exception>
 #include <string>
 
@@ -11,3 +13,4 @@ private:
     std::string errMsg;
 };
 
+#endif

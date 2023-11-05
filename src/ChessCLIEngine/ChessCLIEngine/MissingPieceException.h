@@ -1,7 +1,10 @@
+#ifndef MISSING_PIECE_EXCEPTION_H
+#define MISSING_PIECE_EXCEPTION_H
+
 #include <exception>
 #include <iostream>
 #include <string>
-#pragma once
+
 
 class MissingPieceException : public std::exception
 {
@@ -12,3 +15,4 @@ private:
     std::string errMsg;
 };
 
+#endif

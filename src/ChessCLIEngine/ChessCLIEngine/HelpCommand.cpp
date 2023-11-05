@@ -5,14 +5,14 @@ HelpCommand::HelpCommand(std::vector<std::string> args) : ICommand(args)
 {
 }
 
-int HelpCommand::maxArg = 0;
+unsigned int HelpCommand::maxArg = 0;
 
 /*
 * Help command execute for printing the Help menu
 * input: application state context
 * output: none
 */
-void HelpCommand::execute(Context& ctx)
+void HelpCommand::execute(Context& ctx) // Update this to a file print for better maintainability 
 {
 	std::cout 
 		<< "\nhelp - List of commands\n" 

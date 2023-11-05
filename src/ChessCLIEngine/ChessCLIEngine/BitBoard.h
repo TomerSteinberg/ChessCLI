@@ -1,8 +1,11 @@
-#pragma once
+#ifndef BITBOARD_H
+#define BITBOARD_H
+
 #include <iostream>
 #include <vector>
 #include <memory>
 #include <unordered_map>
+
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
@@ -46,7 +49,7 @@ enum Pieces {
 class BitBoard
 {
 public:
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]);
+	BitBoard(std::string fen);
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags);
 
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION);
@@ -56,8 +59,7 @@ public:
 	bool isMate();
 	bool isStale();
 
-	void printBoard();
-	void printBoardUnicode();
+	void printBoard(bool isUnicode=false);
 	void printPieceBitBoard(int color, int piece);
 
 private:
@@ -107,5 +109,5 @@ private:
 
 };
 
-
+#endif
 

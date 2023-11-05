@@ -1,10 +1,17 @@
-#include "BitBoard.h"
+﻿#include "BitBoard.h"
+#include "Parser.h"
+#include <Windows.h>
 
-
-// TODO: change parameter from u64 array to string (FEN string) 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
+BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
-    this->m_moveFlags = 0b1111100;
+    std::vector <std::string> fenParts = Parser::splitBySpace(fen);
+    std::unordered_map<char, int> charToPiece = {
+        {'p', pawn}, {'n',  knight},
+        {'b',  bishop}, {'r',  rook},
+        {'q',  queen}, {'k',  king}
+    };
+
+    
 
     for (int color = 0; color < SIDES; color++)
     {
@@ -12,7 +19,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(Attac
         for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
             this->m_attackPatterns[color][piece] = std::shared_ptr<u64[NUMBER_OF_SQUARES]>(new u64[NUMBER_OF_SQUARES]);
-            this->m_pieces[color][piece] = pieces[color][piece];
+            this->m_pieces[color][piece] = 1ULL + piece + 500*piece;
         }
     }
 
@@ -44,6 +51,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES]) : m_attackPatterns(Attac
     }
 }
 
+
 // Using shallow copy to avoid unnecessary computation 
 BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags) : m_attackPatterns(attackPatterns), m_moveFlags(flags)
 {
@@ -63,7 +71,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * input: start and end square of move
 * output: bitboard after move was played
 */
-std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION)
+std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece)
 {
     if (this->m_moveFlags & 0b0000011) // checking if checkmate or stalemate occured 
     { throw GameOverException((this->m_moveFlags & 0b0000011) != 0b0000001); } 
@@ -138,16 +146,16 @@ std::string BitBoard::getFEN()
 * Input: isUnicode - flag for which printing type
 * Output: None
 */
-void BitBoard::printBoard(bool isUnicode=false)
+void BitBoard::printBoard(bool isUnicode)
 {
-    std::unordered_map<int, std::vector<char>> printMap = { 
-        {-1, {'.'}}, // empty square
-        {pawn, {'p', 'P', '\u2659', '\u265F'}},
-        {knight, {'n', 'N', '\u2658', '\u265E'}},
-        {bishop, {'b', 'B', '\u2657', '\u265D'}},
-        {rook, {'r', 'R', '\u2656', '\u265C'}},
-        {queen, {'q', 'Q', '\u2655', '\u265B'}},
-        {king, {'k', 'K', '\u2654', '\u265A'}}
+    std::unordered_map<int, std::vector<std::wstring>> printMap = { 
+        {-1, {L"."}}, // empty square
+        {pawn, {L"p", L"P", L"♙", L"\u265F"}},
+        {knight, {L"n", L"N", L"\u2658", L"\u265E"}},
+        {bishop, {L"b", L"B", L"\u2657", L"\u265D"}},
+        {rook, {L"r", L"R", L"\u2656", L"\u265C"}},
+        {queen, {L"q", L"Q", L"\u2655", L"\u265B"}},
+        {king, {L"k", L"K", L"\u2654", L"\u265A"}}
     };
 
     int piece = -1;
@@ -164,7 +172,11 @@ void BitBoard::printBoard(bool isUnicode=false)
                 if (piece != -1) { printType += 1; }
                 else { printType = 0; }
             }
-            std::cout << printMap[piece][printType] << " ";
+            WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE),
+                printMap[piece][printType].c_str(),
+                printMap[piece][printType].size(),
+                nullptr, nullptr);
+            std::cout << " ";
         }
         std::cout << "\n";
     }
@@ -188,7 +200,7 @@ void BitBoard::printPieceBitBoard(int color, int piece)
         std::cout << BOARD_HEIGHT - i << " ";
         for (int j = 0; j < BOARD_HEIGHT; j++)
         {
-            std::cout << GET_BIT(this->m_pieces[color][piece], (i * 8) + j) << " ";
+            std::cout << GET_BIT(this->m_pieces[color][piece], ((i * 8) + j)) << " ";
         }
         std::cout << std::endl;
     }
@@ -203,7 +215,7 @@ void BitBoard::printPieceBitBoard(int color, int piece)
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces=false)
+std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces)
 {
     std::vector<std::pair<u64, u64>> moves;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)

@@ -1,6 +1,10 @@
+#ifndef GAME_OVER_EXCEPTION_H
+#define GAME_OVER_EXCEPTION_H
+
+
 #include <exception>
 #include <string>
-#pragma once
+
 class GameOverException : public std::exception
 {
 public:
@@ -10,3 +14,4 @@ private:
     std::string errMsg;
 };
 
+#endif

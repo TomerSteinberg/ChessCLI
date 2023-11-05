@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CONTEXT_H
+#define CONTEXT_H
+
 #include "Game.h"
 
 class Context
@@ -15,3 +17,4 @@ private:
 	Game* m_currGame;
 };
 
+#endif

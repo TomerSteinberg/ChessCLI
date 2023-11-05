@@ -1,8 +1,12 @@
-#pragma once
+#ifndef QUIT_COMMAND_H
+#define QUIT_COMMAND_H
+
 #include <vector>
 #include <iostream>	
 #include "ICommand.h"
 #include "Context.h"
+
+class Context;
 
 
 class QuitCommand : public ICommand
@@ -11,7 +15,8 @@ public:
 	QuitCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
-	static int maxArg;
+	static unsigned int maxArg;
 
 };
 
+#endif

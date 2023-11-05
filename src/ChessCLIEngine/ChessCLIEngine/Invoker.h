@@ -1,8 +1,10 @@
+#ifndef INVOKER_H
+#define INVOKER_H
+
 #include "ICommand.h"
 #include "Context.h"
 #include <memory>
 
-#pragma once
 class Invoker
 {
 public:
@@ -10,3 +12,4 @@ public:
 
 };
 
+#endif
