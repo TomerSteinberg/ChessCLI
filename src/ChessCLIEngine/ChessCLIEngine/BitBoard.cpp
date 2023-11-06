@@ -11,16 +11,32 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
         {'q',  queen}, {'k',  king}
     };
 
-    
-
     for (int color = 0; color < SIDES; color++)
     {
         this->m_attackPatterns[color] = std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>(new std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]);
         for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
             this->m_attackPatterns[color][piece] = std::shared_ptr<u64[NUMBER_OF_SQUARES]>(new u64[NUMBER_OF_SQUARES]);
-            this->m_pieces[color][piece] = 1ULL + piece + 500*piece;
+            this->m_pieces[color][piece] = 0ULL;
         }
+    }
+
+    for (int i = 0, square = 0; i < fenParts[0].length(); i++)
+    {
+        if (fenParts[0][i] == '/')
+        {
+            square += square % 8;
+            continue;
+        }
+        if (std::isdigit(fenParts[0][i]))
+        {
+            square += (int)fenParts[0][i] - 48;
+            continue;
+        }
+        
+        SET_BIT(this->m_pieces[fenParts[0][i] < 97 ? WHITE : BLACK]
+            [charToPiece[fenParts[0][i] < 97 ? fenParts[0][i] + 32: fenParts[0][i]]], square);
+        square += 1;
     }
 
     for (int square = 0; square < NUMBER_OF_SQUARES; square++)
@@ -150,12 +166,12 @@ void BitBoard::printBoard(bool isUnicode)
 {
     std::unordered_map<int, std::vector<std::wstring>> printMap = { 
         {-1, {L"."}}, // empty square
-        {pawn, {L"p", L"P", L"♙", L"\u265F"}},
-        {knight, {L"n", L"N", L"\u2658", L"\u265E"}},
-        {bishop, {L"b", L"B", L"\u2657", L"\u265D"}},
-        {rook, {L"r", L"R", L"\u2656", L"\u265C"}},
-        {queen, {L"q", L"Q", L"\u2655", L"\u265B"}},
-        {king, {L"k", L"K", L"\u2654", L"\u265A"}}
+        {pawn, {L"P", L"p", L"\u265F", L"\u2659"}},
+        {knight, {L"N", L"n", L"\u265E", L"\u2658"}},
+        {bishop, {L"B", L"b", L"\u265D", L"\u2657"}},
+        {rook, {L"R", L"r", L"\u265C", L"\u2656"}},
+        {queen, {L"Q", L"q", L"\u265B", L"\u2655"}},
+        {king, {L"K", L"k", L"\u265A", L"\u2654"}}
     };
 
     int piece = -1;
