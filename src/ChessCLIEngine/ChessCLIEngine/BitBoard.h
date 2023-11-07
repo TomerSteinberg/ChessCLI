@@ -89,10 +89,10 @@ private:
 	u64 getAttackSqrs(const bool side);
 	u64 getPromotionMask();
 
-	u64 removeBishopBlockedAtk(int square, u64 atk);
-	u64 removeRookBlockedAtk(int square, u64 atk);
-	u64 removeQueenBlockedAtk(int square, u64 atk);
-	u64 removePawnIllegalAtk(u64 atk);
+	u64 removeBishopBlockedAtk(int square, u64 atk, bool color);
+	u64 removeRookBlockedAtk(int square, u64 atk, bool color);
+	u64 removeQueenBlockedAtk(int square, u64 atk, bool color);
+	u64 removePawnIllegalAtk(u64 atk, bool color);
 	u64 getPawnMovementPattern(int square);
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);

@@ -115,6 +115,8 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 {
     if (this->m_moveFlags & 0b1100000) // checking if checkmate or stalemate occured 
     { throw GameOverException((this->m_moveFlags & 0b1100000) != 0b1000000); } 
+    
+    if (startSquare == endSquare) { throw IllegalMoveException(); }
 
     std::shared_ptr<BitBoard> afterMove = nullptr;
     int target = NO_CAPTURE;
@@ -143,13 +145,13 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 
     piece = getPieceType(startSquare, color);
     pieceAtkPtrn = this->m_attackPatterns[color][piece][startSquare];
-    if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn); }
-    else if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn); }
-    else if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn); }
+    if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn, color); }
+    else if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn, color); }
+    else if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn, color); }
     else if (piece == pawn)
     {
         u64 pawnMovement = this->getPawnMovementPattern(startSquare);
-        pieceAtkPtrn = this->removePawnIllegalAtk(pieceAtkPtrn);
+        pieceAtkPtrn = this->removePawnIllegalAtk(pieceAtkPtrn, color);
         pieceAtkPtrn |= pawnMovement;
     }
 
@@ -266,10 +268,10 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
         {
             int index = getLsbIndex(board);
             u64 pattern = this->m_attackPatterns[color][i][index];
-            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern); }
-            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern); }
-            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern); }
-            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern); }
+            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern, color); }
+            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern, color); }
+            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, color); }
+            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, color); }
 
 
             if (!onlyCheckingPieces || (onlyCheckingPieces && pattern & this->m_pieces[!color][king]))
@@ -436,10 +438,10 @@ u64 BitBoard::getAttackSqrs(const bool side)
         {
             int index = getLsbIndex(board);
             u64 pattern = this->m_attackPatterns[side][i][index];
-            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern); }
-            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern); }
-            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern); }
-            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern); }
+            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern, side); }
+            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern, side); }
+            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, side); }
+            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, side); }
 
             attack |= pattern;
             board &= board - 1;
@@ -465,14 +467,14 @@ u64 BitBoard::getPromotionMask()
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk)
+u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk, bool color)
 {
     int f = 0, r = 0;
     int rank = square / 8;
     int file = square % 8;
     bool isBlocked = false;
-    u64 currColorOccupancy = this->m_moveFlags & 0b1 ? this->getBlackOccupancy() : this->getWhiteOccupancy();
-    u64 oppositeColorOccupancy = this->m_moveFlags & 0b1 ? this->getBlackOccupancy() : this->getWhiteOccupancy();
+    u64 currColorOccupancy = color ? this->getWhiteOccupancy() : this->getBlackOccupancy();
+    u64 oppositeColorOccupancy = color ? this->getBlackOccupancy() : this->getWhiteOccupancy();
 
     // bishop moving shl 9
     for (r = rank + 1, f = file + 1, isBlocked = false; r <= 7 && f <= 7; r++, f++)
@@ -531,14 +533,14 @@ u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk)
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeRookBlockedAtk(int square, u64 atk)
+u64 BitBoard::removeRookBlockedAtk(int square, u64 atk, bool color)
 {
     int f = 0, r = 0;
     int rank = square / 8;
     int file = square % 8;
     bool isBlocked = false;
-    u64 currColorOccupancy = this->m_moveFlags & 0b1 ? this->getBlackOccupancy() : this->getWhiteOccupancy();
-    u64 oppositeColorOccupancy = this->m_moveFlags & 0b1 ? this->getBlackOccupancy() : this->getWhiteOccupancy();
+    u64 currColorOccupancy = color ? this->getWhiteOccupancy() : this->getBlackOccupancy();
+    u64 oppositeColorOccupancy = color ? this->getBlackOccupancy() : this->getWhiteOccupancy();
 
     // rook shl 8
     for (r = rank + 1, isBlocked = false; r <= 7; r++)
@@ -597,9 +599,11 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 atk)
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk)
+u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk, bool color)
 {
-    return this->removeBishopBlockedAtk(square, atk) | this->removeRookBlockedAtk(square, atk);
+    u64 diagonal = atk & this->m_attackPatterns[WHITE][bishop][square];
+    u64 lateral = atk & this->m_attackPatterns[WHITE][rook][square];
+    return this->removeBishopBlockedAtk(square, diagonal, color) | this->removeRookBlockedAtk(square, lateral, color);
 }
 
 
@@ -609,9 +613,9 @@ u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk)
 * input: pawn attack pattern
 * output: updated attack pattern
 */
-u64 BitBoard::removePawnIllegalAtk(u64 atk)
+u64 BitBoard::removePawnIllegalAtk(u64 atk, bool color)
 {
-    u64 oppositeOccupancy = this->m_moveFlags & 0b1 ? this->getBlackOccupancy() : this->getWhiteOccupancy();
+    u64 oppositeOccupancy = color ? this->getBlackOccupancy() : this->getWhiteOccupancy();
     return atk & oppositeOccupancy;
 }
 
