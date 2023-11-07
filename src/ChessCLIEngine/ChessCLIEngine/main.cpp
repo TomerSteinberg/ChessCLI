@@ -34,16 +34,22 @@ int main(int argc, char** argv)
 #else
 #include "BitBoard.h"
 #include <iostream>
-#include <io.h>
-#include <fcntl.h>
+#include <exception>
 
 
 // for debugging and testing bitboard
 
 int main(int argc, char** argv)
 {
-	BitBoard test("rnbqkbnr/pp2pppp/8/2ppP3/8/8/PPPP1PPP/RNBQKBNR w KQkq h8 0 1");
-	test.printBoard();
+	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	try 
+	{
+		test.move(e2, e4)->printBoard();
+	}
+	catch (std::exception& e)
+	{
+		std::cout << e.what();
+	}
 	return 0;
 }
 

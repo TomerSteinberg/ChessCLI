@@ -113,8 +113,8 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 */
 std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece)
 {
-    if (this->m_moveFlags & 0b0000011) // checking if checkmate or stalemate occured 
-    { throw GameOverException((this->m_moveFlags & 0b0000011) != 0b0000001); } 
+    if (this->m_moveFlags & 0b1100000) // checking if checkmate or stalemate occured 
+    { throw GameOverException((this->m_moveFlags & 0b1100000) != 0b1000000); } 
 
     std::shared_ptr<BitBoard> afterMove = nullptr;
     int target = NO_CAPTURE;
@@ -164,8 +164,8 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     POP_BIT(nextPosition[color][piece], startSquare);
     if (target != NO_CAPTURE) { POP_BIT(nextPosition[!color][target], endSquare); } // removing captured piece
 
-    if (this->isMate()) { nextFlags |= 0b000001; }
-    else if (this->isStale()) { nextFlags |= 0b0000001; }
+    if (this->isMate()) { nextFlags |= 0b100000; }
+    else if (this->isStale()) { nextFlags |= 0b1000000; }
     nextFlags ^= 0b1; // changing color
     afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags, nextEnPasssant);
 
@@ -631,14 +631,11 @@ u64 BitBoard::getPawnMovementPattern(int square)
     bool color = this->m_moveFlags & 0b1;
     bool isDoubleJump = ptrn & doubleJumpMask;
     u64 occupancy = this->getOccupancy();
-    u64 temp = ptrn;
 
-    for (int i = 0; i < 1 + isDoubleJump; i++)
-    {
-        temp |= color ? ptrn >> 8 : ptrn << 8;
-        if (temp & occupancy) { break;  }
-        movement |= color ? ptrn >> 8 : ptrn << 8;
-    }
+    if (!((color ? ptrn >> 8 : ptrn << 8) & occupancy))
+    {   movement |= color ? ptrn >> 8 : ptrn << 8; }
+    if (!(movement & occupancy) && isDoubleJump)
+    {   movement |= color ? movement >> 8 : movement << 8; }
 
     return movement;
 }
