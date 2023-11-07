@@ -2,14 +2,24 @@
 #include "Parser.h"
 #include <Windows.h>
 
+
 BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
+    this->m_enPassantSquare = -1;
+    this->m_moveFlags = 0b0;
     std::vector <std::string> fenParts = Parser::splitBySpace(fen);
     std::unordered_map<char, int> charToPiece = {
         {'p', pawn}, {'n',  knight},
         {'b',  bishop}, {'r',  rook},
         {'q',  queen}, {'k',  king}
     };
+    std::unordered_map<char, int> charToCastle = {
+        {'K', 2},
+        {'Q', 4},
+        {'k', 8},
+        {'q', 16}
+    };
+
 
     for (int color = 0; color < SIDES; color++)
     {
@@ -34,9 +44,22 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
             continue;
         }
         
+        // Setting piece on board
         SET_BIT(this->m_pieces[fenParts[0][i] < 97 ? WHITE : BLACK]
             [charToPiece[fenParts[0][i] < 97 ? fenParts[0][i] + 32: fenParts[0][i]]], square);
         square += 1;
+    }
+
+    this->m_moveFlags |= fenParts[1] == "w" ? 0b1 : 0b0; // Who's starting
+    for (int i = 0; i < fenParts[2].length(); i++)
+    {
+        this->m_moveFlags |= charToCastle[fenParts[2][i]];
+    }
+
+    if (fenParts[3] != "-")
+    {
+        // Getting the en passant square from the char of the rank and file
+        this->m_enPassantSquare = (fenParts[3][0] - 97) + (8 - (fenParts[3][1] - '0')) * 8;
     }
 
     for (int square = 0; square < NUMBER_OF_SQUARES; square++)
@@ -68,8 +91,9 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
 }
 
 
-// Using shallow copy to avoid unnecessary computation 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags) : m_attackPatterns(attackPatterns), m_moveFlags(flags)
+// Using shallow copy for attack dictionary to avoid unnecessary computation 
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant) :
+    m_attackPatterns(attackPatterns), m_enPassantSquare(enPassant) ,m_moveFlags(flags)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -101,6 +125,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     u64 pieceAtkPtrn = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
+    uint8_t nextEnPasssant = -1; // TODO: Calculate en passant square
     const u64 promotionMask = this->getPromotionMask();
 
     if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
@@ -142,7 +167,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     if (this->isMate()) { nextFlags |= 0b000001; }
     else if (this->isStale()) { nextFlags |= 0b0000001; }
     nextFlags ^= 0b1; // changing color
-    afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags);
+    afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags, nextEnPasssant);
 
     if(this->isCheck(color) && afterMove->isCheck(color)) {   throw IllegalMoveException("You're in check"); }
     if (afterMove->isCheck(color)) {   throw IllegalMoveException("You can't move into check"); }

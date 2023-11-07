@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-	BitBoard test("6b1/4PP2/1k1b3r/p3B3/P2N3P/1Kpp1R2/4q3/8 w - - 0 1");
+	BitBoard test("rnbqkbnr/pp2pppp/8/2ppP3/8/8/PPPP1PPP/RNBQKBNR w KQkq h8 0 1");
 	test.printBoard();
 	return 0;
 }

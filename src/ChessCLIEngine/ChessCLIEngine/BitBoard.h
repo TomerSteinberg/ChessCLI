@@ -50,7 +50,7 @@ class BitBoard
 {
 public:
 	BitBoard(std::string fen);
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags);
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
 
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION);
 	std::string getFEN();
@@ -70,11 +70,10 @@ private:
 	* White long castle
 	* Black castle
 	* Black long castle
-	* En passant
 	* Checkmate
-	* MSB - Stalemate
-	*/
+	* MSB - Stalemate*/
 	uint8_t m_moveFlags;
+	uint8_t m_enPassantSquare;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
 
