@@ -21,6 +21,7 @@
 #define SIDES 2
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
+#define NO_ENPASSANT 255
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
@@ -78,6 +79,9 @@ private:
 	const AttackDictionary m_attackPatterns;
 
 	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false);
+
+	void parseFen(std::string fen);
+	void initAtkDictionary();
 
 	int getPieceType(int square, bool color);
 	int getLsbIndex(u64 board);

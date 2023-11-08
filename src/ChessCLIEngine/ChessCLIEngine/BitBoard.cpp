@@ -5,89 +5,22 @@
 
 BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
-    this->m_enPassantSquare = -1;
+    this->m_enPassantSquare = NO_ENPASSANT;
     this->m_moveFlags = 0b0;
-    std::vector <std::string> fenParts = Parser::splitBySpace(fen);
-    std::unordered_map<char, int> charToPiece = {
-        {'p', pawn}, {'n',  knight},
-        {'b',  bishop}, {'r',  rook},
-        {'q',  queen}, {'k',  king}
-    };
-    std::unordered_map<char, int> charToCastle = {
-        {'K', 2},
-        {'Q', 4},
-        {'k', 8},
-        {'q', 16}
-    };
-
 
     for (int color = 0; color < SIDES; color++)
     {
+        // attack pattern memory allocation
         this->m_attackPatterns[color] = std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>(new std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]);
         for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
             this->m_attackPatterns[color][piece] = std::shared_ptr<u64[NUMBER_OF_SQUARES]>(new u64[NUMBER_OF_SQUARES]);
-            this->m_pieces[color][piece] = 0ULL;
+            this->m_pieces[color][piece] = 0ULL; // reseting pieces
         }
     }
 
-    for (int i = 0, square = 0; i < fenParts[0].length(); i++)
-    {
-        if (fenParts[0][i] == '/')
-        {
-            square += square % 8;
-            continue;
-        }
-        if (std::isdigit(fenParts[0][i]))
-        {
-            square += (int)fenParts[0][i] - 48;
-            continue;
-        }
-        
-        // Setting piece on board
-        SET_BIT(this->m_pieces[fenParts[0][i] < 97 ? WHITE : BLACK]
-            [charToPiece[fenParts[0][i] < 97 ? fenParts[0][i] + 32: fenParts[0][i]]], square);
-        square += 1;
-    }
-
-    this->m_moveFlags |= fenParts[1] == "w" ? 0b1 : 0b0; // Who's starting
-    for (int i = 0; i < fenParts[2].length(); i++)
-    {
-        this->m_moveFlags |= charToCastle[fenParts[2][i]];
-    }
-
-    if (fenParts[3] != "-")
-    {
-        // Getting the en passant square from the char of the rank and file
-        this->m_enPassantSquare = (fenParts[3][0] - 97) + (8 - (fenParts[3][1] - '0')) * 8;
-    }
-
-    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
-    {
-        u64 attack = 0ULL;
-        this->m_attackPatterns[WHITE][pawn][square] = BitBoard::calcWhitePawnAtkPattern(square);
-        this->m_attackPatterns[BLACK][pawn][square] = BitBoard::calcBlackPawnAtkPattern(square);
-
-        attack = BitBoard::calcKnightAtkPattern(square);
-        this->m_attackPatterns[WHITE][knight][square] = attack;
-        this->m_attackPatterns[BLACK][knight][square] = attack;
-
-        attack = BitBoard::calcBishopAtkPattern(square);
-        this->m_attackPatterns[WHITE][bishop][square] = attack;
-        this->m_attackPatterns[BLACK][bishop][square] = attack;
-
-        attack = BitBoard::calcKingAtkPattern(square);
-        this->m_attackPatterns[WHITE][king][square] = attack;
-        this->m_attackPatterns[BLACK][king][square] = attack;
-
-        attack = BitBoard::calcRookAtkPattern(square);
-        this->m_attackPatterns[WHITE][rook][square] = attack;
-        this->m_attackPatterns[BLACK][rook][square] = attack;
-
-        attack = BitBoard::calcQueenAtkPattern(square);
-        this->m_attackPatterns[WHITE][queen][square] = attack;
-        this->m_attackPatterns[BLACK][queen][square] = attack;
-    }
+    parseFen(fen);
+    initAtkDictionary();
 }
 
 
@@ -127,7 +60,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     u64 pieceAtkPtrn = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
-    uint8_t nextEnPasssant = 255;
+    uint8_t nextEnPasssant = NO_ENPASSANT;
     const u64 promotionMask = this->getPromotionMask();
     bool isAttackingEnPassant = false;
 
@@ -157,14 +90,13 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
         pieceAtkPtrn |= enPassantBoard;
         pieceAtkPtrn |= pawnMovement;
         if (endPos & enPassantBoard) { isAttackingEnPassant = true; target = pawn; }
-        if (enPassantBoard != 0ULL) { nextEnPasssant = 255; }
+        if (enPassantBoard != 0ULL) { nextEnPasssant = NO_ENPASSANT; }
         if (abs(startSquare - endSquare) == 16)
         {
             // Getting the next EnPassant square
             nextEnPasssant = abs(startSquare - (endSquare + 8)) == 8 ? endSquare + 8 : endSquare - 8;
         }
     }
-
 
     if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
 
@@ -261,7 +193,7 @@ std::string BitBoard::getFen()
     enPassant = std::to_string(this->m_enPassantSquare % 8);
     enPassant[0] += 49;
     enPassant += std::to_string(8 - (this->m_enPassantSquare / 8));
-    fen += m_enPassantSquare == 255 ? " - " : (" " + enPassant + " ");
+    fen += m_enPassantSquare == NO_ENPASSANT ? " - " : (" " + enPassant + " ");
 
     return fen;
 }
@@ -363,6 +295,96 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
         }
     }
     return moves;
+}
+
+
+/*
+* Method that parses a fen string and uses it to set the board state
+* input: chess fen string
+* output: None
+*/
+void BitBoard::parseFen(std::string fen)
+{
+    std::vector <std::string> fenParts = Parser::splitBySpace(fen);
+    std::unordered_map<char, int> charToPiece = {
+        {'p', pawn}, {'n',  knight},
+        {'b',  bishop}, {'r',  rook},
+        {'q',  queen}, {'k',  king}
+    };
+    std::unordered_map<char, int> charToCastle = {
+        {'K', 2},
+        {'Q', 4},
+        {'k', 8},
+        {'q', 16}
+    };
+
+    for (int i = 0, square = 0; i < fenParts[0].length(); i++)
+    {
+        if (fenParts[0][i] == '/')
+        {
+            square += square % 8;
+            continue;
+        }
+        if (std::isdigit(fenParts[0][i]))
+        {
+            square += (int)fenParts[0][i] - 48;
+            continue;
+        }
+
+        // Setting piece on board
+        SET_BIT(this->m_pieces[fenParts[0][i] < 97 ? WHITE : BLACK]
+            [charToPiece[fenParts[0][i] < 97 ? fenParts[0][i] + 32 : fenParts[0][i]]], square);
+        square += 1;
+    }
+
+    this->m_moveFlags |= fenParts[1] == "w" ? 0b1 : 0b0; // Who's starting
+    for (int i = 0; i < fenParts[2].length(); i++)
+    {
+        this->m_moveFlags |= charToCastle[fenParts[2][i]];
+    }
+
+    if (fenParts[3] != "-")
+    {
+        // Getting the en passant square from the char of the rank and file
+        this->m_enPassantSquare = (fenParts[3][0] - 97) + (8 - (fenParts[3][1] - '0')) * 8;
+    }
+
+}
+
+
+/*
+* Method for initializing the values in an attack dictionary
+* input: None
+* output: None
+*/
+void BitBoard::initAtkDictionary()
+{
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        u64 attack = 0ULL;
+        this->m_attackPatterns[WHITE][pawn][square] = BitBoard::calcWhitePawnAtkPattern(square);
+        this->m_attackPatterns[BLACK][pawn][square] = BitBoard::calcBlackPawnAtkPattern(square);
+
+        attack = BitBoard::calcKnightAtkPattern(square);
+        this->m_attackPatterns[WHITE][knight][square] = attack;
+        this->m_attackPatterns[BLACK][knight][square] = attack;
+
+        attack = BitBoard::calcBishopAtkPattern(square);
+        this->m_attackPatterns[WHITE][bishop][square] = attack;
+        this->m_attackPatterns[BLACK][bishop][square] = attack;
+
+        attack = BitBoard::calcKingAtkPattern(square);
+        this->m_attackPatterns[WHITE][king][square] = attack;
+        this->m_attackPatterns[BLACK][king][square] = attack;
+
+        attack = BitBoard::calcRookAtkPattern(square);
+        this->m_attackPatterns[WHITE][rook][square] = attack;
+        this->m_attackPatterns[BLACK][rook][square] = attack;
+
+        attack = BitBoard::calcQueenAtkPattern(square);
+        this->m_attackPatterns[WHITE][queen][square] = attack;
+        this->m_attackPatterns[BLACK][queen][square] = attack;
+    }
 }
 
 /*
@@ -738,7 +760,7 @@ u64 BitBoard::getEnPassantPattern(int square)
     u64 board = 0ULL;
     u64 enPassantBoard = 0ULL;
     SET_BIT(board, square);
-    if (this->m_enPassantSquare == 255)
+    if (this->m_enPassantSquare == NO_ENPASSANT)
     {
         return enPassantBoard;
     }
