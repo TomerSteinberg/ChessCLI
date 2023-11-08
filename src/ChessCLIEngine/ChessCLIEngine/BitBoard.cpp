@@ -127,8 +127,9 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     u64 pieceAtkPtrn = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
-    uint8_t nextEnPasssant = -1; // TODO: Calculate en passant square
+    uint8_t nextEnPasssant = 255;
     const u64 promotionMask = this->getPromotionMask();
+    bool isAttackingEnPassant = false;
 
     if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
     { throw InvalidPromotionException(); }
@@ -151,9 +152,19 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     else if (piece == pawn)
     {
         u64 pawnMovement = this->getPawnMovementPattern(startSquare);
+        u64 enPassantBoard = this->getEnPassantPattern(startSquare);
         pieceAtkPtrn = this->removePawnIllegalAtk(pieceAtkPtrn, color);
+        pieceAtkPtrn |= enPassantBoard;
         pieceAtkPtrn |= pawnMovement;
+        if (endPos & enPassantBoard) { isAttackingEnPassant = true; target = pawn; }
+        if (enPassantBoard != 0ULL) { nextEnPasssant = 255; }
+        if (abs(startSquare - endSquare) == 16)
+        {
+            // Getting the next EnPassant square
+            nextEnPasssant = abs(startSquare - (endSquare + 8)) == 8 ? endSquare + 8 : endSquare - 8;
+        }
     }
+
 
     if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
 
@@ -164,7 +175,16 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     
     SET_BIT(nextPosition[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
     POP_BIT(nextPosition[color][piece], startSquare);
-    if (target != NO_CAPTURE) { POP_BIT(nextPosition[!color][target], endSquare); } // removing captured piece
+    if (target != NO_CAPTURE) 
+    {
+        if (isAttackingEnPassant) 
+        {
+            // removing en Passant pawn based on color
+            endSquare = color ? endSquare + 8 : endSquare - 8;
+        }
+        // removing captured piece
+        POP_BIT(nextPosition[!color][target], endSquare); 
+    } 
 
     if (this->isMate()) { nextFlags |= 0b100000; }
     else if (this->isStale()) { nextFlags |= 0b1000000; }
@@ -184,13 +204,14 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
  * input: None
  * output: FEN representation
 */
-std::string BitBoard::getFEN()
+std::string BitBoard::getFen()
 {
     std::string enPassant = "";
     std::string fen = "";
     u64 whiteOccupancy = this->getWhiteOccupancy();
     u64 fullOccupancy = this->getOccupancy();
     int unOccupied = 0;
+    bool isCastleAllowed = false;
     std::unordered_map<int, char> pieceToChar = {
         {pawn, 'P'},
         {knight, 'N'},
@@ -206,10 +227,7 @@ std::string BitBoard::getFEN()
         SET_BIT(board, square);
         if (!(board & fullOccupancy) && (square + 1) % 8 == 0)
         {
-            if (unOccupied == 7)
-            {
-                fen += '8';
-            }
+            fen += std::to_string(unOccupied + 1);
             fen += '/';
             unOccupied = 0;
             continue;
@@ -234,10 +252,11 @@ std::string BitBoard::getFEN()
     if (fen[fen.length() - 1] == '/') { fen.pop_back(); }
 
     fen += this->m_moveFlags & 0b1 ? " w " : " b ";
-    if (this->m_moveFlags & 0b10) { fen += 'K'; }
-    if (this->m_moveFlags & 0b100) { fen += 'Q'; }
-    if (this->m_moveFlags & 0b1000) { fen += 'k'; }
-    if (this->m_moveFlags & 0b10000) { fen += 'q'; }
+    if (this->m_moveFlags & 0b10) { fen += 'K'; isCastleAllowed = true; }
+    if (this->m_moveFlags & 0b100) { fen += 'Q'; isCastleAllowed = true;}
+    if (this->m_moveFlags & 0b1000) { fen += 'k'; isCastleAllowed = true;}
+    if (this->m_moveFlags & 0b10000) { fen += 'q'; isCastleAllowed = true;}
+    if (!isCastleAllowed) { fen += '-'; }
 
     enPassant = std::to_string(this->m_enPassantSquare % 8);
     enPassant[0] += 49;
@@ -706,6 +725,39 @@ u64 BitBoard::getPawnMovementPattern(int square)
     {   movement |= color ? movement >> 8 : movement << 8; }
 
     return movement;
+}
+
+
+/*
+* Method for getting an en passant attack bitboard based on the location of the pawn
+* input: Square the attacking pawn is on
+* output: bitboard attack pattern
+*/
+u64 BitBoard::getEnPassantPattern(int square)
+{
+    u64 board = 0ULL;
+    u64 enPassantBoard = 0ULL;
+    SET_BIT(board, square);
+    if (this->m_enPassantSquare == 255)
+    {
+        return enPassantBoard;
+    }
+    SET_BIT(enPassantBoard, this->m_enPassantSquare);
+    if (this->m_moveFlags & 0b1)
+    {
+        if ((board >> 9) | (board >> 7) & enPassantBoard)
+        {
+            return enPassantBoard;
+        }
+    }
+    else
+    {
+        if ((board << 9) | (board << 7) & enPassantBoard)
+        {
+            return enPassantBoard;
+        }
+    }
+    return 0ULL;
 }
 
 

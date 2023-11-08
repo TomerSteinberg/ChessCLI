@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	try 
 	{
-		std::cout << test.move(e2, e4)->move(b7, b6)->move(e1, e2)->getFEN();
+		test.move(e2,e4)->move(h7,h6)->move(e4,e5)->move(d7,d5)->move(e5,d6)->printBoard();
 	}
 	catch (std::exception& e)
 	{

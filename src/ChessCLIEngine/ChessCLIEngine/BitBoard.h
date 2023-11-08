@@ -53,7 +53,7 @@ public:
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
 
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION);
-	std::string getFEN();
+	std::string getFen();
 
 	bool isCheck(bool color);
 	bool isMate();
@@ -94,6 +94,7 @@ private:
 	u64 removeQueenBlockedAtk(int square, u64 atk, bool color);
 	u64 removePawnIllegalAtk(u64 atk, bool color);
 	u64 getPawnMovementPattern(int square);
+	u64 getEnPassantPattern(int square);
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 
