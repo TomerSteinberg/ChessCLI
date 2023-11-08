@@ -41,9 +41,9 @@ int main(int argc, char** argv)
 int main(int argc, char** argv)
 {
 	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	try 
+	try // REMEMBER: edge case -> when rook or king taken remove ability to castle (use a specifc mask)
 	{
-		test.move(e2,e4)->printBoard();
+		test.move(e2, e4)->printBoard();
 	}
 	catch (std::exception& e)
 	{

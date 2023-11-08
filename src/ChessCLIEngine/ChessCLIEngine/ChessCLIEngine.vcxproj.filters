@@ -60,9 +60,6 @@
     <ClCompile Include="IllegalMoveException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InvalidPromotionException.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameOverException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -108,9 +105,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IllegalMoveException.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InvalidPromotionException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GameOverException.h">

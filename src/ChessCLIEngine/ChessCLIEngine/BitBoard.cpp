@@ -65,7 +65,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     bool isAttackingEnPassant = false;
 
     if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
-    { throw InvalidPromotionException(); }
+    { throw IllegalMoveException("Invalid Promotion: You can only promote to Knight, Bishop, Rook or Queen."); }
 
     this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
@@ -79,9 +79,16 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 
     piece = getPieceType(startSquare, color);
     pieceAtkPtrn = this->m_attackPatterns[color][piece][startSquare];
-    if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn, color); }
-    else if (piece == rook) { pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn, color); }
+    if (piece == king) { nextFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
+    else if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn, color); }
     else if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn, color); }
+    else if (piece == rook) 
+    {
+        // taking ability to castle
+        if (color) { nextFlags &= startSquare % 8 == 0 ? 0b1111011 : 0b1111101; }
+        else { nextFlags &= startSquare % 8 == 0 ? 0b1101111 : 0b1110111; }
+        pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn, color); 
+    }
     else if (piece == pawn)
     {
         u64 pawnMovement = this->getPawnMovementPattern(startSquare);
@@ -96,8 +103,13 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
             // Getting the next EnPassant square
             nextEnPasssant = abs(startSquare - (endSquare + 8)) == 8 ? endSquare + 8 : endSquare - 8;
         }
+        if(endPos & promotionMask && promotionPiece == NO_PROMOTION)
+        { throw IllegalMoveException("You didn't specify the promotion piece. i.e \"move e7e8=q\" "); }
+        if(!(endPos & promotionMask) && promotionPiece != NO_PROMOTION)
+        { throw IllegalMoveException("You can't promote on this square"); }
     }
 
+    if (piece != pawn && promotionPiece != NO_PROMOTION) { throw IllegalMoveException(); }
     if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
 
     if (endPos & fullOccupancy)

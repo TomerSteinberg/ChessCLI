@@ -9,7 +9,6 @@
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
-#include "InvalidPromotionException.h"
 #include "GameOverException.h"
 
 #define NO_CAPTURE -1
