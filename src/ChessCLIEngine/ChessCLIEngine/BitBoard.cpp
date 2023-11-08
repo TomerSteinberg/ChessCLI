@@ -168,7 +168,8 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 
     if (this->isMate()) { nextFlags |= 0b100000; }
     else if (this->isStale()) { nextFlags |= 0b1000000; }
-    nextFlags ^= 0b1; // changing color
+    nextFlags ^= 0b1; // changing color turn
+    // creating the instance of the next position
     afterMove = std::make_shared<BitBoard>(nextPosition, this->m_attackPatterns, nextFlags, nextEnPasssant);
 
     if(this->isCheck(color) && afterMove->isCheck(color)) {   throw IllegalMoveException("You're in check"); }
@@ -178,9 +179,72 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 }
 
 
+/*
+ * Method to get a FEN representation of the position
+ * input: None
+ * output: FEN representation
+*/
 std::string BitBoard::getFEN()
 {
-    return std::string();
+    std::string enPassant = "";
+    std::string fen = "";
+    u64 whiteOccupancy = this->getWhiteOccupancy();
+    u64 fullOccupancy = this->getOccupancy();
+    int unOccupied = 0;
+    std::unordered_map<int, char> pieceToChar = {
+        {pawn, 'P'},
+        {knight, 'N'},
+        {bishop, 'B'},
+        {rook, 'R'},
+        {queen, 'Q'},
+        {king, 'K'},
+    };
+
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        u64 board = 0ULL;
+        SET_BIT(board, square);
+        if (!(board & fullOccupancy) && (square + 1) % 8 == 0)
+        {
+            if (unOccupied == 7)
+            {
+                fen += '8';
+            }
+            fen += '/';
+            unOccupied = 0;
+            continue;
+        }
+        if (!(board & fullOccupancy))
+        {
+            unOccupied++;
+            continue;
+        }
+        if (board & fullOccupancy)
+        {
+            if (unOccupied != 0)
+            {
+                fen += std::to_string(unOccupied);
+                unOccupied = 0;
+            }
+            fen += board & whiteOccupancy ? pieceToChar[getPieceType(square, WHITE)]
+                : (pieceToChar[getPieceType(square, BLACK)] + 32);
+            if ((square + 1) % 8 == 0) { fen += '/'; }
+        }
+    }
+    if (fen[fen.length() - 1] == '/') { fen.pop_back(); }
+
+    fen += this->m_moveFlags & 0b1 ? " w " : " b ";
+    if (this->m_moveFlags & 0b10) { fen += 'K'; }
+    if (this->m_moveFlags & 0b100) { fen += 'Q'; }
+    if (this->m_moveFlags & 0b1000) { fen += 'k'; }
+    if (this->m_moveFlags & 0b10000) { fen += 'q'; }
+
+    enPassant = std::to_string(this->m_enPassantSquare % 8);
+    enPassant[0] += 49;
+    enPassant += std::to_string(8 - (this->m_enPassantSquare / 8));
+    fen += m_enPassantSquare == 255 ? " - " : (" " + enPassant + " ");
+
+    return fen;
 }
 
 
