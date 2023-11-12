@@ -447,6 +447,7 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
         nextPosition[color][king] >> 2 : nextPosition[color][king] << 2;
     nextPosition[color][rook] = isLongCastle ?
         nextPosition[color][rook] << 3 : nextPosition[color][rook] >> 2;
+    nextPosition[color][rook] |= rookSquare ^ this->m_pieces[color][rook];
 
     nextFlags &= color ? 0b1111001 : 0b1100111;
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
@@ -538,6 +539,12 @@ bool BitBoard::isMate() const
     //return kingStuck && !canBlock && !canCapture;
 }
 
+
+/*
+* Method for checking if the current position is in Stalemate
+* input: None
+* output: true if the position is in stalemate, false otherwise (bool)
+*/
 bool BitBoard::isStale() const
 {
     return false;

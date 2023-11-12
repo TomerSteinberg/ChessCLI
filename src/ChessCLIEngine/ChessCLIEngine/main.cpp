@@ -43,8 +43,7 @@ int main(int argc, char** argv)
 	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	try 
 	{
-		test.move(g1,f3)->move(g8, f6)->move(g2,g3)->move(g7,g6)->move(f1,g2)->
-			move(f8,g7)->castleMove(false)->move(h7,h5)->printBoard();
+		test.move(e2, e4)->printBoard();
 	}
 	catch (std::exception& e)
 	{
