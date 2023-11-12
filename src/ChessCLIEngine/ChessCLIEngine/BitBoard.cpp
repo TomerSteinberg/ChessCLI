@@ -120,6 +120,10 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     POP_BIT(nextPosition[color][piece], startSquare);
     if (target != NO_CAPTURE) 
     {
+        if (target == rook && endPos & 9295429630892703873)
+        {
+            nextFlags ^= 0b1 << 1 + (color * 2) + (endPos & 72057594037927937 ? 1 : 0);
+        }
         if (isAttackingEnPassant) 
         {
             // removing en Passant pawn based on color
