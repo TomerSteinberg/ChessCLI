@@ -52,15 +52,16 @@ public:
 	BitBoard(std::string fen);
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
 
-	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION);
-	std::string getFen();
+	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
+	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
+	std::string getFen() const;
 
-	bool isCheck(bool color);
-	bool isMate();
-	bool isStale();
+	bool isCheck(bool color) const;
+	bool isMate() const;
+	bool isStale() const;
 
-	void printBoard(bool isUnicode=false);
-	void printPieceBitBoard(int color, int piece);
+	void printBoard(bool isUnicode=false) const;
+	void printPieceBitBoard(int color, int piece) const;
 
 private:
 
@@ -77,29 +78,31 @@ private:
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
 
+	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
+
 	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false);
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
 
-	int getPieceType(int square, bool color);
-	int getLsbIndex(u64 board);
+	int getPieceType(int square, bool color) const;
+	int getLsbIndex(u64 board) const;
 	static inline int bitCount(u64 board);
 	
 	u64 getOccupancy() const;
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
-	u64 getAttackSqrs(const bool side);
-	u64 getPromotionMask();
+	u64 getAttackSqrs(const bool side) const;
+	u64 getPromotionMask() const;
 
-	u64 removeBishopBlockedAtk(int square, u64 atk, bool color);
-	u64 removeRookBlockedAtk(int square, u64 atk, bool color);
-	u64 removeQueenBlockedAtk(int square, u64 atk, bool color);
-	u64 removePawnIllegalAtk(u64 atk, bool color);
-	u64 getPawnMovementPattern(int square);
-	u64 getEnPassantPattern(int square);
+	u64 removeBishopBlockedAtk(int square, u64 atk, bool color) const;
+	u64 removeRookBlockedAtk(int square, u64 atk, bool color) const;
+	u64 removeQueenBlockedAtk(int square, u64 atk, bool color) const;
+	u64 removePawnIllegalAtk(u64 atk, bool color) const;
+	u64 getPawnMovementPattern(int square) const;
+	u64 getEnPassantPattern(int square) const;
 	
-	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]);
+	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 
 	//====== Attack Patterns ======//
 	static u64 calcWhitePawnAtkPattern(int square);
