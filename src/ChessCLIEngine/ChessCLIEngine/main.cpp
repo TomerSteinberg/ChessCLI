@@ -40,10 +40,11 @@ int main(int argc, char** argv)
 // for debugging and testing bitboard
 int main(int argc, char** argv)
 {
-	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	BitBoard test("6k1/b7/8/8/5p2/7p/7P/7K w - - 0 54");
 	try 
 	{
-		test.move(e2, e4)->printBoard();
+		test.printBoard();
+		std::cout << test.isStale();
 	}
 	catch (std::exception& e)
 	{

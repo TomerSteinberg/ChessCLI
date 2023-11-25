@@ -80,7 +80,7 @@ private:
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
 
-	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false);
+	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
@@ -103,6 +103,8 @@ private:
 	u64 getEnPassantPattern(int square) const;
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
+
+	bool isCastlingPossible(bool isLongCastle) const;
 
 	//====== Attack Patterns ======//
 	static u64 calcWhitePawnAtkPattern(int square);

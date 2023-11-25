@@ -122,6 +122,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     {
         if (target == rook && endPos & 9295429630892703873)
         {
+            // removing ability of rook to castle after being captured
             nextFlags ^= 0b1 << 1 + (color * 2) + (endPos & 72057594037927937 ? 1 : 0);
         }
         if (isAttackingEnPassant) 
@@ -300,8 +301,10 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces)
+std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces) const
 {
+    u64 attackedSquares = this->getAttackSqrs(!color);
+    u64 CurrOccupancy = color ? this->getWhiteOccupancy() : this->getBlackOccupancy();
     std::vector<std::pair<u64, u64>> moves;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
     {
@@ -313,14 +316,19 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
             if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern, color); }
             else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern, color); }
             else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, color); }
-            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, color); }
+            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, color)
+                | this->getPawnMovementPattern(index) | this->getEnPassantPattern(index); }
+            else if (i == knight) { pattern &= color ? ~getWhiteOccupancy() : ~getBlackOccupancy(); }
+            else if (i == king) { pattern &=  (pattern ^ (attackedSquares | CurrOccupancy)); }
 
-
+            if (pattern == 0ULL) { board &= board - 1;  continue; }
             if (!onlyCheckingPieces || (onlyCheckingPieces && pattern & this->m_pieces[!color][king]))
             { moves.push_back({ board,pattern }); }
             board &= board - 1;
         }
     }
+
+    // TODO: Create a function that checks if castling is possible 
     return moves;
 }
 
@@ -426,24 +434,12 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
     uint8_t nextFlags = this->m_moveFlags;
     uint8_t nextEnPasssant = NO_ENPASSANT;
     bool color = this->m_moveFlags & 0b1;
+
     this->getPiecesCopy(nextPosition);
-    u64 kingSquare = 0ULL;
-    u64 rookSquare = 0ULL;
-    u64 fullOcuppancy = this->getOccupancy();
-
-    // mask for empty squares between king and rook
-    u64 emptyMask = (isLongCastle ? 14ULL : 96ULL) << (56 * color); 
+    u64 rookSquare = 0ULL; 
     rookSquare = (isLongCastle ? 1ULL : 128ULL) << (56 * color);
-    kingSquare = 16ULL << (56 * color);
 
-    // if castle is not allowed 
-    if ((this->m_moveFlags & 0b1 << (1 + (!color * 2) + isLongCastle)) == 0)
-    {  throw IllegalMoveException(); }
-
-    if (emptyMask & fullOcuppancy)
-    {  throw IllegalMoveException();}
-
-    if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
+    if (!isCastlingPossible(isLongCastle))
     {  throw IllegalMoveException();}
 
     // making castle move on bitboard
@@ -551,8 +547,12 @@ bool BitBoard::isMate() const
 */
 bool BitBoard::isStale() const
 {
-    return false;
+    bool color = this->m_moveFlags & 0b1;
+    std::vector<std::pair<u64,u64>> possibleMoves = getPossibleMoves(color, false);
+    bool castlingAllowed = isCastlingPossible(false) | isCastlingPossible(true);
+    return (possibleMoves.size() == 0 && !castlingAllowed) && !this->isCheck(color);
 }
+
 
 /*
 * Method to get the occupancy board defined as a single bitboard that represents 
@@ -623,8 +623,6 @@ u64 BitBoard::getAttackSqrs(const bool side) const
             if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern, side); }
             else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern, side); }
             else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, side); }
-            else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, side); }
-
             attack |= pattern;
             board &= board - 1;
         }
@@ -874,6 +872,32 @@ void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
             pieces[i][j] = this->m_pieces[i][j];
         }
     }
+}
+
+/*
+* Method for checking if castling is possible
+* input: castle type to check (short/long) (bool)
+* output: true=castling allowed, false castling is not allowed
+*/
+bool BitBoard::isCastlingPossible(bool isLongCastle) const
+{
+    u64 fullOccupancy = this->getOccupancy();
+    bool color = this->m_moveFlags & 0b1;
+
+    // mask for empty squares between king and rook
+    u64 emptyMask = (isLongCastle ? 14ULL : 96ULL) << (56 * color);
+    u64 rookSquare = (isLongCastle ? 1ULL : 128ULL) << (56 * color);
+    u64 kingSquare = 16ULL << (56 * color);
+
+
+    if ((this->m_moveFlags & (0b1 << (1 + (!color * 2) + isLongCastle))) == 0)
+    {   return false; }
+    if (emptyMask & fullOccupancy)
+    {   return false; }
+    if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
+    {   return false; }
+
+    return true;
 }
 
 
