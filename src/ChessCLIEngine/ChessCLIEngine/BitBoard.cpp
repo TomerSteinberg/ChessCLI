@@ -21,6 +21,12 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
 
     parseFen(fen);
     initAtkDictionary();
+
+    if(this->isMate())
+    {   this->m_moveFlags |= 0b100000; }
+    else if (this->isStale())
+    {   this->m_moveFlags |= 0b1000000; }
+
 }
 
 
@@ -47,7 +53,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
 {
     if (this->m_moveFlags & 0b1100000) // checking if checkmate or stalemate occured 
-    { throw GameOverException((this->m_moveFlags & 0b1100000) != 0b1000000); } 
+    { throw GameOverException((this->m_moveFlags & 0b1100000) != 0b1000000); }
     
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
@@ -133,9 +139,6 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
         // removing captured piece
         POP_BIT(nextPosition[!color][target], endSquare); 
     } 
-
-    if (this->isMate()) { nextFlags |= 0b100000; }
-    else if (this->isStale()) { nextFlags |= 0b1000000; }
     
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
@@ -287,6 +290,11 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
     nextFlags ^= 0b1; // changing color turn
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
+
+    if (afterMove->isMate()) { nextFlags |= 0b100000; }
+    else if (afterMove->isStale()) { nextFlags |= 0b1000000; }
+
+    afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
 
     if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
     if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }

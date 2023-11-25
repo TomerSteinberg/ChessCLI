@@ -1,8 +1,10 @@
 #include "GameOverException.h"
 
+#include <iostream>
 GameOverException::GameOverException(bool isMate)
 {
-    this->errMsg = "The Game is over: It's " + isMate ? "Checkmate" : "Stalemate";
+    std::string gameOverReason = isMate ? "Checkmate" : "Stalemate";
+    this->errMsg = "The Game is over: It's " + gameOverReason;
 }
 
 const char* GameOverException::what() const noexcept
