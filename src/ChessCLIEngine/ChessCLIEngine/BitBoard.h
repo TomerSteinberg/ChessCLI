@@ -22,6 +22,7 @@
 #define BOARD_WIDTH 8
 #define NO_ENPASSANT 255
 
+#define COLOR this->m_moveFlags & 0b1
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
 #define POP_BIT(board, square) (GET_BIT(board, square) ? board ^= (1ULL << square) : 0)
@@ -75,8 +76,13 @@ private:
 	* MSB - Stalemate*/
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
-	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	const AttackDictionary m_attackPatterns;
+	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
+	u64 m_whiteAtkedSqrs;
+	u64 m_blackAtkedSqrs;
+	u64 m_whiteOccupancy;
+	u64 m_blackOccupancy;
+
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
 
@@ -89,7 +95,6 @@ private:
 	int getLsbIndex(u64 board) const;
 	static inline int bitCount(u64 board);
 	
-	u64 getOccupancy() const;
 	u64 getWhiteOccupancy() const; 
 	u64 getBlackOccupancy() const; 
 	u64 getAttackSqrs(const bool side) const;

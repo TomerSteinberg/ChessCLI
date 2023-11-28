@@ -27,6 +27,10 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     else if (this->isStale())
     {   this->m_moveFlags |= 0b1000000; }
 
+    this->m_whiteAtkedSqrs = COLOR ? getAttackSqrs(WHITE) : getAttackSqrs(BLACK);
+    this->m_blackAtkedSqrs = COLOR ? getAttackSqrs(BLACK) : getAttackSqrs(WHITE);
+    this->m_whiteOccupancy = getWhiteOccupancy();
+    this->m_blackOccupancy = getBlackOccupancy();
 }
 
 
@@ -41,6 +45,10 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
             this->m_pieces[color][piece] = pieces[color][piece];
         }
     }
+    this->m_whiteAtkedSqrs = COLOR ? this->getAttackSqrs(WHITE) : this->getAttackSqrs(BLACK);
+    this->m_blackAtkedSqrs = COLOR ? this->getAttackSqrs(BLACK) : this->getAttackSqrs(WHITE);
+    this->m_whiteOccupancy = getWhiteOccupancy();
+    this->m_blackOccupancy = getBlackOccupancy();
 }
 
 
@@ -59,7 +67,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 
     int target = NO_CAPTURE;
     int piece = 0;
-    const bool color = this->m_moveFlags & 0b1;
+    const bool color = COLOR;
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
     u64 pieceAtkPtrn = 0ULL;
@@ -75,9 +83,8 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
-    u64 currColorBoard = color ? getWhiteOccupancy() : getBlackOccupancy();
-    u64 fullOccupancy = this->getOccupancy();
-    u64 oppositeColorBoard = currColorBoard ^ fullOccupancy;
+    u64 currColorBoard = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
 
     if (!(startPos & currColorBoard)) { throw MissingPieceException(startSquare, color); }
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
@@ -153,8 +160,8 @@ std::string BitBoard::getFen() const
 {
     std::string enPassant = "";
     std::string fen = "";
-    u64 whiteOccupancy = this->getWhiteOccupancy();
-    u64 fullOccupancy = this->getOccupancy();
+    u64 whiteOccupancy = this->m_whiteOccupancy;
+    u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
     int unOccupied = 0;
     bool isCastleAllowed = false;
     std::unordered_map<int, char> pieceToChar = {
@@ -196,7 +203,7 @@ std::string BitBoard::getFen() const
     }
     if (fen[fen.length() - 1] == '/') { fen.pop_back(); }
 
-    fen += this->m_moveFlags & 0b1 ? " w " : " b ";
+    fen += COLOR ? " w " : " b ";
     if (this->m_moveFlags & 0b10) { fen += 'K'; isCastleAllowed = true; }
     if (this->m_moveFlags & 0b100) { fen += 'Q'; isCastleAllowed = true;}
     if (this->m_moveFlags & 0b1000) { fen += 'k'; isCastleAllowed = true;}
@@ -286,7 +293,7 @@ void BitBoard::printPieceBitBoard(int color, int piece) const
 */
 std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
 {
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
     nextFlags ^= 0b1; // changing color turn
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
@@ -295,6 +302,7 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
     else if (afterMove->isStale()) { nextFlags |= 0b1000000; }
 
     afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
+
 
     if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
     if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }
@@ -311,8 +319,8 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 */
 std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces) const
 {
-    u64 attackedSquares = this->getAttackSqrs(!color);
-    u64 CurrOccupancy = color ? this->getWhiteOccupancy() : this->getBlackOccupancy();
+    u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 attackedSquares = !color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs;
     std::vector<std::pair<u64, u64>> moves;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
     {
@@ -326,8 +334,8 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
             else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, color); }
             else if (i == pawn) { pattern = this->removePawnIllegalAtk(pattern, color)
                 | this->getPawnMovementPattern(index) | this->getEnPassantPattern(index); }
-            else if (i == knight) { pattern &= color ? ~getWhiteOccupancy() : ~getBlackOccupancy(); }
-            else if (i == king) { pattern &=  (pattern ^ (attackedSquares | CurrOccupancy)); }
+            else if (i == knight) { pattern &= color ? ~this->m_whiteOccupancy : ~this->m_blackOccupancy; }
+            else if (i == king) { pattern &=  (pattern ^ (attackedSquares | currOccupancy)); }
 
             if (pattern == 0ULL) { board &= board - 1;  continue; }
             if (!onlyCheckingPieces || (onlyCheckingPieces && pattern & this->m_pieces[!color][king]))
@@ -441,7 +449,7 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
     uint8_t nextEnPasssant = NO_ENPASSANT;
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
 
     this->getPiecesCopy(nextPosition);
     u64 rookSquare = 0ULL; 
@@ -508,7 +516,7 @@ int BitBoard::getLsbIndex(u64 board) const
 */
 bool BitBoard::isCheck(bool color) const
 {
-    return this->m_pieces[color][king] & this->getAttackSqrs(!color);
+    return this->m_pieces[color][king] & (!color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs);
 }
 
 
@@ -555,30 +563,10 @@ bool BitBoard::isMate() const
 */
 bool BitBoard::isStale() const
 {
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
     std::vector<std::pair<u64,u64>> possibleMoves = getPossibleMoves(color, false);
     bool castlingAllowed = isCastlingPossible(false) | isCastlingPossible(true);
     return (possibleMoves.size() == 0 && !castlingAllowed) && !this->isCheck(color);
-}
-
-
-/*
-* Method to get the occupancy board defined as a single bitboard that represents 
-* the location of all the pieces without distingushing piece type
-* input: None
-* output: a occupancy bitboard that contains all the pieces (u64) 
-*/
-u64 BitBoard::getOccupancy() const
-{
-    u64 unifiedBoard = 0ULL;
-    for (int i = 0; i < SIDES; i++)
-    {
-        for (int j = 0; j < NUMBER_OF_PIECES; j++)
-        {
-            unifiedBoard |= this->m_pieces[i][j];
-        }
-    }
-    return unifiedBoard;
 }
 
 
@@ -646,7 +634,7 @@ u64 BitBoard::getAttackSqrs(const bool side) const
 */
 u64 BitBoard::getPromotionMask() const
 {
-    return this->m_moveFlags & 0b1 ? 255ULL : 18374686479671623680ULL;
+    return COLOR ? 255ULL : 18374686479671623680ULL;
 }
 
 
@@ -803,7 +791,7 @@ u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk, bool color) const
 */
 u64 BitBoard::removePawnIllegalAtk(u64 atk, bool color) const
 {
-    u64 oppositeOccupancy = color ? this->getBlackOccupancy() : this->getWhiteOccupancy();
+    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
     return atk & oppositeOccupancy;
 }
 
@@ -820,9 +808,9 @@ u64 BitBoard::getPawnMovementPattern(int square) const
     u64 ptrn = 0ULL;
     u64 movement = 0ULL;
     SET_BIT(ptrn, square);
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
     bool isDoubleJump = ptrn & doubleJumpMask;
-    u64 occupancy = this->getOccupancy();
+    u64 occupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
 
     if (!((color ? ptrn >> 8 : ptrn << 8) & occupancy))
     {   movement |= color ? ptrn >> 8 : ptrn << 8; }
@@ -889,7 +877,7 @@ void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
 */
 bool BitBoard::isCastlingPossible(bool isLongCastle) const
 {
-    u64 fullOccupancy = this->getOccupancy();
+    u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
     bool color = this->m_moveFlags & 0b1;
 
     // mask for empty squares between king and rook

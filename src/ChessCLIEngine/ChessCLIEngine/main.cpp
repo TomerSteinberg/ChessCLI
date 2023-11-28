@@ -40,12 +40,11 @@ int main(int argc, char** argv)
 // for debugging and testing bitboard
 int main(int argc, char** argv)
 {
-	BitBoard test("6k1/b7/8/8/5p2/7p/7P/7K b - - 0 54");
+	// TODO LATER: fix issue where pinned piece isn't recognized in stalemate method
+	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
 	try 
 	{
-		test.move(a7, b8)->move(h1,g1)->printBoard();
-		//test.printBoard();
-		//std::cout << test.isStale();
+		/*std::cout <<*/ test.move(b8, c6)->move(b1,c3)->move(c6,b8)->move(c3,b1)->printBoard();
 	}
 	catch (std::exception& e)
 	{
