@@ -21,8 +21,11 @@
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
 #define NO_ENPASSANT 255
-
-#define COLOR this->m_moveFlags & 0b1
+#define CORNERS 9295429630892703873ULL
+#define LEFT_CORNERS 72057594037927937ULL
+#define PAWN_DOUBLE_JUMP_DIFFERENCE 16
+#define LOWER_CASE_ASCII_DIFFERENCE 32
+#define COLOR this->m_moveFlags & WHITE
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
 #define POP_BIT(board, square) (GET_BIT(board, square) ? board ^= (1ULL << square) : 0)
@@ -62,7 +65,6 @@ public:
 	bool isStale() const;
 
 	void printBoard(bool isUnicode=false) const;
-	void printPieceBitBoard(int color, int piece) const;
 
 private:
 
@@ -85,14 +87,13 @@ private:
 
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-
 	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
 
 	int getPieceType(int square, bool color) const;
-	int getLsbIndex(u64 board) const;
+	static int getLsbIndex(u64 board);
 	static inline int bitCount(u64 board);
 	
 	u64 getWhiteOccupancy() const; 

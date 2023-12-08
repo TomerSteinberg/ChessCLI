@@ -41,10 +41,10 @@ int main(int argc, char** argv)
 int main(int argc, char** argv)
 {
 	// TODO LATER: fix issue where pinned piece isn't recognized in stalemate method
-	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1");
+	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	try 
 	{
-		/*std::cout <<*/ test.move(b8, c6)->move(b1,c3)->move(c6,b8)->move(c3,b1)->printBoard();
+		test.move(e2,e4)->isStale();
 	}
 	catch (std::exception& e)
 	{
