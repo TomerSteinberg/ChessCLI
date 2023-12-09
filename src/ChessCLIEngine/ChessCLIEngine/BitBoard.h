@@ -80,14 +80,15 @@ private:
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
+	std::vector<std::pair<u64, u64>> m_pseudoLegalMoves;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
 
-
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	std::vector<std::pair<u64, u64>> getPossibleMoves(bool color, bool onlyCheckingPieces=false) const;
+	std::vector<std::pair<u64, u64>> getPseudoLegalMoves(bool color) const;
+	bool isMovePseudoLegal(int startSquare, int endSquare) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
@@ -105,11 +106,10 @@ private:
 	u64 removeRookBlockedAtk(int square, u64 atk, bool color) const;
 	u64 removeQueenBlockedAtk(int square, u64 atk, bool color) const;
 	u64 removePawnIllegalAtk(u64 atk, bool color) const;
-	u64 getPawnMovementPattern(int square) const;
-	u64 getEnPassantPattern(int square) const;
+	u64 getPawnMovementPattern(int square, bool color) const;
+	u64 getEnPassantPattern(int square, bool color) const;
 	
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
-
 	bool isCastlingPossible(bool isLongCastle) const;
 
 	//====== Attack Patterns ======//

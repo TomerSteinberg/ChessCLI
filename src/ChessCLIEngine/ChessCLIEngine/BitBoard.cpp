@@ -22,10 +22,11 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     parseFen(fen);
     initAtkDictionary();
 
+    this->m_blackOccupancy = getBlackOccupancy();
+    this->m_whiteOccupancy = getWhiteOccupancy();
+    this->m_pseudoLegalMoves = getPseudoLegalMoves(COLOR);
     this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
-    this->m_whiteOccupancy = getWhiteOccupancy();
-    this->m_blackOccupancy = getBlackOccupancy();
 
     if(this->isMate())
     {   this->m_moveFlags |= 0b100000; }
@@ -46,6 +47,8 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
             this->m_pieces[color][piece] = pieces[color][piece];
         }
     }
+
+    this->m_pseudoLegalMoves = getPseudoLegalMoves(COLOR);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
     this->m_whiteOccupancy = getWhiteOccupancy();
@@ -69,12 +72,9 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     int target = NO_CAPTURE;
     int piece = 0;
     const bool color = COLOR;
-    u64 startPos = 0ULL;
-    u64 endPos = 0ULL;
-    u64 pieceAtkPtrn = 0ULL;
+    u64 startPos = 0ULL, endPos = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
-    uint8_t nextFlags = this->m_moveFlags;
-    uint8_t nextEnPasssant = NO_ENPASSANT;
+    uint8_t nextFlags = this->m_moveFlags, nextEnPasssant = NO_ENPASSANT;
     const u64 promotionMask = this->getPromotionMask();
     bool isAttackingEnPassant = false;
 
@@ -91,31 +91,23 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
 
     piece = getPieceType(startSquare, color);
-    pieceAtkPtrn = this->m_attackPatterns[color][piece][startSquare];
+    if(!isMovePseudoLegal(startSquare, endSquare))
+    {   throw IllegalMoveException(); }
+
     if (piece == king) { nextFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
-    else if (piece == bishop) { pieceAtkPtrn = this->removeBishopBlockedAtk(startSquare, pieceAtkPtrn, color); }
-    else if (piece == queen) { pieceAtkPtrn = this->removeQueenBlockedAtk(startSquare, pieceAtkPtrn, color); }
     else if (piece == rook) 
     {
         // taking ability to castle
         if (color) { nextFlags &= startSquare % 8 == 0 ? 0b1111011 : 0b1111101; }
         else { nextFlags &= startSquare % 8 == 0 ? 0b1101111 : 0b1110111; }
-        pieceAtkPtrn = this->removeRookBlockedAtk(startSquare, pieceAtkPtrn, color); 
     }
     else if (piece == pawn)
     {
-        u64 pawnMovement = this->getPawnMovementPattern(startSquare);
-        u64 enPassantBoard = this->getEnPassantPattern(startSquare);
-        pieceAtkPtrn = this->removePawnIllegalAtk(pieceAtkPtrn, color);
-        pieceAtkPtrn |= enPassantBoard;
-        pieceAtkPtrn |= pawnMovement;
+        u64 enPassantBoard = this->getEnPassantPattern(startSquare, color);
         if (endPos & enPassantBoard) { isAttackingEnPassant = true; target = pawn; }
-        if (enPassantBoard != 0ULL) { nextEnPasssant = NO_ENPASSANT; }
         if (abs(startSquare - endSquare) == PAWN_DOUBLE_JUMP_DIFFERENCE)
-        {
-            // Getting the next EnPassant square
-            nextEnPasssant = abs(startSquare - (endSquare + 8)) == 8 ? endSquare + 8 : endSquare - 8;
-        }
+        { nextEnPasssant = color ? endSquare + 8 : endSquare - 8; }
+
         if(endPos & promotionMask && promotionPiece == NO_PROMOTION)
         { throw IllegalMoveException("You didn't specify the promotion piece. i.e \"move e7e8=q\" "); }
         if(!(endPos & promotionMask) && promotionPiece != NO_PROMOTION)
@@ -123,8 +115,6 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     }
 
     if (piece != pawn && promotionPiece != NO_PROMOTION) { throw IllegalMoveException(); }
-    if (!(pieceAtkPtrn & endPos)) { throw IllegalMoveException(); }
-
     if (endPos & fullOccupancy)
     {
         target = this->getPieceType(endSquare, !color);
@@ -134,20 +124,15 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     POP_BIT(nextPosition[color][piece], startSquare);
     if (target != NO_CAPTURE) 
     {
-        if (target == rook && endPos & CORNERS)
-        {
-            // removing ability of rook to castle after being captured
-            nextFlags ^= 0b1 << 1 + (color * 2) + (endPos & LEFT_CORNERS ? 1 : 0);
-        }
-        if (isAttackingEnPassant) 
-        {
-            // removing en Passant pawn based on color
-            endSquare = color ? endSquare + 8 : endSquare - 8;
-        }
+        if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
+        { nextFlags ^= 0b1 << 1 + (color * 2) + (endPos & LEFT_CORNERS ? 1 : 0); }
+
+        if (isAttackingEnPassant)  // removing en Passant pawn based on color
+        { endSquare = color ? endSquare + 8 : endSquare - 8; }
+
         // removing captured piece
         POP_BIT(nextPosition[!color][target], endSquare); 
     } 
-    
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
 
@@ -289,16 +274,14 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 
 
 /*
-* Method for getting a list of possible moves
-* input: color of pieces. if onlyCheckingPieces flag is set it will only find
-* the moves that put the king in check
+* Method for getting a list of pseudo legal moves
+* input: color of pieces
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onlyCheckingPieces) const
+std::vector<std::pair<u64, u64>> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 attackedSquares = !color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs;
     std::vector<std::pair<u64, u64>> moves;
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
@@ -311,8 +294,8 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
             {
                 case pawn:
                     pattern = this->removePawnIllegalAtk(pattern, color) |
-                        this->getPawnMovementPattern(square) |
-                        this->getEnPassantPattern(square);
+                        this->getPawnMovementPattern(square, color) |
+                        this->getEnPassantPattern(square, color);
                     break;
                 case rook:
                     pattern = this->removeRookBlockedAtk(square, pattern, color);
@@ -340,6 +323,31 @@ std::vector<std::pair<u64, u64>> BitBoard::getPossibleMoves(bool color, bool onl
     }
 
     return moves;
+}
+
+
+/*
+* Checks if move is found in the pseudo legal move list
+* input: start and end square of move (int,int)
+* output: true if move is found, false otherwise (bool)
+*/
+bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare) const
+{
+    int piece = getPieceType(startSquare, COLOR);
+    u64 startPos = 0ULL;
+    u64 endPos = 0ULL;
+
+    SET_BIT(startPos, startSquare);
+    SET_BIT(endPos, endSquare);
+
+    for(auto it = this->m_pseudoLegalMoves.begin(); it != this->m_pseudoLegalMoves.end(); it++)
+    {
+        if (it->first == startPos && it->second == endPos)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -473,17 +481,15 @@ int BitBoard::getPieceType(int square, bool color) const
 {
     u64 board = 0ULL;
     SET_BIT(board, square);
-    int piece = -1;
 
-    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
-        if (board & this->m_pieces[color][i])
+        if (board & this->m_pieces[color][piece])
         {
-            piece = i;
-            break;
+            return piece;
         }
     }
-    return piece;
+    return -1;
 }
 
 
@@ -558,9 +564,8 @@ bool BitBoard::isMate() const
 bool BitBoard::isStale() const
 {
     bool color = COLOR;
-    std::vector<std::pair<u64,u64>> possibleMoves = getPossibleMoves(color, false);
     bool castlingAllowed = isCastlingPossible(false) | isCastlingPossible(true);
-    return (possibleMoves.size() == 0 && !castlingAllowed) && !this->isCheck(color);
+    return (this->m_pseudoLegalMoves.size() == 0 && !castlingAllowed) && !this->isCheck(color);
 }
 
 
@@ -603,19 +608,11 @@ u64 BitBoard::getBlackOccupancy() const
 u64 BitBoard::getAttackSqrs(const bool side) const
 {
     u64 attack = 0ULL;
-    for (int i = 0; i < NUMBER_OF_PIECES; i++)
+    std::vector<std::pair<u64, u64>> pseudoLegal = side == (COLOR) ? this->m_pseudoLegalMoves :
+        this->getPseudoLegalMoves(!(COLOR));
+    for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
     {
-        u64 board = this->m_pieces[side][i];
-        while (board)
-        {
-            int index = getLsbIndex(board);
-            u64 pattern = this->m_attackPatterns[side][i][index];
-            if (i == bishop) { pattern = this->removeBishopBlockedAtk(index, pattern, side); }
-            else if (i == rook) { pattern = this->removeRookBlockedAtk(index, pattern, side); }
-            else if (i == queen) { pattern = this->removeQueenBlockedAtk(index, pattern, side); }
-            attack |= pattern;
-            board &= board - 1;
-        }
+        attack |= it->second;
     }
     return attack;
 }
@@ -796,13 +793,12 @@ u64 BitBoard::removePawnIllegalAtk(u64 atk, bool color) const
 * input: square the pawn is on
 * output: movement pattern seperate to the attack pattern (u64)
 */
-u64 BitBoard::getPawnMovementPattern(int square) const
+u64 BitBoard::getPawnMovementPattern(int square, bool color) const
 {
     constexpr u64 doubleJumpMask = 71776119061282560ULL;
     u64 ptrn = 0ULL;
     u64 movement = 0ULL;
     SET_BIT(ptrn, square);
-    bool color = COLOR;
     bool isDoubleJump = ptrn & doubleJumpMask;
     u64 occupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
 
@@ -820,7 +816,7 @@ u64 BitBoard::getPawnMovementPattern(int square) const
 * input: Square the attacking pawn is on
 * output: bitboard attack pattern
 */
-u64 BitBoard::getEnPassantPattern(int square) const
+u64 BitBoard::getEnPassantPattern(int square, bool color) const
 {
     u64 board = 0ULL;
     u64 enPassantBoard = 0ULL;
@@ -830,14 +826,14 @@ u64 BitBoard::getEnPassantPattern(int square) const
         return enPassantBoard;
     }
     SET_BIT(enPassantBoard, this->m_enPassantSquare);
-    if (COLOR)
+    if (color)
     {
         if (((board >> 9) | (board >> 7)) & enPassantBoard)
         {
             return enPassantBoard;
         }
     }
-    else if(!(COLOR))
+    else if(!color)
     {
         if (((board << 9) | (board << 7)) & enPassantBoard)
         {
