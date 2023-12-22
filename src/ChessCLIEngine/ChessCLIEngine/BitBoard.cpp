@@ -22,16 +22,12 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     parseFen(fen);
     initAtkDictionary();
 
-    this->m_blackOccupancy = getBlackOccupancy();
-    this->m_whiteOccupancy = getWhiteOccupancy();
-    this->m_pseudoLegalMoves = getPseudoLegalMoves(COLOR);
+    this->m_whiteOccupancy = getSideOccupancy(WHITE);
+    this->m_blackOccupancy = getSideOccupancy(BLACK);
+    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
+    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
-
-    if(this->isMate())
-    {   this->m_moveFlags |= 0b100000; }
-    else if (this->isStale())
-    {   this->m_moveFlags |= 0b1000000; }
 
 }
 
@@ -48,11 +44,12 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
         }
     }
 
-    this->m_pseudoLegalMoves = getPseudoLegalMoves(COLOR);
+    this->m_whiteOccupancy = getSideOccupancy(WHITE);
+    this->m_blackOccupancy = getSideOccupancy(BLACK);
+    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
+    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
-    this->m_whiteOccupancy = getWhiteOccupancy();
-    this->m_blackOccupancy = getBlackOccupancy();
 }
 
 
@@ -64,9 +61,6 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 */
 std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
 {
-    if (this->m_moveFlags & 0b1100000) // checking if checkmate or stalemate occured 
-    { throw GameOverException((this->m_moveFlags & 0b1100000) != 0b1000000); }
-    
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
     int target = NO_CAPTURE;
@@ -125,7 +119,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     if (target != NO_CAPTURE) 
     {
         if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
-        { nextFlags ^= 0b1 << 1 + (color * 2) + (endPos & LEFT_CORNERS ? 1 : 0); }
+        { nextFlags ^= (0b1 << 1) + (color * 2) + (endPos & LEFT_CORNERS ? 1 : 0); }
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
         { endSquare = color ? endSquare + 8 : endSquare - 8; }
@@ -260,12 +254,6 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
 
-    if (afterMove->isMate()) { nextFlags |= 0b100000; }
-    else if (afterMove->isStale()) { nextFlags |= 0b1000000; }
-
-    afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
-
-
     if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
     if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }
 
@@ -336,11 +324,12 @@ bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare) const
     int piece = getPieceType(startSquare, COLOR);
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
+    auto moveList = COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
 
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
 
-    for(auto it = this->m_pseudoLegalMoves.begin(); it != this->m_pseudoLegalMoves.end(); it++)
+    for(auto it = moveList.begin(); it != moveList.end(); it++)
     {
         if (it->first == startPos && it->second == endPos)
         {
@@ -492,6 +481,18 @@ int BitBoard::getPieceType(int square, bool color) const
     return -1;
 }
 
+int BitBoard::getPieceType(u64 square, bool color) const
+{
+    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+    {
+        if (square & this->m_pieces[color][piece])
+        {
+            return piece;
+        }
+    }
+    return -1;
+}
+
 
 /*
 * Method for getting the index of the least significant bit (LSB) in a given
@@ -521,101 +522,39 @@ bool BitBoard::isCheck(bool color) const
 
 
 /*
-* Method for checking if the position is currently in checkmate
-* input: None
-* output: True if the position is in checkmate, false otherwise.
+* Method to get the  occupancy board with the location of all pieces of a specific color
+* input: color of pieces
+* output: a occupancy bitboard that contains all pieces of given color (u64)
 */
-bool BitBoard::isMate() const
-{
-
-    return false; // will implement later
-
-
-    /*bool color = this->m_moveFlags & 0b1;
-    if (!this->isCheck(color)) { return false; }*/
-
-    //u64 attackedSquares = this->getAttackSqrs(color);
-    //std::vector<std::pair<u64, u64>> opponentMoves = this->getPossibleMoves(!color, true);
-    //u64 opponentMoveStartSqrs = 0ULL;
-    //if (opponentMoves.empty()) { return false; }
-    //std::vector<std::pair<u64, u64>> moves = this->getPossibleMoves(color);
-
-    //int kingSquare = this->getLsbIndex(this->m_pieces[color][king]);
-    //u64 enemyAtk = this->getAttackSqrs(!color);
-    //bool kingStuck = this->m_attackPatterns[color][king][kingSquare] & enemyAtk == this->m_attackPatterns[color][king][kingSquare]; 
-    //if (opponentMoves.size() > 1 && kingStuck) { return true; } // if king is in double check and he can't move
-
-    //bool canBlock = true;
-    //for (auto it = opponentMoves.begin(); it != opponentMoves.end(); it++)
-    //{
-    //    opponentMoveStartSqrs |= it->first;
-    //}
-    //bool canCapture = opponentMoveStartSqrs & attackedSquares; // remember to remove your king's atk pattern from the attacked squares
-
-    //return kingStuck && !canBlock && !canCapture;
-}
-
-
-/*
-* Method for checking if the current position is in Stalemate
-* input: None
-* output: true if the position is in stalemate, false otherwise (bool)
-*/
-bool BitBoard::isStale() const
-{
-    bool color = COLOR;
-    bool castlingAllowed = isCastlingPossible(false) | isCastlingPossible(true);
-    return (this->m_pseudoLegalMoves.size() == 0 && !castlingAllowed) && !this->isCheck(color);
-}
-
-
-/*
-* Method to get the white occupancy board with the location of all white pieces
-* input: None
-* output: a occupancy bitboard that contains all white pieces (u64)
-*/
-u64 BitBoard::getWhiteOccupancy() const
+u64 BitBoard::getSideOccupancy(const bool color) const
 {
     u64 unifiedBoard = 0ULL;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
     {
-        unifiedBoard |= this->m_pieces[WHITE][i];
+        unifiedBoard |= this->m_pieces[color][i];
     }
     return unifiedBoard;
 }
 
-
-/*
-* Method to get the black occupancy board with the location of all black pieces
-* input: None
-* output: a occupancy bitboard that contains all black pieces (u64)
-*/
-u64 BitBoard::getBlackOccupancy() const
-{
-    u64 unifiedBoard = 0ULL;
-    for (int i = 0; i < NUMBER_OF_PIECES; i++)
-    {
-        unifiedBoard |= this->m_pieces[BLACK][i];
-    }
-    return unifiedBoard;
-}
 
 /*
 * Method for getting all the attacked squares of a given side on the board
 * input: side (white|black) (bool)
 * output: bitboard of all attacked squares (u64)
 */
-u64 BitBoard::getAttackSqrs(const bool side) const
+u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
-    std::vector<std::pair<u64, u64>> pseudoLegal = side == (COLOR) ? this->m_pseudoLegalMoves :
-        this->getPseudoLegalMoves(!(COLOR));
+    std::vector<std::pair<u64, u64>> pseudoLegal = color ?
+        this->m_whiteMoveList :
+        this->m_blackMoveList;
     for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
     {
         attack |= it->second;
     }
     return attack;
 }
+
 
 /*
 * Method that gives the appropriate promotion mask depending on the current

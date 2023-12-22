@@ -8,7 +8,7 @@
 
 #define VERSION "v0.0.1"
 
-#define TEST true
+#define TEST false
 #if !TEST
 
 int main(int argc, char** argv)
@@ -40,11 +40,10 @@ int main(int argc, char** argv)
 // for debugging and testing bitboard
 int main(int argc, char** argv)
 {
-	// TODO LATER: fix issue where pinned piece isn't recognized in stalemate method
 	BitBoard test("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	try 
 	{
-		test.move(e2, e4)->printBoard();
+		test.move(e2, e4)->printBoard(false);
 	}
 	catch (std::exception& e)
 	{

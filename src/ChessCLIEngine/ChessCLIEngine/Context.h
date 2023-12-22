@@ -8,13 +8,13 @@ class Context
 public:
 	Context();
 
-	Game* getCurrGame() const;
-	void newGame(Game* game);
+	std::shared_ptr<Game> getCurrGame() const;
+	void newGame(std::string fen);
 	void deleteGame();
 
 
 private:
-	Game* m_currGame;
+	std::shared_ptr<Game> m_currGame;
 };
 
 #endif

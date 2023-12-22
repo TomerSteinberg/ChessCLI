@@ -10,6 +10,8 @@
 #include "HelpCommand.h"
 #include "ClearCommand.h"
 #include "QuitCommand.h"
+#include "CreateCommand.h"
+#include "ShowCommand.h"
 
 
 class ICommand;

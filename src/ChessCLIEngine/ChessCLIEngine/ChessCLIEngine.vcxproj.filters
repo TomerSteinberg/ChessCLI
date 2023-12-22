@@ -60,7 +60,16 @@
     <ClCompile Include="IllegalMoveException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameOverException.cpp">
+    <ClCompile Include="CreateCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InvalidCommandException.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InvalidArgumentException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -107,7 +116,16 @@
     <ClInclude Include="IllegalMoveException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameOverException.h">
+    <ClInclude Include="CreateCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InvalidCommandException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="InvalidArgumentException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

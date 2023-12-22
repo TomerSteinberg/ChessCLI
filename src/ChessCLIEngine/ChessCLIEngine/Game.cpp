@@ -2,14 +2,12 @@
 
 Game::Game(std::string fen)
 {
-	std::cmatch res;
-	if (!std::regex_match(fen, std::regex(FEN_REGEX)))
-	{
-		throw std::exception("Argument Error: Invalid FEN string"); // turn to it's own exception type
-	}
-	// create BitBoard instance
+	this->m_moves.push_back(std::make_shared<BitBoard>(fen));
+	this->m_currPosition = *m_moves.begin();
 }
 
-Game::Game()
+void Game::showPosition(bool isUnicode)
 {
+	this->m_currPosition->printBoard(isUnicode);
+	std::cout << std::endl;
 }

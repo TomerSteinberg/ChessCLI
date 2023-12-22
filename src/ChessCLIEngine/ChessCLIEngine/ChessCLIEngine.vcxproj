@@ -141,12 +141,15 @@
   <ItemGroup>
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
-    <ClCompile Include="GameOverException.cpp" />
+    <ClCompile Include="CreateCommand.cpp" />
     <ClCompile Include="IllegalMoveException.cpp" />
+    <ClCompile Include="InvalidArgumentException.cpp" />
+    <ClCompile Include="InvalidCommandException.cpp" />
     <ClCompile Include="MissingPieceException.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
+    <ClCompile Include="ShowCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
     <ClCompile Include="ICommand.cpp" />
@@ -159,12 +162,15 @@
   <ItemGroup>
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
-    <ClInclude Include="GameOverException.h" />
+    <ClInclude Include="CreateCommand.h" />
     <ClInclude Include="IllegalMoveException.h" />
+    <ClInclude Include="InvalidArgumentException.h" />
+    <ClInclude Include="InvalidCommandException.h" />
     <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="QuitCommand.h" />
+    <ClInclude Include="ShowCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />
     <ClInclude Include="ICommand.h" />

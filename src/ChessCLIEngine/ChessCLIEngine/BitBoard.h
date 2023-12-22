@@ -9,7 +9,6 @@
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
-#include "GameOverException.h"
 
 #define NO_CAPTURE -1
 #define NO_PROMOTION -1
@@ -26,6 +25,7 @@
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
 #define COLOR this->m_moveFlags & WHITE
+
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
 #define POP_BIT(board, square) (GET_BIT(board, square) ? board ^= (1ULL << square) : 0)
@@ -61,8 +61,6 @@ public:
 	std::string getFen() const;
 
 	bool isCheck(bool color) const;
-	bool isMate() const;
-	bool isStale() const;
 
 	void printBoard(bool isUnicode=false) const;
 
@@ -73,14 +71,14 @@ private:
 	* White castle
 	* White long castle
 	* Black castle
-	* Black long castle
-	* Checkmate
-	* MSB - Stalemate*/
+	* MSB - Black long castle
+	*/
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::vector<std::pair<u64, u64>> m_pseudoLegalMoves;
+	std::vector<std::pair<u64, u64>> m_whiteMoveList;
+	std::vector<std::pair<u64, u64>> m_blackMoveList;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
@@ -94,12 +92,12 @@ private:
 	void initAtkDictionary();
 
 	int getPieceType(int square, bool color) const;
+	int getPieceType(u64 square, bool color) const;
 	static int getLsbIndex(u64 board);
 	static inline int bitCount(u64 board);
 	
-	u64 getWhiteOccupancy() const; 
-	u64 getBlackOccupancy() const; 
-	u64 getAttackSqrs(const bool side) const;
+	u64 getSideOccupancy(const bool color) const; 
+	u64 getAttackSqrs(const bool color) const;
 	u64 getPromotionMask() const;
 
 	u64 removeBishopBlockedAtk(int square, u64 atk, bool color) const;

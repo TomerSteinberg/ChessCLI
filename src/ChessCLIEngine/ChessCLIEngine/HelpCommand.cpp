@@ -23,7 +23,7 @@ void HelpCommand::execute(Context& ctx) // Update this to a file print for bette
 		<< "evaluate [FEN string | PGN directory | None] - Evaluate a position\n"
 		<< "analyze [FEN string | PGN directory | None] [-s] [--switch-turn] [-n] [-r] [--reverse-order] - Evaluate possible continuations\n"
 		<< "move [Move notation] - Make a move on a loaded board\n"
-		<< "show [-a] [--all-positions] [-u] [--unicode] - Prints current position in visual format\n"
+		<< "show [-u] [--unicode] - Prints current position in visual format\n"
 		<< "fen [-a] [--all-positions] - Show FEN string of a loaded position\n"
 		<< "history - Show all moves that have been played in classic notation\n"
 		<< "position [Index of position in loaded game] - Goes to a specific position in a loaded game\n"

@@ -14,7 +14,7 @@ public:
 
 	virtual void execute(Context& ctx)=0;
 protected:
-	std::vector<std::string> _args;
+	std::vector<std::string> m_args;
 
 };
 

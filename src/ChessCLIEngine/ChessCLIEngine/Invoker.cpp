@@ -4,6 +4,13 @@ void Invoker::invoke(Context& ctx, std::unique_ptr<ICommand>& cmd)
 {
 	if (cmd)
 	{
-		cmd->execute(ctx);
+		try 
+		{
+			cmd->execute(ctx);
+		}
+		catch (std::exception& error)
+		{
+			std::cout << error.what() << std::endl;
+		}
 	}
 }
