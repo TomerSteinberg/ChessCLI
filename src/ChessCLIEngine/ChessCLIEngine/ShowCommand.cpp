@@ -17,7 +17,8 @@ void ShowCommand::execute(Context& ctx)
 	}
 	if (ctx.getCurrGame())
 	{
-		ctx.getCurrGame()->showPosition();
+		this->m_args.size() == 0 ? ctx.getCurrGame()->showPosition() :
+			ctx.getCurrGame()->showPosition(true);
 		return;
 	}
 	throw InvalidCommandException("show");

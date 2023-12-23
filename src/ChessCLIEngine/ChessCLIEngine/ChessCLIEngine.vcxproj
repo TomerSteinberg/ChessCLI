@@ -142,6 +142,7 @@
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="CreateCommand.cpp" />
+    <ClCompile Include="ExitCommand.cpp" />
     <ClCompile Include="IllegalMoveException.cpp" />
     <ClCompile Include="InvalidArgumentException.cpp" />
     <ClCompile Include="InvalidCommandException.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="CreateCommand.h" />
+    <ClInclude Include="ExitCommand.h" />
     <ClInclude Include="IllegalMoveException.h" />
     <ClInclude Include="InvalidArgumentException.h" />
     <ClInclude Include="InvalidCommandException.h" />

@@ -7,6 +7,7 @@
 #include "UnkownCommandException.h"
 #include "ExceededMaxArgumentsException.h"
 
+#include "ExitCommand.h"
 #include "HelpCommand.h"
 #include "ClearCommand.h"
 #include "QuitCommand.h"

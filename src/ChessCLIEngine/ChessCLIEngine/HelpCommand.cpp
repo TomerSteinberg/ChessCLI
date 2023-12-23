@@ -29,6 +29,6 @@ void HelpCommand::execute(Context& ctx) // Update this to a file print for bette
 		<< "position [Index of position in loaded game] - Goes to a specific position in a loaded game\n"
 		<< "truncate - Remove all positions ahead of current position in a loaded game\n"
 		<< "save [Directory | None = current directory] - Save loaded game to PGN\n"
-		<< "Exit [Directory | None = current directory] [-d] [--no-save] - Exit loaded game\n"
+		<< "exit [Directory | None = current directory] [-d] [--no-save] - Exit loaded game\n"
 		<< "Continue [-r] [--reverse-order] - Play the move with the highest evaluation on loaded position\n\n";
 }
