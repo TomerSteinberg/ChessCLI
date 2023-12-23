@@ -6,7 +6,7 @@ ClearCommand::ClearCommand(std::vector<std::string> args) :ICommand(args)
 }
 
 
-int ClearCommand::maxArg = 0;
+unsigned int ClearCommand::maxArg = 0;
 
 
 /*

@@ -1,18 +1,19 @@
-#ifndef QUIT_COMMAND_H
-#define QUIT_COMMAND_H
+#ifndef EXIT_COMMAND_H
+#define EXIT_COMMAND_H
 
 #include <vector>
 #include <iostream>	
 #include "ICommand.h"
 #include "Context.h"
+#include "InvalidCommandException.h"
 
 class Context;
 
 
-class QuitCommand : public ICommand
+class ExitCommand : public ICommand
 {
 public:
-	QuitCommand(std::vector<std::string> args);
+	ExitCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;

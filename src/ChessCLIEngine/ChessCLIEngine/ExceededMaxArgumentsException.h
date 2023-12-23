@@ -1,6 +1,9 @@
+#ifndef EXCEEDED_MAX_ARGUMENTS_EXCPETION_H
+#define EXCEEDED_MAX_ARGUMENTS_EXCPETION_H
+
 #include <exception>
 #include <string>
-#pragma once
+
 class ExceededMaxArgumentsException : public std::exception
 {
 public:
@@ -10,3 +13,4 @@ private:
     std::string errMsg;
 };
 
+#endif

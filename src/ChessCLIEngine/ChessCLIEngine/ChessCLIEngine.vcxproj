@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -85,7 +85,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
@@ -139,9 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="CreateCommand.cpp" />
+    <ClCompile Include="ExitCommand.cpp" />
+    <ClCompile Include="IllegalMoveException.cpp" />
+    <ClCompile Include="InvalidArgumentException.cpp" />
+    <ClCompile Include="InvalidCommandException.cpp" />
+    <ClCompile Include="MissingPieceException.cpp" />
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
+    <ClCompile Include="ShowCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
     <ClCompile Include="ICommand.cpp" />
@@ -152,9 +161,18 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="CreateCommand.h" />
+    <ClInclude Include="ExitCommand.h" />
+    <ClInclude Include="IllegalMoveException.h" />
+    <ClInclude Include="InvalidArgumentException.h" />
+    <ClInclude Include="InvalidCommandException.h" />
+    <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="QuitCommand.h" />
+    <ClInclude Include="ShowCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />
     <ClInclude Include="ICommand.h" />

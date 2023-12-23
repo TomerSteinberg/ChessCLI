@@ -1,8 +1,11 @@
+#ifndef ICOMMAND_H
+#define ICOMMAND_H
+#pragma once
+
 #include "Context.h"
 #include <vector>
 #include <string>
 
-#pragma once
 
 class ICommand
 {
@@ -11,7 +14,8 @@ public:
 
 	virtual void execute(Context& ctx)=0;
 protected:
-	std::vector<std::string> _args;
+	std::vector<std::string> m_args;
 
 };
 
+#endif

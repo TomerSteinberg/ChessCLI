@@ -2,15 +2,27 @@
 
 Context::Context()
 {
-	this->m_inGame = false;
+	this->m_currGame = nullptr;
 }
 
-bool Context::getInGame() const
+
+std::shared_ptr<Game> Context::getCurrGame() const
 {
-	return this->m_inGame;
+	return this->m_currGame;
 }
 
-void Context::setInGame(const bool val)
+/*
+* creates a new game instance using fen string
+* input: fen string of first position
+* output: none
+*/
+void Context::newGame(std::string fen)
 {
-	this->m_inGame = val;
+	this->m_currGame = std::make_shared<Game>(Game(fen));
+}
+
+void Context::deleteGame()
+{
+	this->m_currGame.reset();
+	this->m_currGame = nullptr;
 }

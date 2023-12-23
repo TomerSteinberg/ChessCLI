@@ -1,14 +1,20 @@
-#pragma once
+#ifndef CONTEXT_H
+#define CONTEXT_H
+
+#include "Game.h"
+
 class Context
 {
 public:
 	Context();
 
-	bool getInGame() const;
-	void setInGame(const bool val);
+	std::shared_ptr<Game> getCurrGame() const;
+	void newGame(std::string fen);
+	void deleteGame();
+
 
 private:
-	bool m_inGame;
-
+	std::shared_ptr<Game> m_currGame;
 };
 
+#endif
