@@ -154,6 +154,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
     <ClCompile Include="NextCommand.cpp" />
+    <ClCompile Include="OptionsCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="MoveCommand.h" />
     <ClInclude Include="NextCommand.h" />
+    <ClInclude Include="OptionsCommand.h" />
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="ShowCommand.h" />

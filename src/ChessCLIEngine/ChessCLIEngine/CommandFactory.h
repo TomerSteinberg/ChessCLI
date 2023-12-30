@@ -20,6 +20,7 @@
 #include "TruncateCommand.h"
 #include "BackCommand.h"
 #include "NextCommand.h"
+#include "OptionsCommand.h"
 
 
 class ICommand;

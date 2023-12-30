@@ -27,6 +27,7 @@ public:
 	std::string getFen() const;
 	std::vector<std::string> getAllFen() const;
 	std::vector<std::string> getHistory() const;
+	std::vector<std::string> getOptions() const;
 
 private:
 	std::vector<std::shared_ptr<BitBoard>> m_moves;

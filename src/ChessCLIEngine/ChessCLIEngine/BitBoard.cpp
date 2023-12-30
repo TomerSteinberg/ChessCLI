@@ -69,7 +69,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     u64 startPos = 0ULL, endPos = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags, nextEnPasssant = NO_ENPASSANT;
-    const u64 promotionMask = this->getPromotionMask();
+    const u64 promotionMask = this->getPromotionMask(color);
     bool isAttackingEnPassant = false;
 
     if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
@@ -103,7 +103,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
         { nextEnPasssant = color ? endSquare + 8 : endSquare - 8; }
 
         if(endPos & promotionMask && promotionPiece == NO_PROMOTION)
-        { throw IllegalMoveException("You didn't specify the promotion piece. i.e \"move e7e8=q\" "); }
+        { throw IllegalMoveException("You didn't specify the promotion piece. i.e \"move e7e8q\" "); }
         if(!(endPos & promotionMask) && promotionPiece != NO_PROMOTION)
         { throw IllegalMoveException("You can't promote on this square"); }
     }
@@ -198,6 +198,11 @@ std::string BitBoard::getFen() const
     return fen;
 }
 
+std::vector<Move> BitBoard::getMoveList()
+{
+    return COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
+}
+
 
 /*
 * Method for printing a Chess board with either letters or unicode characters
@@ -267,10 +272,10 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::vector<std::pair<u64, u64>> BitBoard::getPseudoLegalMoves(bool color) const
+std::vector<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    std::vector<std::pair<u64, u64>> moves;
+    std::vector<Move> moves;
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 board = this->m_pieces[color][piece];
@@ -301,13 +306,29 @@ std::vector<std::pair<u64, u64>> BitBoard::getPseudoLegalMoves(bool color) const
             while (pattern)
             {
                 int index = getLsbIndex(pattern);
-                if (index != -1) {
-                    moves.push_back({ (1ULL << square), (1ULL << index) });
+                if ((1ULL << square) & this->m_pieces[color][pawn] && 
+                    (1ULL << index) & getPromotionMask(color) && index != -1)
+                {
+                    moves.push_back({ (1ULL << square), (1ULL << index), queen, false, false });
+                    moves.push_back({ (1ULL << square), (1ULL << index), rook, false, false });
+                    moves.push_back({ (1ULL << square), (1ULL << index), bishop, false, false });
+                    moves.push_back({ (1ULL << square), (1ULL << index), knight, false, false });
+                }
+                else if (index != -1) {
+                    moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                 }
                 pattern &= pattern - 1;
             }
             board &= board - 1;
         }
+    }
+    if (isCastlingPossible(false))
+    {
+        moves.push_back({ 0, 0, NO_PROMOTION, true, false });
+    }
+    if (isCastlingPossible(true))
+    {
+        moves.push_back({ 0, 0, NO_PROMOTION, true, true });
     }
 
     return moves;
@@ -331,7 +352,7 @@ bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare) const
 
     for(auto it = moveList.begin(); it != moveList.end(); it++)
     {
-        if (it->first == startPos && it->second == endPos)
+        if (it->from == startPos && it->to == endPos)
         {
             return true;
         }
@@ -454,6 +475,7 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
         nextPosition[color][king] >> 2 : nextPosition[color][king] << 2;
     nextPosition[color][rook] = isLongCastle ?
         nextPosition[color][rook] << 3 : nextPosition[color][rook] >> 2;
+    nextPosition[color][rook] &= 18374967954648269055ULL;
     nextPosition[color][rook] |= rookSquare ^ this->m_pieces[color][rook];
 
     nextFlags &= color ? 0b1111001 : 0b1100111;
@@ -545,12 +567,12 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
-    std::vector<std::pair<u64, u64>> pseudoLegal = color ?
+    std::vector<Move> pseudoLegal = color ?
         this->m_whiteMoveList :
         this->m_blackMoveList;
     for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
     {
-        attack |= it->second;
+        attack |= it->to;
     }
     return attack;
 }
@@ -562,9 +584,9 @@ u64 BitBoard::getAttackSqrs(const bool color) const
 * input: None
 * output: Promotion rank mask (u64)
 */
-u64 BitBoard::getPromotionMask() const
+u64 BitBoard::getPromotionMask(bool color) const
 {
-    return COLOR ? 255ULL : 18374686479671623680ULL;
+    return color ? 255ULL : 18374686479671623680ULL;
 }
 
 

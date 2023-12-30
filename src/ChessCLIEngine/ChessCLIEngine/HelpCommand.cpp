@@ -29,6 +29,7 @@ void HelpCommand::execute(Context& ctx)
 		<< "back - Goes to the previous position\n"
 		<< "next - Goes to the next position\n"
 		<< "truncate - Remove all positions ahead of current position in a loaded game\n"
+		<< "options - Possible continuations\n"
 		<< "exit - Exit loaded game\n"
 		<< "Continue [-r] [--reverse-order] - Play the move with the highest evaluation on loaded position\n\n";
 }

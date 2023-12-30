@@ -50,6 +50,15 @@ enum Pieces {
 	pawn, knight, bishop, rook, queen, king
 };
 
+struct Move {
+	u64 from;
+	u64 to;
+	int promotion;
+	bool castle;
+	bool isLong;
+};
+
+
 class BitBoard
 {
 public:
@@ -59,10 +68,12 @@ public:
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
 	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;
+	std::vector<Move> getMoveList();
 
 	bool isCheck(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
+	static int getLsbIndex(u64 board);
 
 private:
 
@@ -77,15 +88,15 @@ private:
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::vector<std::pair<u64, u64>> m_whiteMoveList;
-	std::vector<std::pair<u64, u64>> m_blackMoveList;
+	std::vector<Move> m_whiteMoveList;
+	std::vector<Move> m_blackMoveList;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	std::vector<std::pair<u64, u64>> getPseudoLegalMoves(bool color) const;
+	std::vector<Move> getPseudoLegalMoves(bool color) const;
 	bool isMovePseudoLegal(int startSquare, int endSquare) const;
 
 	void parseFen(std::string fen);
@@ -93,12 +104,11 @@ private:
 
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
-	static int getLsbIndex(u64 board);
 	static inline int bitCount(u64 board);
 	
 	u64 getSideOccupancy(const bool color) const; 
 	u64 getAttackSqrs(const bool color) const;
-	u64 getPromotionMask() const;
+	u64 getPromotionMask(bool color) const;
 
 	u64 removeBishopBlockedAtk(int square, u64 atk, bool color) const;
 	u64 removeRookBlockedAtk(int square, u64 atk, bool color) const;

@@ -14,7 +14,8 @@ std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
 	{"position", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(PositionCommand); }},
 	{"truncate", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(TruncateCommand); }},
 	{"back", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(BackCommand); }},
-	{"next", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(NextCommand); }}
+	{"next", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(NextCommand); }},
+	{"options", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(OptionsCommand); }}
 };
 
 

@@ -102,6 +102,53 @@ std::vector<std::string> Game::getHistory() const
 	return this->m_moveHistory;
 }
 
+std::vector<std::string> Game::getOptions() const
+{
+	std::vector<std::string> continuations;
+	std::vector<Move> options = this->m_currPosition->getMoveList();
+	for (auto it = options.begin(); it != options.end(); it++)
+	{
+		if(it->isLong) 
+		{
+			continuations.push_back("0-0-0");
+			continue;
+		}
+		if (it->castle && !it->isLong)
+		{
+			continuations.push_back("0-0");
+			continue;
+		}
+		std::string from = std::to_string(BitBoard::getLsbIndex(it->from) % 8);
+		std::string to = std::to_string(BitBoard::getLsbIndex(it->to) % 8);
+		from[0] += 49;
+		to[0] += 49;
+		from += std::to_string(8 - (BitBoard::getLsbIndex(it->from) / 8));
+		to += std::to_string(8 - (BitBoard::getLsbIndex(it->to) / 8));
+		std::string continuation = from + to;
+		if (it->promotion != NO_PROMOTION)
+		{
+			switch (it->promotion)
+			{
+			case queen:
+				continuation += "q";
+				break;
+			case bishop:
+				continuation += "b";
+				break;
+			case rook:
+				continuation += "r";
+				break;
+			case knight:
+				continuation += "n";
+				break;
+			}
+		}
+		continuations.push_back(continuation);
+
+	}
+	return continuations;
+}
+
 /*
 * Changes current position to given index in move history
 * input: index of desired positon

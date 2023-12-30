@@ -34,7 +34,7 @@ void MoveCommand::execute(Context& ctx)
 
 	if (this->m_args[0].size() == PROMOTION_LENGTH)
 	{
-		promotionPiece = promotionMap.at(this->m_args[0][5]);
+		promotionPiece = promotionMap.at(this->m_args[0][4]);
 	}
 
 	ctx.getCurrGame()->move(startSquare, endSquare, promotionPiece, this->m_args[0]);
