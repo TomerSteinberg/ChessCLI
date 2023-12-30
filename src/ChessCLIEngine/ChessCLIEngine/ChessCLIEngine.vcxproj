@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BackCommand.cpp" />
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="CreateCommand.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
+    <ClCompile Include="NextCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
@@ -166,6 +168,7 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BackCommand.h" />
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="CreateCommand.h" />
@@ -179,6 +182,7 @@
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="MoveCommand.h" />
+    <ClInclude Include="NextCommand.h" />
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="ShowCommand.h" />

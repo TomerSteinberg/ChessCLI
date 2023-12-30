@@ -18,6 +18,8 @@
 #include "HistoryCommand.h"
 #include "PositionCommand.h"
 #include "TruncateCommand.h"
+#include "BackCommand.h"
+#include "NextCommand.h"
 
 
 class ICommand;

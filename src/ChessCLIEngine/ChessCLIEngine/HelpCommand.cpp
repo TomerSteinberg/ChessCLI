@@ -26,6 +26,8 @@ void HelpCommand::execute(Context& ctx)
 		<< "fen [-a] [--all-positions] - Show FEN string of a loaded position\n"
 		<< "history - Show all moves that have been played in classic notation\n"
 		<< "position [Index of position in loaded game] - Goes to a specific position in a loaded game\n"
+		<< "back - Goes to the previous position\n"
+		<< "next - Goes to the next position\n"
 		<< "truncate - Remove all positions ahead of current position in a loaded game\n"
 		<< "exit - Exit loaded game\n"
 		<< "Continue [-r] [--reverse-order] - Play the move with the highest evaluation on loaded position\n\n";

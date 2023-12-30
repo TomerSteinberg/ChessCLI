@@ -116,3 +116,23 @@ bool Game::toPosition(const int index)
 	}
 	return false;
 }
+
+void Game::back()
+{
+	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
+	int index = distance(this->m_moves.begin(), posIt);
+	if (index > 0)
+	{
+		this->m_currPosition = this->m_moves[index - 1];
+	}
+}
+
+void Game::next()
+{
+	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
+	int index = distance(this->m_moves.begin(), posIt);
+	if (index < (this->m_moves.size() - 1))
+	{
+		this->m_currPosition = this->m_moves[index + 1];
+	}
+}

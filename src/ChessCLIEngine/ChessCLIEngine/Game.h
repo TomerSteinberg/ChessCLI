@@ -22,6 +22,8 @@ public:
 	void move(const bool isLongCastle, std::string moveNotation = "");
 	void truncate();
 	bool toPosition(const int index);
+	void back();
+	void next();
 	std::string getFen() const;
 	std::vector<std::string> getAllFen() const;
 	std::vector<std::string> getHistory() const;
