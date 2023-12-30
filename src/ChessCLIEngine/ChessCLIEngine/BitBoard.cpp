@@ -119,7 +119,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     if (target != NO_CAPTURE) 
     {
         if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
-        { nextFlags ^= (0b1 << 1) + (color * 2) + (endPos & LEFT_CORNERS ? 1 : 0); }
+        { nextFlags ^= (2 << (color * 2) << (endPos & LEFT_CORNERS ? 1 : 0)); }
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
         { endSquare = color ? endSquare + 8 : endSquare - 8; }

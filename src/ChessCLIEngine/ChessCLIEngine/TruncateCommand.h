@@ -1,18 +1,19 @@
-#ifndef EXIT_COMMAND_H
-#define EXIT_COMMAND_H
+#ifndef TRUNCATE_COMMAND_H
+#define TRUNCATE_COMMAND_H
 
 #include <vector>
 #include <iostream>	
 #include "ICommand.h"
 #include "Context.h"
 #include "InvalidCommandException.h"
+#include "InvalidArgumentException.h"
 
 
 
-class ExitCommand : public ICommand
+class TruncateCommand : public ICommand
 {
 public:
-	ExitCommand(std::vector<std::string> args);
+	TruncateCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;

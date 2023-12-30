@@ -6,8 +6,113 @@ Game::Game(std::string fen)
 	this->m_currPosition = *m_moves.begin();
 }
 
-void Game::showPosition(bool isUnicode)
+
+/*
+* Prints current position
+* input: unicdoe flag (bool)
+* output: None
+*/
+void Game::showPosition(bool isUnicode) const
 {
 	this->m_currPosition->printBoard(isUnicode);
 	std::cout << std::endl;
+}
+
+
+/*
+* Plays a move on the boards and adds the result to the move history
+* input: start square, end square and promotion piece
+* output: none
+*/
+void Game::move(const int startSquare, const int endSquare, const int promotionPiece, std::string moveNotation)
+{
+	std::shared_ptr<BitBoard> newPosition = this->m_moves.back()->move(startSquare, endSquare, promotionPiece);
+	this->m_moves.push_back(newPosition);
+	this->m_currPosition = this->m_moves.back();
+	if (moveNotation != "")
+	{
+		this->m_moveHistory.push_back(moveNotation);
+	}
+}
+
+
+/*
+* Makes a castle move on the board and updates move history
+* input: is Long castle (bool), move notation
+* output: None
+*/
+void Game::move(const bool isLongCastle, std::string moveNotation)
+{
+	std::shared_ptr<BitBoard> newPosition = this->m_currPosition->castleMove(isLongCastle);
+	this->m_moves.push_back(newPosition);
+	this->m_currPosition = this->m_moves.back();
+	if (moveNotation != "")
+	{
+		this->m_moveHistory.push_back(moveNotation);
+	}
+}
+
+
+/*
+* Removes every move after the current position
+* input: None
+* output: None
+*/
+void Game::truncate()
+{
+	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
+	int index = distance(this->m_moves.begin(), posIt);
+	if (!(index == this->m_moves.size() - 1))
+	{
+		this->m_moves.erase(posIt + 1, this->m_moves.end());
+		this->m_moveHistory.erase(this->m_moveHistory.begin() + index, this->m_moveHistory.end());
+	}
+}
+
+
+/*
+* Gets FEN string of current position
+* input: none
+* output: FEN string of current position
+*/
+std::string Game::getFen() const
+{
+	return this->m_currPosition->getFen();
+}
+
+
+/*
+* Gets all FEN strings in the game
+* input: None
+* output: vector of fen strings
+*/
+std::vector<std::string> Game::getAllFen() const
+{
+	std::vector<std::string> fenStrings;
+	for (auto it = this->m_moves.begin(); it != this->m_moves.end(); it++)
+	{
+		fenStrings.push_back(it->get()->getFen());
+	}
+	return fenStrings;
+}
+
+
+std::vector<std::string> Game::getHistory() const
+{
+	return this->m_moveHistory;
+}
+
+/*
+* Changes current position to given index in move history
+* input: index of desired positon
+* output: true if index was valid and false otherwise
+*/
+bool Game::toPosition(const int index)
+{
+	if (index < this->m_moves.size() && index >= 0)
+	{
+		this->m_currPosition = this->m_moves[index];
+		return true;
+	}
+	return false;
 }
