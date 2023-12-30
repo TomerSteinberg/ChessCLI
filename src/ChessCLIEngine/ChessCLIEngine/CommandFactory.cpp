@@ -7,7 +7,10 @@ std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
 	{"quit", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(QuitCommand); }},
 	{"create", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(CreateCommand); }},
 	{"show", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ShowCommand); }},
-	{"exit", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ExitCommand); }}
+	{"exit", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ExitCommand); }},
+	{"move", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(MoveCommand); }},
+	{"fen", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(FenCommand); }},
+	{"history", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(HistoryCommand); }}
 };
 
 

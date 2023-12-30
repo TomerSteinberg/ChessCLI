@@ -12,7 +12,7 @@ unsigned int HelpCommand::maxArg = 0;
 * input: application state context
 * output: none
 */
-void HelpCommand::execute(Context& ctx) // Update this to a file print for better maintainability 
+void HelpCommand::execute(Context& ctx) 
 {
 	std::cout 
 		<< "\nhelp - List of commands\n" 

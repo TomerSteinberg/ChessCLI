@@ -13,6 +13,9 @@
 #include "QuitCommand.h"
 #include "CreateCommand.h"
 #include "ShowCommand.h"
+#include "MoveCommand.h"
+#include "FenCommand.h"
+#include "HistoryCommand.h"
 
 
 class ICommand;

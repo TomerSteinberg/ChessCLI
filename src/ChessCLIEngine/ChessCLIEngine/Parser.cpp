@@ -20,7 +20,7 @@ std::unique_ptr<ICommand> Parser::parseCommand(std::string cmd)
     }
     catch (std::exception& error)
     {
-        std::cout << error.what();
+        std::cout << error.what() << std::endl;
     }
     return command;
 }

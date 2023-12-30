@@ -6,7 +6,6 @@
 #include "ICommand.h"
 #include "Context.h"
 
-class Context;
 
 
 class QuitCommand : public ICommand
