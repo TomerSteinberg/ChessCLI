@@ -1,5 +1,5 @@
-#ifndef HISTORY_COMMAND_H
-#define HISTORY_COMMAND_H
+#ifndef TRUNCATE_COMMAND_H
+#define TRUNCATE_COMMAND_H
 
 #include <vector>
 #include <iostream>	
@@ -10,10 +10,10 @@
 
 
 
-class HistoryCommand : public ICommand
+class TruncateCommand : public ICommand
 {
 public:
-	HistoryCommand(std::vector<std::string> args);
+	TruncateCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;

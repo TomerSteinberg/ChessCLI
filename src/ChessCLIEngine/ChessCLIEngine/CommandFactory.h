@@ -16,6 +16,8 @@
 #include "MoveCommand.h"
 #include "FenCommand.h"
 #include "HistoryCommand.h"
+#include "PositionCommand.h"
+#include "TruncateCommand.h"
 
 
 class ICommand;

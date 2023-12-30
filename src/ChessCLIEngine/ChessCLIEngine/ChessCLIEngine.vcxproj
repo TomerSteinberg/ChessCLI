@@ -152,8 +152,10 @@
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
+    <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
+    <ClCompile Include="TruncateCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
     <ClCompile Include="HelpCommand.cpp" />
     <ClCompile Include="ICommand.cpp" />
@@ -177,8 +179,10 @@
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="MoveCommand.h" />
+    <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="ShowCommand.h" />
+    <ClInclude Include="TruncateCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />
     <ClInclude Include="HelpCommand.h" />
     <ClInclude Include="ICommand.h" />
