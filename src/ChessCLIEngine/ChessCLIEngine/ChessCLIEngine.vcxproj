@@ -143,6 +143,7 @@
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="CreateCommand.cpp" />
+    <ClCompile Include="DumpCommand.cpp" />
     <ClCompile Include="ExitCommand.cpp" />
     <ClCompile Include="FenCommand.cpp" />
     <ClCompile Include="HistoryCommand.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="CreateCommand.h" />
+    <ClInclude Include="DumpCommand.h" />
     <ClInclude Include="ExitCommand.h" />
     <ClInclude Include="FenCommand.h" />
     <ClInclude Include="HistoryCommand.h" />

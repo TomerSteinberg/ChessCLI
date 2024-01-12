@@ -2,20 +2,21 @@
 
 
 std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
-	{"help", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(HelpCommand); }},
-	{"clear", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ClearCommand); }},
-	{"quit", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(QuitCommand); }},
-	{"create", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(CreateCommand); }},
-	{"show", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ShowCommand); }},
-	{"exit", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(ExitCommand); }},
-	{"move", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(MoveCommand); }},
-	{"fen", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(FenCommand); }},
-	{"history", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(HistoryCommand); }},
-	{"position", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(PositionCommand); }},
-	{"truncate", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(TruncateCommand); }},
-	{"back", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(BackCommand); }},
-	{"next", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(NextCommand); }},
-	{"options", [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(OptionsCommand); }}
+	{"help",CREATE_COMMAND_OBJECT_LAMBDA(HelpCommand) },
+	{"clear",CREATE_COMMAND_OBJECT_LAMBDA(ClearCommand) },
+	{"quit", CREATE_COMMAND_OBJECT_LAMBDA(QuitCommand) },
+	{"create", CREATE_COMMAND_OBJECT_LAMBDA(CreateCommand) },
+	{"show", CREATE_COMMAND_OBJECT_LAMBDA(ShowCommand) },
+	{"exit", CREATE_COMMAND_OBJECT_LAMBDA(ExitCommand) },
+	{"move", CREATE_COMMAND_OBJECT_LAMBDA(MoveCommand) },
+	{"fen", CREATE_COMMAND_OBJECT_LAMBDA(FenCommand) },
+	{"history", CREATE_COMMAND_OBJECT_LAMBDA(HistoryCommand) },
+	{"position", CREATE_COMMAND_OBJECT_LAMBDA(PositionCommand) },
+	{"truncate", CREATE_COMMAND_OBJECT_LAMBDA(TruncateCommand) },
+	{"back", CREATE_COMMAND_OBJECT_LAMBDA(BackCommand) },
+	{"next", CREATE_COMMAND_OBJECT_LAMBDA(NextCommand) },
+	{"options", CREATE_COMMAND_OBJECT_LAMBDA(OptionsCommand) },
+	{"dump", CREATE_COMMAND_OBJECT_LAMBDA(DumpCommand) }
 };
 
 

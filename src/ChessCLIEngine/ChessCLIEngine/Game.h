@@ -24,6 +24,7 @@ public:
 	bool toPosition(const int index);
 	void back();
 	void next();
+	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 	std::string getFen() const;
 	std::vector<std::string> getAllFen() const;
 	std::vector<std::string> getHistory() const;

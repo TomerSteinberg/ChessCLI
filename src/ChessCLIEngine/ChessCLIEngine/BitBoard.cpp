@@ -411,7 +411,10 @@ void BitBoard::parseFen(std::string fen)
         // Getting the en passant square from the char of the rank and file
         this->m_enPassantSquare = (fenParts[3][0] - 97) + (8 - (fenParts[3][1] - '0')) * 8;
     }
-
+    else
+    {
+        this->m_enPassantSquare = NO_ENPASSANT;
+    }
 }
 
 
@@ -465,7 +468,7 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
 
     this->getPiecesCopy(nextPosition);
     u64 rookSquare = 0ULL; 
-    rookSquare = (isLongCastle ? 1ULL : 128ULL) << (56 * color);
+    rookSquare = (isLongCastle ? 1ULL : 128ULL) << (WHITE_ROOKS_OFFSET * color);
 
     if (!isCastlingPossible(isLongCastle))
     {  throw IllegalMoveException();}
@@ -475,7 +478,7 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
         nextPosition[color][king] >> 2 : nextPosition[color][king] << 2;
     nextPosition[color][rook] = isLongCastle ?
         nextPosition[color][rook] << 3 : nextPosition[color][rook] >> 2;
-    nextPosition[color][rook] &= 18374967954648269055ULL;
+    nextPosition[color][rook] &= NO_SECOND_SEVENTH_RANK_MASK;
     nextPosition[color][rook] |= rookSquare ^ this->m_pieces[color][rook];
 
     nextFlags &= color ? 0b1111001 : 0b1100111;
@@ -819,6 +822,16 @@ void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
             pieces[i][j] = this->m_pieces[i][j];
         }
     }
+}
+
+uint8_t BitBoard::getFlags() const
+{
+    return this->m_moveFlags;
+}
+
+uint8_t BitBoard::getEnPassant() const
+{
+    return this->m_enPassantSquare;
 }
 
 /*

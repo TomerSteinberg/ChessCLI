@@ -22,8 +22,10 @@
 #define NO_ENPASSANT 255
 #define CORNERS 9295429630892703873ULL
 #define LEFT_CORNERS 72057594037927937ULL
+#define NO_SECOND_SEVENTH_RANK_MASK 18374967954648269055ULL
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
+#define WHITE_ROOKS_OFFSET 56
 #define COLOR this->m_moveFlags & WHITE
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
@@ -74,6 +76,9 @@ public:
 
 	void printBoard(bool isUnicode=false) const;
 	static int getLsbIndex(u64 board);
+	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
+	uint8_t getFlags() const;
+	uint8_t getEnPassant() const;
 
 private:
 
@@ -117,7 +122,6 @@ private:
 	u64 getPawnMovementPattern(int square, bool color) const;
 	u64 getEnPassantPattern(int square, bool color) const;
 	
-	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	bool isCastlingPossible(bool isLongCastle) const;
 
 	//====== Attack Patterns ======//

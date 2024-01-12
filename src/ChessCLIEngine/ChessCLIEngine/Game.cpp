@@ -183,3 +183,9 @@ void Game::next()
 		this->m_currPosition = this->m_moves[index + 1];
 	}
 }
+
+std::pair<uint8_t, uint8_t> Game::dump(u64 pieces[SIDES][NUMBER_OF_PIECES])
+{
+	this->m_currPosition->getPiecesCopy(pieces);
+	return { this->m_currPosition->getFlags(), this->m_currPosition->getEnPassant() };
+}
