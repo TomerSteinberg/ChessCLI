@@ -52,7 +52,12 @@ def move(process, move):
 
 
 def get_dump(process, flag=''):
-    """"""
+    """
+    Interface for dump command
+    @param: Process and dump flags (-b -h -l)
+    @return: board dump items
+    @rtype: [str]
+    """
     process.stdin.write(f"dump {flag};\n".encode())
     process.stdin.flush()
 
