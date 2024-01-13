@@ -1,13 +1,14 @@
 import subprocess
 
-def get_options(process):
+
+def options(process):
     """
     Gets a list of possible moves from a position
     @param: process
     @return: list of optional moves
     @rtype: [str] 
     """
-    process.stdin.write(b"options;\n")
+    process.stdin.write(b"options\n")
     process.stdin.flush()
 
     options = [process.stdout.readline()[-6:-2].decode()]
@@ -16,7 +17,7 @@ def get_options(process):
     return options
 
 
-def set_up_process():
+def create_interface():
     """
     Sets up process
     @param: None
@@ -30,8 +31,8 @@ def set_up_process():
                                stderr=subprocess.PIPE,)
     process.stdout.readline()
     process.stdout.readline()
-    process.stdin.write(b"create;\n")
-    #process.stdout.read(len(process.stdout.peek()))
+    process.stdin.write(b"create\n")
+    
     return process
 
 
@@ -42,7 +43,7 @@ def move(process, move):
     @return: status
     @rtype: bool
     """
-    process.stdin.write(f"move {move};\n".encode())
+    process.stdin.write(f"move {move}\n".encode())
     process.stdin.flush()
 
     valid = b':' not in process.stdout.read(len(process.stdout.peek()))
@@ -51,17 +52,37 @@ def move(process, move):
     return valid
 
 
-def get_dump(process, flag=''):
+def dump(process, flag=''):
     """
     Interface for dump command
     @param: Process and dump flags (-b -h -l)
     @return: board dump items
     @rtype: [str]
     """
-    process.stdin.write(f"dump {flag};\n".encode())
+    process.stdin.write(f"dump {flag}\n".encode())
     process.stdin.flush()
 
     board_dump = [process.stdout.readline().decode().split("DuckEngine> ")[-1][:-2]]
     while process.stdout.peek().decode() != 'DuckEngine> ':
         board_dump.append(process.stdout.readline().decode()[:-2])
     return board_dump
+
+
+def back(process):
+    """
+    Interface for back command
+    @param: Process
+    @return: None
+    """
+    process.stdin.write(b"back\n")
+    process.stdin.flush()
+
+
+def truncate(process):
+    """
+    Interface for truncate command
+    @param: Process
+    @return: None
+    """
+    process.stdin.write(b"truncate\n")
+    process.stdin.flush()
