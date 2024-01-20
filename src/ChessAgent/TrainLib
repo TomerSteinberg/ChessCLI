@@ -1,7 +1,0 @@
-
-def train_step():
-    pass
-
-
-def train_loop(model, epoch=1):
-    pass

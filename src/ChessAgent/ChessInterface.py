@@ -14,6 +14,8 @@ def options(process):
     options = [process.stdout.readline()[-6:-2].decode()]
     while process.stdout.peek().decode() != 'DuckEngine> ':
         options.append(process.stdout.readline()[:4].decode())
+        if '\r' in options[-1]:
+            options[-1] = options[-1][:-1]
     return options
 
 
@@ -32,7 +34,8 @@ def create_interface():
     process.stdout.readline()
     process.stdout.readline()
     process.stdin.write(b"create\n")
-    
+    process.stdout.readline(len(process.stdout.peek()))
+
     return process
 
 
@@ -46,9 +49,9 @@ def move(process, move):
     process.stdin.write(f"move {move}\n".encode())
     process.stdin.flush()
 
-    valid = b':' not in process.stdout.read(len(process.stdout.peek()))
-    if process.stdout.peek() != b'DuckEngine> ':
-        valid = b':' not in process.stdout.read(len(process.stdout.peek()))
+    valid = b':' not in process.stdout.readline()
+    valid = valid and b':' not in process.stdout.read(len(process.stdout.peek()))
+
     return valid
 
 
@@ -86,3 +89,22 @@ def truncate(process):
     """
     process.stdin.write(b"truncate\n")
     process.stdin.flush()
+
+
+def history(process):
+    """
+    Gets a game history
+    @param: process
+    @return: list of moves made in game
+    @rtype: [str] 
+    """
+    process.stdin.write(b"history\n")
+    process.stdin.flush()
+
+    history = [process.stdout.readline()[:-3].decode()]
+    history[0] = history[0].replace('\t', ' ')
+    history[0] = " ".join(history[0].split(' ')[2:])
+
+    while process.stdout.peek().decode() != 'DuckEngine> ':
+        history.append(process.stdout.readline()[:-3].decode().replace('\t', ' '))
+    return history
