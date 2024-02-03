@@ -85,7 +85,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
 
     piece = getPieceType(startSquare, color);
-    if(!isMovePseudoLegal(startSquare, endSquare))
+    if(!isMovePseudoLegal(startSquare, endSquare, color))
     {   throw IllegalMoveException(); }
 
     if (piece == king) { nextFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
@@ -114,8 +114,7 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
         target = this->getPieceType(endSquare, !color);
     }
     
-    SET_BIT(nextPosition[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
-    POP_BIT(nextPosition[color][piece], startSquare);
+    expressMove(nextPosition, color, piece, target, startSquare, endSquare, promotionPiece);
     if (target != NO_CAPTURE) 
     {
         if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
@@ -123,9 +122,6 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
         { endSquare = color ? endSquare + 8 : endSquare - 8; }
-
-        // removing captured piece
-        POP_BIT(nextPosition[!color][target], endSquare); 
     } 
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
@@ -340,12 +336,12 @@ std::vector<Move> BitBoard::getPseudoLegalMoves(bool color) const
 * input: start and end square of move (int,int)
 * output: true if move is found, false otherwise (bool)
 */
-bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare) const
+bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) const
 {
-    int piece = getPieceType(startSquare, COLOR);
+    int piece = getPieceType(startSquare, color);
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
-    auto moveList = COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
+    auto moveList = color ? this->m_whiteMoveList : this->m_blackMoveList;
 
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
@@ -453,6 +449,17 @@ void BitBoard::initAtkDictionary()
     }
 }
 
+void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
+{
+    SET_BIT(nextPos[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
+    POP_BIT(nextPos[color][piece], startSquare);
+    if (target != NO_CAPTURE)
+    {
+        // removing captured piece
+        POP_BIT(nextPos[!color][target], endSquare);
+    }
+}
+
 
 /*
 * Method more making a castle move
@@ -543,6 +550,66 @@ int BitBoard::getLsbIndex(u64 board)
 bool BitBoard::isCheck(bool color) const
 {
     return this->m_pieces[color][king] & (!color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs);
+}
+
+bool BitBoard::isMate(bool color) const
+{
+    if (!this->isCheck(color))
+    {
+        return false;
+    }
+    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
+    for (int i = 0; i < moves.size(); i++)
+    {
+        try 
+        {
+            Move option = moves[i];
+            if (option.castle)
+            {
+                this->castleMove(option.isLong);
+            }
+            else
+            {
+                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
+            }
+            return false;
+        }
+        catch (...)
+        {
+            continue;
+        }
+    }
+    return true;
+}
+
+bool BitBoard::isStale(bool color) const
+{
+    if (this->isCheck(color) || color != (COLOR))
+    {
+        return false;
+    }
+    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
+    for (int i = 0; i < moves.size(); i++)
+    {
+        try
+        {
+            Move option = moves[i];
+            if (option.castle)
+            {
+                this->castleMove(option.isLong);
+            }
+            else
+            {
+                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
+            }
+            return false;
+        }
+        catch (std::exception& e)
+        {
+            continue;
+        }
+    }
+    return true;
 }
 
 

@@ -73,6 +73,8 @@ public:
 	std::vector<Move> getMoveList();
 
 	bool isCheck(bool color) const;
+	bool isMate(bool color) const;
+	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
 	static int getLsbIndex(u64 board);
@@ -102,10 +104,11 @@ private:
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
 	std::vector<Move> getPseudoLegalMoves(bool color) const;
-	bool isMovePseudoLegal(int startSquare, int endSquare) const;
+	bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
+	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
