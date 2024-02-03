@@ -449,6 +449,12 @@ void BitBoard::initAtkDictionary()
     }
 }
 
+
+/*
+* Manipulates bitboards to play move
+* input: board, color of current turn, piece, target, start Square, end Square, piece promotion
+* output: None
+*/
 void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
 {
     SET_BIT(nextPos[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
@@ -552,6 +558,11 @@ bool BitBoard::isCheck(bool color) const
     return this->m_pieces[color][king] & (!color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs);
 }
 
+/*
+* Checks if there is Checkmate for a given color on the board
+* input: color of piece to check on
+* output: True=Checkmate, False=No Checkmate
+*/
 bool BitBoard::isMate(bool color) const
 {
     if (!this->isCheck(color))
@@ -582,6 +593,12 @@ bool BitBoard::isMate(bool color) const
     return true;
 }
 
+
+/*
+* Checks if there is Stalemate for a given color on the board
+* input: color of piece to check on
+* output: True=Stalemate, False=No Stalemate
+*/
 bool BitBoard::isStale(bool color) const
 {
     if (this->isCheck(color) || color != (COLOR))
