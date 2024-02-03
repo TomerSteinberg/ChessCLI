@@ -144,6 +144,7 @@
     <ClCompile Include="ClearCommand.cpp" />
     <ClCompile Include="CreateCommand.cpp" />
     <ClCompile Include="DumpCommand.cpp" />
+    <ClCompile Include="EvaluateCommand.cpp" />
     <ClCompile Include="ExitCommand.cpp" />
     <ClCompile Include="FenCommand.cpp" />
     <ClCompile Include="HistoryCommand.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="ExceededMaxArgumentsException.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="MoveCommand.cpp" />
+    <ClCompile Include="MoveSearch.cpp" />
     <ClCompile Include="NextCommand.cpp" />
     <ClCompile Include="OptionsCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
@@ -175,6 +177,7 @@
     <ClInclude Include="ClearCommand.h" />
     <ClInclude Include="CreateCommand.h" />
     <ClInclude Include="DumpCommand.h" />
+    <ClInclude Include="EvaluateCommand.h" />
     <ClInclude Include="ExitCommand.h" />
     <ClInclude Include="FenCommand.h" />
     <ClInclude Include="HistoryCommand.h" />
@@ -185,6 +188,7 @@
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="MoveCommand.h" />
+    <ClInclude Include="MoveSearch.h" />
     <ClInclude Include="NextCommand.h" />
     <ClInclude Include="OptionsCommand.h" />
     <ClInclude Include="PositionCommand.h" />

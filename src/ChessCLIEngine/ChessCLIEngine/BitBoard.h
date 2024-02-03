@@ -67,6 +67,8 @@ public:
 	BitBoard(std::string fen);
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
 
+	int evaluate() const;
+
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
 	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;

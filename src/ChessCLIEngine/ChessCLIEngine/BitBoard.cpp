@@ -28,7 +28,6 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
-
 }
 
 
@@ -50,6 +49,25 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
     this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
+}
+
+
+/*
+* Evaluates the current position
+* input: None
+* output: Evaluation number (double)
+*/
+int BitBoard::evaluate() const
+{
+    const std::vector<int> PIECE_VALUES = { 1, 3, 3, 5, 9 };
+    int evaluation = 0;
+    bool color = COLOR;
+    for (int i = 0; i < NUMBER_OF_PIECES - 1; i++)
+    {
+        evaluation += (bitCount(this->m_pieces[color][i]) * PIECE_VALUES[i]) 
+                      - (bitCount(this->m_pieces[!color][i]) * PIECE_VALUES[i]);
+    }
+    return evaluation;
 }
 
 

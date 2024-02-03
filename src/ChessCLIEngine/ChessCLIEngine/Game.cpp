@@ -102,6 +102,7 @@ std::vector<std::string> Game::getHistory() const
 	return this->m_moveHistory;
 }
 
+
 std::vector<std::string> Game::getOptions() const
 {
 	std::vector<std::string> continuations;
@@ -149,6 +150,7 @@ std::vector<std::string> Game::getOptions() const
 	return continuations;
 }
 
+
 /*
 * Changes current position to given index in move history
 * input: index of desired positon
@@ -164,6 +166,7 @@ bool Game::toPosition(const int index)
 	return false;
 }
 
+
 void Game::back()
 {
 	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
@@ -174,6 +177,7 @@ void Game::back()
 	}
 }
 
+
 void Game::next()
 {
 	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
@@ -183,6 +187,29 @@ void Game::next()
 		this->m_currPosition = this->m_moves[index + 1];
 	}
 }
+
+
+int Game::evaluate()
+{
+	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), 3);
+}
+
+void Game::analyze()
+{
+	std::vector<Move> moves = this->m_currPosition->getMoveList();
+	std::vector<std::pair<std::string, int>> bestMoves;
+	//for (std::vector<Move>::iterator move = moves.begin(), int count = 0;
+	//	move != moves.end() || count == 5;
+	//	move++, count++)
+	//{
+	//	// TODO: Implement this
+	//}
+}
+
+void Game::playBest()
+{
+}
+
 
 std::pair<uint8_t, uint8_t> Game::dump(u64 pieces[SIDES][NUMBER_OF_PIECES])
 {
