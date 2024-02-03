@@ -22,8 +22,10 @@
 #define NO_ENPASSANT 255
 #define CORNERS 9295429630892703873ULL
 #define LEFT_CORNERS 72057594037927937ULL
+#define NO_SECOND_SEVENTH_RANK_MASK 18374967954648269055ULL
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
+#define WHITE_ROOKS_OFFSET 56
 #define COLOR this->m_moveFlags & WHITE
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
@@ -50,6 +52,15 @@ enum Pieces {
 	pawn, knight, bishop, rook, queen, king
 };
 
+struct Move {
+	u64 from;
+	u64 to;
+	int promotion;
+	bool castle;
+	bool isLong;
+};
+
+
 class BitBoard
 {
 public:
@@ -59,10 +70,17 @@ public:
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
 	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;
+	std::vector<Move> getMoveList();
 
 	bool isCheck(bool color) const;
+	bool isMate(bool color) const;
+	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
+	static int getLsbIndex(u64 board);
+	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
+	uint8_t getFlags() const;
+	uint8_t getEnPassant() const;
 
 private:
 
@@ -77,28 +95,28 @@ private:
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::vector<std::pair<u64, u64>> m_whiteMoveList;
-	std::vector<std::pair<u64, u64>> m_blackMoveList;
+	std::vector<Move> m_whiteMoveList;
+	std::vector<Move> m_blackMoveList;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	std::vector<std::pair<u64, u64>> getPseudoLegalMoves(bool color) const;
-	bool isMovePseudoLegal(int startSquare, int endSquare) const;
+	std::vector<Move> getPseudoLegalMoves(bool color) const;
+	bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
+	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
-	static int getLsbIndex(u64 board);
 	static inline int bitCount(u64 board);
 	
 	u64 getSideOccupancy(const bool color) const; 
 	u64 getAttackSqrs(const bool color) const;
-	u64 getPromotionMask() const;
+	u64 getPromotionMask(bool color) const;
 
 	u64 removeBishopBlockedAtk(int square, u64 atk, bool color) const;
 	u64 removeRookBlockedAtk(int square, u64 atk, bool color) const;
@@ -107,7 +125,6 @@ private:
 	u64 getPawnMovementPattern(int square, bool color) const;
 	u64 getEnPassantPattern(int square, bool color) const;
 	
-	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	bool isCastlingPossible(bool isLongCastle) const;
 
 	//====== Attack Patterns ======//

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>	
+#include <iomanip>
 #include "ICommand.h"
 #include "Context.h"
 

@@ -102,6 +102,53 @@ std::vector<std::string> Game::getHistory() const
 	return this->m_moveHistory;
 }
 
+std::vector<std::string> Game::getOptions() const
+{
+	std::vector<std::string> continuations;
+	std::vector<Move> options = this->m_currPosition->getMoveList();
+	for (auto it = options.begin(); it != options.end(); it++)
+	{
+		if(it->isLong) 
+		{
+			continuations.push_back("0-0-0");
+			continue;
+		}
+		if (it->castle && !it->isLong)
+		{
+			continuations.push_back("0-0");
+			continue;
+		}
+		std::string from = std::to_string(BitBoard::getLsbIndex(it->from) % 8);
+		std::string to = std::to_string(BitBoard::getLsbIndex(it->to) % 8);
+		from[0] += 49;
+		to[0] += 49;
+		from += std::to_string(8 - (BitBoard::getLsbIndex(it->from) / 8));
+		to += std::to_string(8 - (BitBoard::getLsbIndex(it->to) / 8));
+		std::string continuation = from + to;
+		if (it->promotion != NO_PROMOTION)
+		{
+			switch (it->promotion)
+			{
+			case queen:
+				continuation += "q";
+				break;
+			case bishop:
+				continuation += "b";
+				break;
+			case rook:
+				continuation += "r";
+				break;
+			case knight:
+				continuation += "n";
+				break;
+			}
+		}
+		continuations.push_back(continuation);
+
+	}
+	return continuations;
+}
+
 /*
 * Changes current position to given index in move history
 * input: index of desired positon
@@ -115,4 +162,30 @@ bool Game::toPosition(const int index)
 		return true;
 	}
 	return false;
+}
+
+void Game::back()
+{
+	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
+	int index = distance(this->m_moves.begin(), posIt);
+	if (index > 0)
+	{
+		this->m_currPosition = this->m_moves[index - 1];
+	}
+}
+
+void Game::next()
+{
+	auto posIt = find(this->m_moves.begin(), this->m_moves.end(), this->m_currPosition);
+	int index = distance(this->m_moves.begin(), posIt);
+	if (index < (this->m_moves.size() - 1))
+	{
+		this->m_currPosition = this->m_moves[index + 1];
+	}
+}
+
+std::pair<uint8_t, uint8_t> Game::dump(u64 pieces[SIDES][NUMBER_OF_PIECES])
+{
+	this->m_currPosition->getPiecesCopy(pieces);
+	return { this->m_currPosition->getFlags(), this->m_currPosition->getEnPassant() };
 }

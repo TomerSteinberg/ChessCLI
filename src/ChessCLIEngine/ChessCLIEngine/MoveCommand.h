@@ -5,8 +5,8 @@
 #include <regex>
 #include <unordered_map>
 
-#define MOVE_REGEX "([abcdefgh][1-8]){2}(=[rbnq])?$"
-#define PROMOTION_LENGTH 6
+#define MOVE_REGEX "([abcdefgh][1-8]){2}([rbnq])?$"
+#define PROMOTION_LENGTH 5
 
 class MoveCommand : public ICommand
 {

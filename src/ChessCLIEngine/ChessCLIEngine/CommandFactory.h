@@ -18,6 +18,10 @@
 #include "HistoryCommand.h"
 #include "PositionCommand.h"
 #include "TruncateCommand.h"
+#include "BackCommand.h"
+#include "NextCommand.h"
+#include "OptionsCommand.h"
+#include "DumpCommand.h"
 
 
 class ICommand;
@@ -25,6 +29,7 @@ class ICommand;
 #define CREATE_COMMAND_OBJECT(objType) args.size() <= objType::maxArg ? \
 	std::unique_ptr<ICommand>(std::make_unique<objType>(args)) : throw ExceededMaxArgumentsException(args.size(), objType::maxArg)
 
+#define CREATE_COMMAND_OBJECT_LAMBDA(objType) [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(objType); }
 // pointer to a function that returns an ICommand object from a vector of strings
 using CommandCreatorFunction = std::unique_ptr<ICommand>(*) (std::vector<std::string>);
 
