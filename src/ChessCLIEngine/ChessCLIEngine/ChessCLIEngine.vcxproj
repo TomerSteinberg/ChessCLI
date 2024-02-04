@@ -142,6 +142,7 @@
     <ClCompile Include="BackCommand.cpp" />
     <ClCompile Include="BitBoard.cpp" />
     <ClCompile Include="ClearCommand.cpp" />
+    <ClCompile Include="ContinueCommand.cpp" />
     <ClCompile Include="CreateCommand.cpp" />
     <ClCompile Include="DumpCommand.cpp" />
     <ClCompile Include="EvaluateCommand.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="BackCommand.h" />
     <ClInclude Include="BitBoard.h" />
     <ClInclude Include="ClearCommand.h" />
+    <ClInclude Include="ContinueCommand.h" />
     <ClInclude Include="CreateCommand.h" />
     <ClInclude Include="DumpCommand.h" />
     <ClInclude Include="EvaluateCommand.h" />

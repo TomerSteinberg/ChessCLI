@@ -23,7 +23,7 @@
 #include "OptionsCommand.h"
 #include "DumpCommand.h"
 #include "EvaluateCommand.h"
-
+#include "ContinueCommand.h"
 
 class ICommand;
 

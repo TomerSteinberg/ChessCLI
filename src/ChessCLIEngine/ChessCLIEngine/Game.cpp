@@ -109,45 +109,48 @@ std::vector<std::string> Game::getOptions() const
 	std::vector<Move> options = this->m_currPosition->getMoveList();
 	for (auto it = options.begin(); it != options.end(); it++)
 	{
-		if(it->isLong) 
-		{
-			continuations.push_back("0-0-0");
-			continue;
-		}
-		if (it->castle && !it->isLong)
-		{
-			continuations.push_back("0-0");
-			continue;
-		}
-		std::string from = std::to_string(BitBoard::getLsbIndex(it->from) % 8);
-		std::string to = std::to_string(BitBoard::getLsbIndex(it->to) % 8);
-		from[0] += 49;
-		to[0] += 49;
-		from += std::to_string(8 - (BitBoard::getLsbIndex(it->from) / 8));
-		to += std::to_string(8 - (BitBoard::getLsbIndex(it->to) / 8));
-		std::string continuation = from + to;
-		if (it->promotion != NO_PROMOTION)
-		{
-			switch (it->promotion)
-			{
-			case queen:
-				continuation += "q";
-				break;
-			case bishop:
-				continuation += "b";
-				break;
-			case rook:
-				continuation += "r";
-				break;
-			case knight:
-				continuation += "n";
-				break;
-			}
-		}
-		continuations.push_back(continuation);
-
+		continuations.push_back(notationFromMove(*it));
 	}
 	return continuations;
+}
+
+
+std::string Game::notationFromMove(Move move) const
+{
+	if (move.isLong)
+	{
+		return "0-0-0";
+	}
+	if (move.castle && !move.isLong)
+	{
+		return "0-0";
+	}
+	std::string from = std::to_string(BitBoard::getLsbIndex(move.from) % 8);
+	std::string to = std::to_string(BitBoard::getLsbIndex(move.to) % 8);
+	from[0] += 49;
+	to[0] += 49;
+	from += std::to_string(8 - (BitBoard::getLsbIndex(move.from) / 8));
+	to += std::to_string(8 - (BitBoard::getLsbIndex(move.to) / 8));
+	std::string continuation = from + to;
+	if (move.promotion != NO_PROMOTION)
+	{
+		switch (move.promotion)
+		{
+		case queen:
+			continuation += "q";
+			break;
+		case bishop:
+			continuation += "b";
+			break;
+		case rook:
+			continuation += "r";
+			break;
+		case knight:
+			continuation += "n";
+			break;
+		}
+	}
+	return continuation;
 }
 
 
@@ -191,13 +194,14 @@ void Game::next()
 
 int Game::evaluate()
 {
-	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), 3);
+	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), 2);
 }
 
 void Game::analyze()
 {
 	std::vector<Move> moves = this->m_currPosition->getMoveList();
 	std::vector<std::pair<std::string, int>> bestMoves;
+
 	//for (std::vector<Move>::iterator move = moves.begin(), int count = 0;
 	//	move != moves.end() || count == 5;
 	//	move++, count++)
@@ -208,6 +212,47 @@ void Game::analyze()
 
 void Game::playBest()
 {
+	std::vector<Move> moves = this->m_currPosition->getMoveList();
+	Move bestMove = { 0,0,NO_PROMOTION, false, false };
+	int bestScore = 0;
+	bool color = this->m_currPosition->getFlags() & 0b1;
+	for (std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++)
+	{
+		std::shared_ptr<BitBoard> nextPosition;
+		int score = 0;
+		try
+		{
+			if (!it->castle)
+			{
+				nextPosition = this->m_currPosition->move(
+					BitBoard::getLsbIndex(it->from),
+					BitBoard::getLsbIndex(it->to),
+					it->promotion);
+			}
+			else
+			{
+				nextPosition = this->m_currPosition->castleMove(it->isLong);
+			}
+		}
+		catch (...)
+		{
+			continue;
+		}
+		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 2);
+		if (color)
+		{
+			bestScore = score >= bestScore ? score : bestScore;
+			bestMove = score >= bestScore ? *it : bestMove;
+		}
+		else
+		{
+			bestScore = score <= bestScore ? score : bestScore;
+			bestMove = score <= bestScore ? *it : bestMove;
+		}
+	}
+	this->move(BitBoard::getLsbIndex(bestMove.from),
+		BitBoard::getLsbIndex(bestMove.to),
+		bestMove.promotion, notationFromMove(bestMove));
 }
 
 

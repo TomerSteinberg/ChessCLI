@@ -6,11 +6,11 @@
 * input: board position, is maximizing or minimizing, depth of search
 * output: Score of best outcome
 */
-int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth)
+int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha, int beta)
 {
     if (position->isMate(isMaximizingPlayer))
     {
-        return isMaximizingPlayer ? MAX_INFINITY : MIN_INFINITY;
+        return isMaximizingPlayer ? MIN_INFINITY - (depth * 0.01) : MAX_INFINITY + (depth * 0.01);
     }
     if (position->isStale(isMaximizingPlayer))
     {
@@ -21,7 +21,7 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
         return position->evaluate();
     }
     std::vector<Move> moves = position->getMoveList();
-    int bestScore = 0;
+    int bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
 
     for (auto moveIterator = moves.begin(); moveIterator != moves.end(); moveIterator++)
     {
@@ -45,20 +45,20 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
             continue;
         }
 
-        int score = minimax(afterMove, !isMaximizingPlayer, depth - 1);
+        int score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
         if (isMaximizingPlayer)
         {
-            if (score > bestScore)
-            {
-                bestScore = score;
-            }
+            bestScore = std::max(bestScore, score);
+            alpha = std::max(alpha, bestScore);
         }
         else
         {
-            if (score < bestScore)
-            {
-                bestScore = score;
-            }
+            bestScore = std::min(bestScore, score);
+            beta = std::min(bestScore, beta);
+        }
+        if (beta <= alpha)
+        {
+            break;
         }
     }
     return bestScore;

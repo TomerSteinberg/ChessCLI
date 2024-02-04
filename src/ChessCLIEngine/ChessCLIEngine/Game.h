@@ -38,6 +38,8 @@ private:
 	std::vector<std::string> m_moveHistory;
 	std::shared_ptr<BitBoard> m_currPosition;
 
+	std::string notationFromMove(Move move) const;
+
 };
 
 #endif
