@@ -1,6 +1,8 @@
 #include "MoveSearch.h"
 
 
+std::unordered_map<std::string, int> transpositionTable;
+
 /*
 * Minimax algorithm with chess board
 * input: board position, is maximizing or minimizing, depth of search
@@ -44,8 +46,17 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
         {
             continue;
         }
-
-        int score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+        int score = 0;
+        std::string fen = afterMove->getFen(); // TODO: Improve hash map key 
+        if (transpositionTable.find(fen) != transpositionTable.end()) 
+        {
+            score = transpositionTable[fen];
+        }
+        else
+        {
+            score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+            transpositionTable.insert({ fen, score });
+        }
         if (isMaximizingPlayer)
         {
             bestScore = std::max(bestScore, score);

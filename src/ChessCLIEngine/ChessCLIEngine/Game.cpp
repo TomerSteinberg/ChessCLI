@@ -238,7 +238,7 @@ void Game::playBest()
 		{
 			continue;
 		}
-		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 2);
+		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 3);
 		if (color)
 		{
 			bestScore = score >= bestScore ? score : bestScore;

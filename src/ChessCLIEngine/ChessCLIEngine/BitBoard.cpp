@@ -329,7 +329,14 @@ std::vector<Move> BitBoard::getPseudoLegalMoves(bool color) const
                     moves.push_back({ (1ULL << square), (1ULL << index), knight, false, false });
                 }
                 else if (index != -1) {
-                    moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                    if (getPieceType(index, !color) != NO_CAPTURE)
+                    {
+                        moves.insert(moves.begin(), { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                    }
+                    else
+                    {
+                        moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                    }
                 }
                 pattern &= pattern - 1;
             }
