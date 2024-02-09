@@ -207,20 +207,60 @@ void Game::next()
 */
 int Game::evaluate()
 {
-	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), 2);
+	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH);
 }
 
+
+/*
+* Finds and prints the best moves in the current position
+* input: None. TODO: add support for depth parameter
+* output: None
+*/
 void Game::analyze()
 {
 	std::deque<Move> moves = this->m_currPosition->getMoveList();
-	std::vector<std::pair<std::string, int>> bestMoves;
+	std::deque<std::pair<Move, double>> bestScores;
+	Move bestMove = { 0,0,NO_PROMOTION, false, false };
+	bool color = this->m_currPosition->getFlags() & 0b1;
 
-	//for (std::vector<Move>::iterator move = moves.begin(), int count = 0;
-	//	move != moves.end() || count == 5;
-	//	move++, count++)
-	//{
-	//	// TODO: Implement this
-	//}
+	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
+	{
+		std::shared_ptr<BitBoard> nextPosition;
+		double score = 0;
+		try
+		{
+			if (!it->castle)
+			{
+				nextPosition = this->m_currPosition->move(
+					BitBoard::getLsbIndex(it->from),
+					BitBoard::getLsbIndex(it->to),
+					it->promotion);
+			}
+			else
+			{
+				nextPosition = this->m_currPosition->castleMove(it->isLong);
+			}
+		}
+		catch (...)
+		{
+			continue;
+		}
+
+		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
+		bestScores.push_back({ *it, score });
+	}
+	std::sort(bestScores.begin(), bestScores.end(), [](auto& left, auto& right) {
+		return left.second < right.second;
+		});
+
+	for (int i = 0; i < 5; i++)
+	{
+		const auto& move = color ? bestScores.back() : bestScores.front();
+
+		std::cout << i + 1 << ".\t" << notationFromMove(move.first) << "\t"
+			<< move.second << std::endl;
+		color ? bestScores.pop_back() : bestScores.pop_front();
+	}
 }
 
 
@@ -257,7 +297,7 @@ void Game::playBest()
 			continue;
 		}
 
-		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 2);
+		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
 		if (color)
 		{
 			bestScore = score >= bestScore ? score : bestScore;

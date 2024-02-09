@@ -24,6 +24,7 @@
 #include "DumpCommand.h"
 #include "EvaluateCommand.h"
 #include "ContinueCommand.h"
+#include "AnalyzeCommand.h"
 
 class ICommand;
 

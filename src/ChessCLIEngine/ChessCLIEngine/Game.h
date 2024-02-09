@@ -11,6 +11,7 @@
 #include <mutex>
 #include <thread>
 
+#define SEARCH_DEPTH 3
 
 class BitBoard;
 
