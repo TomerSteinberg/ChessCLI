@@ -57,16 +57,26 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * input: None
 * output: Evaluation number (double)
 */
-int BitBoard::evaluate() const
+float BitBoard::evaluate() const
 {
-    const std::vector<int> PIECE_VALUES = { 1, 3, 3, 5, 9 };
-    int evaluation = 0;
+    const int PIECE_VALUES[] = { 100, 300, 300, 500, 900 };
+    float evaluation = 0;
     bool color = COLOR;
+    int whiteProximityCount = getProximityCount(getLsbIndex(this->m_pieces[WHITE][king]), WHITE) * 10;
+    int blackProximityCount = getProximityCount(getLsbIndex(this->m_pieces[BLACK][king]), BLACK) * 10;
+
     for (int i = 0; i < NUMBER_OF_PIECES - 1; i++)
     {
-        evaluation += (bitCount(this->m_pieces[color][i]) * PIECE_VALUES[i]) 
-                      - (bitCount(this->m_pieces[!color][i]) * PIECE_VALUES[i]);
+        evaluation += (bitCount(this->m_pieces[WHITE][i]) * PIECE_VALUES[i]) 
+                      - (bitCount(this->m_pieces[BLACK][i]) * PIECE_VALUES[i]);
     }
+    if (this->isCheck(!color))
+    {
+        evaluation += 70;
+    }
+    evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
+
+    evaluation += whiteProximityCount - blackProximityCount;
     return evaluation;
 }
 
@@ -212,7 +222,7 @@ std::string BitBoard::getFen() const
     return fen;
 }
 
-std::vector<Move> BitBoard::getMoveList()
+std::deque<Move> BitBoard::getMoveList()
 {
     return COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
 }
@@ -286,10 +296,10 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::vector<Move> BitBoard::getPseudoLegalMoves(bool color) const
+std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    std::vector<Move> moves;
+    std::deque<Move> moves;
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 board = this->m_pieces[color][piece];
@@ -331,7 +341,7 @@ std::vector<Move> BitBoard::getPseudoLegalMoves(bool color) const
                 else if (index != -1) {
                     if (getPieceType(index, !color) != NO_CAPTURE)
                     {
-                        moves.insert(moves.begin(), { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.push_front({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                     }
                     else
                     {
@@ -679,7 +689,7 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
-    std::vector<Move> pseudoLegal = color ?
+    std::deque<Move> pseudoLegal = color ?
         this->m_whiteMoveList :
         this->m_blackMoveList;
     for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
@@ -877,7 +887,7 @@ u64 BitBoard::getPawnMovementPattern(int square, bool color) const
 
     if (!((color ? ptrn >> 8 : ptrn << 8) & occupancy))
     {   movement |= color ? ptrn >> 8 : ptrn << 8; }
-    if (!(movement & occupancy) && isDoubleJump)
+    if (!((color ? movement >> 8 : movement << 8) & occupancy) && isDoubleJump)
     {   movement |= color ? movement >> 8 : movement << 8; }
 
     return movement;
@@ -984,6 +994,25 @@ inline int BitBoard::bitCount(u64 board)
         count++;
     }
     return count;
+}
+
+
+/*
+* Gets the proximity to the king of enemy pieces (based on 2 square distance radius)
+* input: square of king, color of king
+* output: number of enemy pieces in proximity
+*/
+int BitBoard::getProximityCount(int square, bool color) const
+{
+    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 nextLayer = 0ULL;
+    u64 kingAttack = this->m_attackPatterns[color][king][square];
+    while (bitCount(kingAttack) != 0)
+    {
+        nextLayer |= this->m_attackPatterns[color][king][getLsbIndex(kingAttack)];
+        kingAttack &= kingAttack - 1;
+    }
+    return bitCount(nextLayer & oppositeOccupancy);
 }
 
 
@@ -1167,6 +1196,12 @@ u64 BitBoard::calcRookAtkPattern(int square)
 u64 BitBoard::calcQueenAtkPattern(int square)
 {
     return calcBishopAtkPattern(square) | calcRookAtkPattern(square);
+}
+
+
+int BitBoard::evaluatePawns(bool color) const
+{
+    return 0;
 }
 
 

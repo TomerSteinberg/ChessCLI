@@ -96,17 +96,21 @@ std::vector<std::string> Game::getAllFen() const
 	return fenStrings;
 }
 
-
 std::vector<std::string> Game::getHistory() const
 {
 	return this->m_moveHistory;
 }
 
 
+/*
+* Gets Optional PseudoLegal moves
+* input: None
+* output: vector of move strings
+*/
 std::vector<std::string> Game::getOptions() const
 {
 	std::vector<std::string> continuations;
-	std::vector<Move> options = this->m_currPosition->getMoveList();
+	std::deque<Move> options = this->m_currPosition->getMoveList();
 	for (auto it = options.begin(); it != options.end(); it++)
 	{
 		continuations.push_back(notationFromMove(*it));
@@ -115,6 +119,11 @@ std::vector<std::string> Game::getOptions() const
 }
 
 
+/*
+* Gets the notation from a Move object
+* input: Move object
+* output: string of move notation
+*/
 std::string Game::notationFromMove(Move move) const
 {
 	if (move.isLong)
@@ -191,7 +200,11 @@ void Game::next()
 	}
 }
 
-
+/*
+* Evaluates the current position using minimax
+* input: None TODO: add depth parameter
+* output: score of current position
+*/
 int Game::evaluate()
 {
 	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), 2);
@@ -199,7 +212,7 @@ int Game::evaluate()
 
 void Game::analyze()
 {
-	std::vector<Move> moves = this->m_currPosition->getMoveList();
+	std::deque<Move> moves = this->m_currPosition->getMoveList();
 	std::vector<std::pair<std::string, int>> bestMoves;
 
 	//for (std::vector<Move>::iterator move = moves.begin(), int count = 0;
@@ -210,16 +223,21 @@ void Game::analyze()
 	//}
 }
 
+
+/*
+* Play the best computer continuation to the current position
+* input: None. TODO: add depth parameter
+*/
 void Game::playBest()
 {
-	std::vector<Move> moves = this->m_currPosition->getMoveList();
+	std::deque<Move> moves = this->m_currPosition->getMoveList();
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
-	int bestScore = 0;
 	bool color = this->m_currPosition->getFlags() & 0b1;
-	for (std::vector<Move>::iterator it = moves.begin(); it != moves.end(); it++)
+	double bestScore = color ? MIN_INFINITY : MAX_INFINITY;
+	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
 	{
 		std::shared_ptr<BitBoard> nextPosition;
-		int score = 0;
+		double score = 0;
 		try
 		{
 			if (!it->castle)
@@ -238,7 +256,8 @@ void Game::playBest()
 		{
 			continue;
 		}
-		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 3);
+
+		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), 2);
 		if (color)
 		{
 			bestScore = score >= bestScore ? score : bestScore;
@@ -256,6 +275,11 @@ void Game::playBest()
 }
 
 
+/*
+* Dump of current position
+* input: Pieces array
+* output: flags and enpassant dump (side effect on pieces array)
+*/
 std::pair<uint8_t, uint8_t> Game::dump(u64 pieces[SIDES][NUMBER_OF_PIECES])
 {
 	this->m_currPosition->getPiecesCopy(pieces);

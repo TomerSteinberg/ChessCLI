@@ -16,7 +16,6 @@ public:
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;
-
 };
 
 #endif

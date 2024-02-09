@@ -1,14 +1,14 @@
 #include "MoveSearch.h"
 
 
-std::unordered_map<std::string, int> transpositionTable;
+std::unordered_map<std::string, std::pair<double,int>> transpositionTable;
 
 /*
 * Minimax algorithm with chess board
 * input: board position, is maximizing or minimizing, depth of search
 * output: Score of best outcome
 */
-int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha, int beta)
+double MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, double alpha, double beta)
 {
     if (position->isMate(isMaximizingPlayer))
     {
@@ -22,8 +22,8 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
     {
         return position->evaluate();
     }
-    std::vector<Move> moves = position->getMoveList();
-    int bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
+    std::deque<Move> moves = position->getMoveList();
+    double bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
 
     for (auto moveIterator = moves.begin(); moveIterator != moves.end(); moveIterator++)
     {
@@ -46,16 +46,16 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
         {
             continue;
         }
-        int score = 0;
+        double score = 0;
         std::string fen = afterMove->getFen(); // TODO: Improve hash map key 
-        if (transpositionTable.find(fen) != transpositionTable.end()) 
+        if (transpositionTable.find(fen) != transpositionTable.end() && transpositionTable[fen].second >= (depth - 1)) 
         {
-            score = transpositionTable[fen];
+            score = transpositionTable[fen].first;
         }
         else
         {
             score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
-            transpositionTable.insert({ fen, score });
+            transpositionTable.insert({ fen, {score, depth-1} });
         }
         if (isMaximizingPlayer)
         {

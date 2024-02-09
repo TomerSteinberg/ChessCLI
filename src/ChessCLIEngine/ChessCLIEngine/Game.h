@@ -8,6 +8,8 @@
 #include <memory>
 #include <algorithm>
 #include "MoveSearch.h"
+#include <mutex>
+#include <thread>
 
 
 class BitBoard;
