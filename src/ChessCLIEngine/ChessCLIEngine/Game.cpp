@@ -1,5 +1,6 @@
 #include "Game.h"
 
+
 Game::Game(std::string fen)
 {
 	this->m_moves.push_back(std::make_shared<BitBoard>(fen));
@@ -258,7 +259,7 @@ void Game::analyze()
 		const auto& move = color ? bestScores.back() : bestScores.front();
 
 		std::cout << i + 1 << ".\t" << notationFromMove(move.first) << "\t"
-			<< move.second << std::endl;
+			<< move.second / 1000 << std::endl;
 		color ? bestScores.pop_back() : bestScores.pop_front();
 	}
 }
@@ -267,6 +268,7 @@ void Game::analyze()
 /*
 * Play the best computer continuation to the current position
 * input: None. TODO: add depth parameter
+* output: None
 */
 void Game::playBest()
 {

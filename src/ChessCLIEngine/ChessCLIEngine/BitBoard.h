@@ -6,6 +6,7 @@
 #include <memory>
 #include <unordered_map>
 #include <deque>
+#include <random>
 
 
 #include "MissingPieceException.h"
@@ -73,6 +74,7 @@ public:
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
 	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;
+	u64 getZobristHash() const;
 	std::deque<Move> getMoveList();
 
 	bool isCheck(bool color) const;
@@ -97,6 +99,7 @@ private:
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
+	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	std::deque<Move> m_whiteMoveList;
 	std::deque<Move> m_blackMoveList;
@@ -111,6 +114,7 @@ private:
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
+	void initZobristKeys();
 	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;

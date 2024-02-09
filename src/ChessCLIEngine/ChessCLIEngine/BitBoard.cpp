@@ -3,6 +3,9 @@
 #include <Windows.h>
 
 
+u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES] = { 0 };
+
+
 BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
 {
     this->m_enPassantSquare = NO_ENPASSANT;
@@ -19,6 +22,7 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
         }
     }
 
+    initZobristKeys();
     parseFen(fen);
     initAtkDictionary();
 
@@ -221,6 +225,30 @@ std::string BitBoard::getFen() const
 
     return fen;
 }
+
+
+/*
+* Calculates Zobrist Hash of position
+* input: None
+* output: Zobrist Hash
+*/
+u64 BitBoard::getZobristHash() const
+{
+    u64 hash = 0ULL;
+
+    for (auto it = this->m_whiteMoveList.begin(); it != this->m_whiteMoveList.end(); it++)
+    {
+        hash ^= it->from;
+    }
+    for (auto it = this->m_blackMoveList.begin(); it != this->m_blackMoveList.end(); it++)
+    {
+        hash ^= it->from;
+    }
+    hash ^= (u64)this->m_moveFlags;
+
+    return hash;
+}
+
 
 std::deque<Move> BitBoard::getMoveList()
 {
@@ -481,6 +509,29 @@ void BitBoard::initAtkDictionary()
         attack = BitBoard::calcQueenAtkPattern(square);
         this->m_attackPatterns[WHITE][queen][square] = attack;
         this->m_attackPatterns[BLACK][queen][square] = attack;
+    }
+}
+
+
+/*
+* Initialize Zorbist Key array
+* input: None
+* output: None
+*/
+void BitBoard::initZobristKeys()
+{
+    std::random_device randomDevice;
+    std::mt19937_64 rng(randomDevice());
+    std::uniform_int_distribution<u64> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2, 62)));
+    for (int side = 0; side < SIDES; side++)
+    {
+        for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+        {
+            for(int square = 0; square < NUMBER_OF_SQUARES; square++)
+            {
+                BitBoard::zobristKeys[side][piece][square] = dist(rng);
+            }
+        }
     }
 }
 
