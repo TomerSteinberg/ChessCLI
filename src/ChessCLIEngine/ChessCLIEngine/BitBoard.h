@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include <deque>
+#include <random>
 
 
 #include "MissingPieceException.h"
@@ -14,6 +16,7 @@
 #define NO_PROMOTION -1
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
+#define ZOBRIST_SQUARES 146
 #define BLACK 0
 #define WHITE 1
 #define SIDES 2
@@ -67,10 +70,13 @@ public:
 	BitBoard(std::string fen);
 	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
 
+	float evaluate() const;
+
 	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
 	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;
-	std::vector<Move> getMoveList();
+	u64 getZobristHash() const;
+	std::deque<Move> getMoveList();
 
 	bool isCheck(bool color) const;
 	bool isMate(bool color) const;
@@ -94,26 +100,28 @@ private:
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
+	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::vector<Move> m_whiteMoveList;
-	std::vector<Move> m_blackMoveList;
+	std::deque<Move> m_whiteMoveList;
+	std::deque<Move> m_blackMoveList;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	std::vector<Move> getPseudoLegalMoves(bool color) const;
+	std::deque<Move> getPseudoLegalMoves(bool color) const;
 	bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
 	void initAtkDictionary();
+	void initZobristKeys();
 	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
 	static inline int bitCount(u64 board);
-	
+	int getProximityCount(int square, bool color) const;
 	u64 getSideOccupancy(const bool color) const; 
 	u64 getAttackSqrs(const bool color) const;
 	u64 getPromotionMask(bool color) const;
@@ -136,6 +144,9 @@ private:
 	static u64 calcKingAtkPattern(int square);
 	static u64 calcQueenAtkPattern(int square);
 
+
+	//======= Positional Evaluation =======//
+	int evaluatePawns(bool color) const;
 };
 
 #endif

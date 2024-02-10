@@ -8,6 +8,7 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
+#define COMMAND_NAME "back"
 
 
 class BackCommand : public ICommand

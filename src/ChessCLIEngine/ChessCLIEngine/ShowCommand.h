@@ -4,6 +4,9 @@
 #include "InvalidArgumentException.h"
 #include "InvalidCommandException.h"
 
+#define COMMAND_NAME "show"
+
+
 class ShowCommand : public ICommand
 {
 public:

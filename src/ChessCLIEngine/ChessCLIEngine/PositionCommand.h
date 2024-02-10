@@ -9,6 +9,8 @@
 #include <regex>
 
 #define INTEGER_REGEX "[0-9]+$"
+#define COMMAND_NAME "position"
+
 
 class PositionCommand : public ICommand
 {

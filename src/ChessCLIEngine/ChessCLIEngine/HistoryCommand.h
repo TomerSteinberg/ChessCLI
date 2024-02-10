@@ -8,6 +8,7 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
+#define COMMAND_NAME "history"
 
 
 class HistoryCommand : public ICommand

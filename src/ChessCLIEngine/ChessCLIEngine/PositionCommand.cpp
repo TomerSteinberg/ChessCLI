@@ -10,7 +10,7 @@ void PositionCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("position");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	if (this->m_args.size() != 1)
 	{

@@ -10,7 +10,7 @@ void ExitCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("exit");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	ctx.deleteGame();
 }

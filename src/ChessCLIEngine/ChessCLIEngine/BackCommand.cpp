@@ -10,7 +10,7 @@ void BackCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("back");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	ctx.getCurrGame()->back();
 }

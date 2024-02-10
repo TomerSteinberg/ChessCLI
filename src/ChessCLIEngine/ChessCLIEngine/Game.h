@@ -7,8 +7,11 @@
 #include <exception>
 #include <memory>
 #include <algorithm>
+#include "MoveSearch.h"
+#include <mutex>
+#include <thread>
 
-
+#define SEARCH_DEPTH 2
 
 class BitBoard;
 
@@ -24,6 +27,9 @@ public:
 	bool toPosition(const int index);
 	void back();
 	void next();
+	int evaluate();
+	void analyze();
+	void playBest();
 	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 	std::string getFen() const;
 	std::vector<std::string> getAllFen() const;
@@ -34,6 +40,8 @@ private:
 	std::vector<std::shared_ptr<BitBoard>> m_moves;
 	std::vector<std::string> m_moveHistory;
 	std::shared_ptr<BitBoard> m_currPosition;
+
+	std::string notationFromMove(Move move) const;
 
 };
 

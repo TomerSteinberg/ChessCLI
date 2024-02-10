@@ -8,6 +8,9 @@
 #define MOVE_REGEX "([abcdefgh][1-8]){2}([rbnq])?$"
 #define PROMOTION_LENGTH 5
 
+#define COMMAND_NAME "move"
+
+
 class MoveCommand : public ICommand
 {
 public:

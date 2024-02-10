@@ -1,5 +1,5 @@
-#ifndef OPTIONS_COMMAND_H
-#define OPTIONS_COMMAND_H
+#ifndef EVALUATE_COMMAND_H
+#define EVALUATE_COMMAND_H
 
 #include <vector>
 #include <iostream>	
@@ -8,17 +8,16 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
-#define COMMAND_NAME "options"
+#define COMMAND_NAME "evaluate"
 
 
-class OptionsCommand : public ICommand
+class EvaluateCommand : public ICommand
 {
 public:
-	OptionsCommand(std::vector<std::string> args);
+	EvaluateCommand(std::vector<std::string> args);
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;
-
 };
 
 #endif

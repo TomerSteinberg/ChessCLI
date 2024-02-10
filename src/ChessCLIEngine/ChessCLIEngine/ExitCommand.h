@@ -7,6 +7,7 @@
 #include "Context.h"
 #include "InvalidCommandException.h"
 
+#define COMMAND_NAME "exit"
 
 
 class ExitCommand : public ICommand
@@ -16,7 +17,6 @@ public:
 
 	void execute(Context& ctx);
 	static unsigned int maxArg;
-
 };
 
 #endif

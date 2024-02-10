@@ -21,5 +21,5 @@ void ShowCommand::execute(Context& ctx)
 			ctx.getCurrGame()->showPosition(true);
 		return;
 	}
-	throw InvalidCommandException("show");
+	throw InvalidCommandException(COMMAND_NAME);
 }

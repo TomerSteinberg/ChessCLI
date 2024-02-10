@@ -10,7 +10,7 @@ void HistoryCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("history");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	std::vector<std::string> history = ctx.getCurrGame()->getHistory();
 	for (int i = 0; i < history.size(); i++)

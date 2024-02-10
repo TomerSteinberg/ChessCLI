@@ -22,7 +22,9 @@
 #include "NextCommand.h"
 #include "OptionsCommand.h"
 #include "DumpCommand.h"
-
+#include "EvaluateCommand.h"
+#include "ContinueCommand.h"
+#include "AnalyzeCommand.h"
 
 class ICommand;
 
