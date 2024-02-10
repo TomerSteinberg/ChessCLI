@@ -16,6 +16,7 @@
 #define NO_PROMOTION -1
 #define NUMBER_OF_PIECES 6
 #define NUMBER_OF_SQUARES 64
+#define ZOBRIST_SQUARES 146
 #define BLACK 0
 #define WHITE 1
 #define SIDES 2
@@ -99,7 +100,7 @@ private:
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
-	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES];
+	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	std::deque<Move> m_whiteMoveList;
 	std::deque<Move> m_blackMoveList;

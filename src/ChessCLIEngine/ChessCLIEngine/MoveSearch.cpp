@@ -3,6 +3,7 @@
 
 std::unordered_map<u64, std::pair<double,int>> transpositionTable;
 
+
 /*
 * Minimax algorithm with chess board
 * input: board position, is maximizing or minimizing, depth of search
@@ -47,6 +48,7 @@ double MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizing
             continue;
         }
         double score = 0;
+
         u64 zobristHash = afterMove->getZobristHash();
         if (transpositionTable.find(zobristHash) != transpositionTable.end() && transpositionTable[zobristHash].second >= (depth - 1))
         {

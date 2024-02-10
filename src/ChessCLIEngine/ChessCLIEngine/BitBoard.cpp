@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 
-u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][NUMBER_OF_SQUARES] = { 0 };
+u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES] = { 0 };
 
 
 BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
@@ -80,7 +80,7 @@ float BitBoard::evaluate() const
     }
     evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
 
-    evaluation += whiteProximityCount - blackProximityCount;
+    evaluation += blackProximityCount - whiteProximityCount;
     return evaluation;
 }
 
@@ -235,16 +235,23 @@ std::string BitBoard::getFen() const
 u64 BitBoard::getZobristHash() const
 {
     u64 hash = 0ULL;
+    uint8_t flags = this->m_moveFlags;
+    flags >> 1;
 
     for (auto it = this->m_whiteMoveList.begin(); it != this->m_whiteMoveList.end(); it++)
     {
-        hash ^= it->from;
+        hash ^= BitBoard::zobristKeys[WHITE][getPieceType(it->from, WHITE)][getLsbIndex(it->from)];
     }
     for (auto it = this->m_blackMoveList.begin(); it != this->m_blackMoveList.end(); it++)
     {
-        hash ^= it->from;
+        hash ^= BitBoard::zobristKeys[BLACK][getPieceType(it->from, BLACK)][getLsbIndex(it->from)];
     }
-    hash ^= (u64)this->m_moveFlags;
+    if (this->m_enPassantSquare != NO_ENPASSANT)
+    {
+        hash ^= BitBoard::zobristKeys[WHITE][pawn][this->m_enPassantSquare * 2];
+    }
+    hash ^= BitBoard::zobristKeys[WHITE][pawn][(COLOR)+129];
+    hash ^= BitBoard::zobristKeys[WHITE][pawn][131 + flags];
 
     return hash;
 }
@@ -527,7 +534,7 @@ void BitBoard::initZobristKeys()
     {
         for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            for(int square = 0; square < NUMBER_OF_SQUARES; square++)
+            for(int square = 0; square < ZOBRIST_SQUARES; square++)
             {
                 BitBoard::zobristKeys[side][piece][square] = dist(rng);
             }
