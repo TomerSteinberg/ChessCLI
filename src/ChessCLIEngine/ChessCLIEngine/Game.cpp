@@ -206,9 +206,9 @@ void Game::next()
 * input: None TODO: add depth parameter
 * output: score of current position
 */
-int Game::evaluate()
+double Game::evaluate()
 {
-	return MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH);
+	return (double)(MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH+1)) / 1000;
 }
 
 
@@ -227,7 +227,7 @@ void Game::analyze()
 	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
 	{
 		std::shared_ptr<BitBoard> nextPosition;
-		double score = 0;
+		int score = 0;
 		try
 		{
 			if (!it->castle)
@@ -275,11 +275,11 @@ void Game::playBest()
 	std::deque<Move> moves = this->m_currPosition->getMoveList();
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
-	double bestScore = color ? MIN_INFINITY : MAX_INFINITY;
+	int bestScore = color ? MIN_INFINITY : MAX_INFINITY;
 	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
 	{
 		std::shared_ptr<BitBoard> nextPosition;
-		double score = 0;
+		int score = 0;
 		try
 		{
 			if (!it->castle)
@@ -302,12 +302,12 @@ void Game::playBest()
 		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
 		if (color)
 		{
-			bestScore = score >= bestScore ? score : bestScore;
+			bestScore = std::max(bestScore, score);
 			bestMove = score >= bestScore ? *it : bestMove;
 		}
 		else
 		{
-			bestScore = score <= bestScore ? score : bestScore;
+			bestScore = std::min(bestScore, score);
 			bestMove = score <= bestScore ? *it : bestMove;
 		}
 	}

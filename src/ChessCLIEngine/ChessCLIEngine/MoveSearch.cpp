@@ -9,11 +9,11 @@ std::unordered_map<u64, std::pair<double,int>> transpositionTable;
 * input: board position, is maximizing or minimizing, depth of search
 * output: Score of best outcome
 */
-double MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, double alpha, double beta)
+int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha, int beta)
 {
     if (position->isMate(isMaximizingPlayer))
     {
-        return isMaximizingPlayer ? MIN_INFINITY - (depth * 0.01) : MAX_INFINITY + (depth * 0.01);
+        return isMaximizingPlayer ? MIN_INFINITY - depth : MAX_INFINITY + depth;
     }
     if (position->isStale(isMaximizingPlayer))
     {
@@ -24,7 +24,7 @@ double MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizing
         return position->evaluate();
     }
     std::deque<Move> moves = position->getMoveList();
-    double bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
+    int bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
 
     for (auto moveIterator = moves.begin(); moveIterator != moves.end(); moveIterator++)
     {
@@ -47,7 +47,7 @@ double MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizing
         {
             continue;
         }
-        double score = 0;
+        int score = 0;
 
         u64 zobristHash = afterMove->getZobristHash();
         if (transpositionTable.find(zobristHash) != transpositionTable.end() && transpositionTable[zobristHash].second >= (depth - 1))

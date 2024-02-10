@@ -17,7 +17,7 @@ void FenCommand::execute(Context& ctx)
 		if (this->m_args[0] == "-a" || this->m_args[0] == "--all-positions")
 		{
 			std::vector<std::string> fenStrings = ctx.getCurrGame()->getAllFen();
-			for (int i = 0; i < fenStrings.size(); i++)
+			for (size_t i = 0; i < fenStrings.size(); i++)
 			{
 				std::cout << fenStrings[i] << std::endl;
 			}

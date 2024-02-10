@@ -27,7 +27,7 @@ public:
 	bool toPosition(const int index);
 	void back();
 	void next();
-	int evaluate();
+	double evaluate();
 	void analyze();
 	void playBest();
 	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);

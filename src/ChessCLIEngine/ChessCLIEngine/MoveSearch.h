@@ -11,6 +11,6 @@
 class MoveSearch
 {
 public:
-	static double minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, double alpha=MIN_INFINITY, double beta=MAX_INFINITY);
+	static int minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha=MIN_INFINITY, int beta=MAX_INFINITY);
 };
 

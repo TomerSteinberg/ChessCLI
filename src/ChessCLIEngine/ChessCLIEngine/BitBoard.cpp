@@ -61,10 +61,10 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * input: None
 * output: Evaluation number (double)
 */
-float BitBoard::evaluate() const
+int BitBoard::evaluate() const
 {
     const int PIECE_VALUES[] = { 100, 300, 300, 500, 900 };
-    float evaluation = 0;
+    int evaluation = 0;
     bool color = COLOR;
     int whiteProximityCount = getProximityCount(getLsbIndex(this->m_pieces[WHITE][king]), WHITE) * 10;
     int blackProximityCount = getProximityCount(getLsbIndex(this->m_pieces[BLACK][king]), BLACK) * 10;
@@ -78,7 +78,7 @@ float BitBoard::evaluate() const
     {
         evaluation += 70;
     }
-    evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
+    evaluation += this->m_whiteMoveList.size() - this->m_blackMoveList.size();
 
     evaluation += blackProximityCount - whiteProximityCount;
     return evaluation;
@@ -236,7 +236,7 @@ u64 BitBoard::getZobristHash() const
 {
     u64 hash = 0ULL;
     uint8_t flags = this->m_moveFlags;
-    flags >> 1;
+    flags >>= 1;
 
     for (auto it = this->m_whiteMoveList.begin(); it != this->m_whiteMoveList.end(); it++)
     {
@@ -447,7 +447,7 @@ void BitBoard::parseFen(std::string fen)
         {'q', 16}
     };
 
-    for (int i = 0, square = 0; i < fenParts[0].length(); i++)
+    for (size_t i = 0, square = 0; i < fenParts[0].length(); i++)
     {
         if (fenParts[0][i] == '/')
         {
@@ -467,7 +467,7 @@ void BitBoard::parseFen(std::string fen)
     }
 
     this->m_moveFlags |= fenParts[1] == "w" ? 0b1 : 0b0; // Who's starting
-    for (int i = 0; i < fenParts[2].length(); i++)
+    for (size_t i = 0; i < fenParts[2].length(); i++)
     {
         this->m_moveFlags |= charToCastle[fenParts[2][i]];
     }
@@ -663,7 +663,7 @@ bool BitBoard::isMate(bool color) const
         return false;
     }
     auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
-    for (int i = 0; i < moves.size(); i++)
+    for (size_t i = 0; i < moves.size(); i++)
     {
         try 
         {
@@ -699,7 +699,7 @@ bool BitBoard::isStale(bool color) const
         return false;
     }
     auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
-    for (int i = 0; i < moves.size(); i++)
+    for (size_t i = 0; i < moves.size(); i++)
     {
         try
         {
@@ -714,7 +714,7 @@ bool BitBoard::isStale(bool color) const
             }
             return false;
         }
-        catch (std::exception& e)
+        catch (...)
         {
             continue;
         }
