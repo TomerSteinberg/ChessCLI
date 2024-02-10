@@ -10,7 +10,7 @@ void EvaluateCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("evaluate");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	std::cout << ctx.getCurrGame()->evaluate() << std::endl;
 }

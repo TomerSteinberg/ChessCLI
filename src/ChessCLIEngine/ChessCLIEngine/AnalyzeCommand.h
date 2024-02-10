@@ -8,7 +8,7 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
-
+#define COMMAND_NAME "analyze"
 
 class AnalyzeCommand : public ICommand
 {

@@ -10,7 +10,7 @@ void NextCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("next");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	ctx.getCurrGame()->next();
 }

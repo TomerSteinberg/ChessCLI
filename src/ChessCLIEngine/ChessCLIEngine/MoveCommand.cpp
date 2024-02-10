@@ -10,7 +10,7 @@ void MoveCommand::execute(Context& ctx)
 {
 	if(!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("move");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	if(this->m_args.size() != 1)
 	{	throw InvalidArgumentException("Missing Argument"); }

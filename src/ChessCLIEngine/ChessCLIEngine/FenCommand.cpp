@@ -10,7 +10,7 @@ void FenCommand::execute(Context& ctx)
 {
 	if(!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("fen");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	if (this->m_args.size() > 0 )
 	{

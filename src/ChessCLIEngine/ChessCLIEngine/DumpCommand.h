@@ -12,6 +12,8 @@
 #include <regex>
 
 #define FLAGS_REGEX "^((-b)|(-l)|(-h))$"
+#define COMMAND_NAME "dump"
+
 
 class DumpCommand : public ICommand
 {

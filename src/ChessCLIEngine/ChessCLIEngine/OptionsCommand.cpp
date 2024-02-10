@@ -10,7 +10,7 @@ void OptionsCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("options");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	std::vector<std::string> continuations = ctx.getCurrGame()->getOptions();
 	for (auto it = continuations.begin(); it != continuations.end(); it++)

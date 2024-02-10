@@ -6,10 +6,11 @@ DumpCommand::DumpCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int DumpCommand::maxArg = 2;
 
+
 void DumpCommand::execute(Context& ctx)
 {
 	if(!ctx.getCurrGame())
-	{	throw InvalidCommandException("dump"); }
+	{	throw InvalidCommandException(COMMAND_NAME); }
 	if(!this->matchRegexVector())
 	{	throw InvalidArgumentException(); }
 
@@ -60,6 +61,7 @@ void DumpCommand::execute(Context& ctx)
 
 	std::cout << std::dec;
 }
+
 
 bool DumpCommand::matchRegexVector()
 {

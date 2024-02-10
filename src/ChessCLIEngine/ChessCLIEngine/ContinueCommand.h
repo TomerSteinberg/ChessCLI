@@ -8,7 +8,7 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
-
+#define COMMAND_NAME "continue"
 
 class ContinueCommand : public ICommand
 {

@@ -8,6 +8,7 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
+#define COMMAND_NAME "options"
 
 
 class OptionsCommand : public ICommand

@@ -10,7 +10,7 @@ void ContinueCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
-		throw InvalidCommandException("continue");
+		throw InvalidCommandException(COMMAND_NAME);
 	}
 	ctx.getCurrGame()->playBest();
 }

@@ -7,6 +7,7 @@
 #include "Context.h"
 #include "InvalidCommandException.h"
 
+#define COMMAND_NAME "exit"
 
 
 class ExitCommand : public ICommand
