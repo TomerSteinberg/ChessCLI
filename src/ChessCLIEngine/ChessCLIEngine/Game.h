@@ -8,8 +8,7 @@
 #include <memory>
 #include <algorithm>
 #include "MoveSearch.h"
-#include <mutex>
-#include <thread>
+
 
 #define SEARCH_DEPTH 2
 
