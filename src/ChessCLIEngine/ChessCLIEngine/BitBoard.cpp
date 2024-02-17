@@ -334,7 +334,10 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     std::deque<Move> moves;
+    int mostImportantIndex = 0;
+    int leastImportantIndex = 0;
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 board = this->m_pieces[color][piece];
@@ -374,13 +377,24 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
                     moves.push_back({ (1ULL << square), (1ULL << index), knight, false, false });
                 }
                 else if (index != -1) {
-                    if (getPieceType(index, !color) != NO_CAPTURE)
+
+                    if (getPieceType(index, !color) > getPieceType(square, color))
                     {
                         moves.push_front({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        mostImportantIndex++;
+                    }
+                    else if (getPieceType(index, !color) != NO_CAPTURE)
+                    {
+                        moves.insert(moves.begin() + mostImportantIndex , { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                    }
+                    else if (index & oppositeAtk)
+                    {
+                        moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        leastImportantIndex++;
                     }
                     else
                     {
-                        moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.insert(moves.end() - leastImportantIndex, { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                     }
                 }
                 pattern &= pattern - 1;
