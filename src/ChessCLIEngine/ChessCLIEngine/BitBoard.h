@@ -36,8 +36,12 @@
 #define POP_BIT(board, square) (GET_BIT(board, square) ? board ^= (1ULL << square) : 0)
 
 typedef unsigned long long u64;
+
 // 3d array of shared pointers in shape of attack dictionary
 typedef std::shared_ptr<std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]> AttackDictionary;
+typedef std::shared_ptr<std::shared_ptr<u64[512]>[NUMBER_OF_SQUARES]> BishopAttack;
+typedef std::shared_ptr<std::shared_ptr<u64[4096]>[NUMBER_OF_SQUARES]> RookAttack;
+
 
 enum Squares{
 	a8, b8, c8, d8, e8, f8, g8, h8,
@@ -68,7 +72,8 @@ class BitBoard
 {
 public:
 	BitBoard(std::string fen);
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant);
+	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant,
+		const BishopAttack& bishopAttacks, const RookAttack& rookAttacks);
 
 	int evaluate() const;
 
@@ -100,7 +105,8 @@ private:
 	uint8_t m_moveFlags;
 	uint8_t m_enPassantSquare;
 	const AttackDictionary m_attackPatterns;
-	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
+	const BishopAttack m_bishopAttacks;
+	const RookAttack m_rookAttacks;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
 	std::deque<Move> m_whiteMoveList;
 	std::deque<Move> m_blackMoveList;
@@ -108,6 +114,11 @@ private:
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
+	static const u64 bishopMagic[NUMBER_OF_SQUARES];
+	static const u64 rookMagic[NUMBER_OF_SQUARES];
+	static const int bishopRelevantBits[64];
+	static const int rookRelevantBits[64];
+	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 
 	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
 	std::deque<Move> getPseudoLegalMoves(bool color) const;
@@ -116,6 +127,7 @@ private:
 	void parseFen(std::string fen);
 	void initAtkDictionary();
 	void initZobristKeys();
+	void initSliderAttacks(bool isBishop);
 	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;
@@ -125,10 +137,14 @@ private:
 	u64 getSideOccupancy(const bool color) const; 
 	u64 getAttackSqrs(const bool color) const;
 	u64 getPromotionMask(bool color) const;
+	u64 setOccupancy(int index, int maskBitCount, u64 attackMask);
 
-	u64 removeBishopBlockedAtk(int square, u64 atk, bool color) const;
-	u64 removeRookBlockedAtk(int square, u64 atk, bool color) const;
-	u64 removeQueenBlockedAtk(int square, u64 atk, bool color) const;
+
+	u64 getBishopAtk(int square, u64 occupancy) const;
+	u64 getRookAtk(int square, u64 occupancy) const;
+	u64 removeBishopBlockedAtk(int square, u64 occupancy) const;
+	u64 removeRookBlockedAtk(int square, u64 occupancy) const;
+	u64 removeQueenBlockedAtk(int square) const;
 	u64 removePawnIllegalAtk(u64 atk, bool color) const;
 	u64 getPawnMovementPattern(int square, bool color) const;
 	u64 getEnPassantPattern(int square, bool color) const;

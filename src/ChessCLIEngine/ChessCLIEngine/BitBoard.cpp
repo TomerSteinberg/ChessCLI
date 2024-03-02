@@ -4,9 +4,169 @@
 
 
 u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES] = { 0 };
+const u64 BitBoard::rookMagic[64] = {
+    0x8a80104000800020ULL,
+    0x140002000100040ULL,
+    0x2801880a0017001ULL,
+    0x100081001000420ULL,
+    0x200020010080420ULL,
+    0x3001c0002010008ULL,
+    0x8480008002000100ULL,
+    0x2080088004402900ULL,
+    0x800098204000ULL,
+    0x2024401000200040ULL,
+    0x100802000801000ULL,
+    0x120800800801000ULL,
+    0x208808088000400ULL,
+    0x2802200800400ULL,
+    0x2200800100020080ULL,
+    0x801000060821100ULL,
+    0x80044006422000ULL,
+    0x100808020004000ULL,
+    0x12108a0010204200ULL,
+    0x140848010000802ULL,
+    0x481828014002800ULL,
+    0x8094004002004100ULL,
+    0x4010040010010802ULL,
+    0x20008806104ULL,
+    0x100400080208000ULL,
+    0x2040002120081000ULL,
+    0x21200680100081ULL,
+    0x20100080080080ULL,
+    0x2000a00200410ULL,
+    0x20080800400ULL,
+    0x80088400100102ULL,
+    0x80004600042881ULL,
+    0x4040008040800020ULL,
+    0x440003000200801ULL,
+    0x4200011004500ULL,
+    0x188020010100100ULL,
+    0x14800401802800ULL,
+    0x2080040080800200ULL,
+    0x124080204001001ULL,
+    0x200046502000484ULL,
+    0x480400080088020ULL,
+    0x1000422010034000ULL,
+    0x30200100110040ULL,
+    0x100021010009ULL,
+    0x2002080100110004ULL,
+    0x202008004008002ULL,
+    0x20020004010100ULL,
+    0x2048440040820001ULL,
+    0x101002200408200ULL,
+    0x40802000401080ULL,
+    0x4008142004410100ULL,
+    0x2060820c0120200ULL,
+    0x1001004080100ULL,
+    0x20c020080040080ULL,
+    0x2935610830022400ULL,
+    0x44440041009200ULL,
+    0x280001040802101ULL,
+    0x2100190040002085ULL,
+    0x80c0084100102001ULL,
+    0x4024081001000421ULL,
+    0x20030a0244872ULL,
+    0x12001008414402ULL,
+    0x2006104900a0804ULL,
+    0x1004081002402ULL,
+};
 
 
-BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
+const u64 BitBoard::bishopMagic[64] = {
+    0x40040844404084ULL,
+    0x2004208a004208ULL,
+    0x10190041080202ULL,
+    0x108060845042010ULL,
+    0x581104180800210ULL,
+    0x2112080446200010ULL,
+    0x1080820820060210ULL,
+    0x3c0808410220200ULL,
+    0x4050404440404ULL,
+    0x21001420088ULL,
+    0x24d0080801082102ULL,
+    0x1020a0a020400ULL,
+    0x40308200402ULL,
+    0x4011002100800ULL,
+    0x401484104104005ULL,
+    0x801010402020200ULL,
+    0x400210c3880100ULL,
+    0x404022024108200ULL,
+    0x810018200204102ULL,
+    0x4002801a02003ULL,
+    0x85040820080400ULL,
+    0x810102c808880400ULL,
+    0xe900410884800ULL,
+    0x8002020480840102ULL,
+    0x220200865090201ULL,
+    0x2010100a02021202ULL,
+    0x152048408022401ULL,
+    0x20080002081110ULL,
+    0x4001001021004000ULL,
+    0x800040400a011002ULL,
+    0xe4004081011002ULL,
+    0x1c004001012080ULL,
+    0x8004200962a00220ULL,
+    0x8422100208500202ULL,
+    0x2000402200300c08ULL,
+    0x8646020080080080ULL,
+    0x80020a0200100808ULL,
+    0x2010004880111000ULL,
+    0x623000a080011400ULL,
+    0x42008c0340209202ULL,
+    0x209188240001000ULL,
+    0x400408a884001800ULL,
+    0x110400a6080400ULL,
+    0x1840060a44020800ULL,
+    0x90080104000041ULL,
+    0x201011000808101ULL,
+    0x1a2208080504f080ULL,
+    0x8012020600211212ULL,
+    0x500861011240000ULL,
+    0x180806108200800ULL,
+    0x4000020e01040044ULL,
+    0x300000261044000aULL,
+    0x802241102020002ULL,
+    0x20906061210001ULL,
+    0x5a84841004010310ULL,
+    0x4010801011c04ULL,
+    0xa010109502200ULL,
+    0x4a02012000ULL,
+    0x500201010098b028ULL,
+    0x8040002811040900ULL,
+    0x28000010020204ULL,
+    0x6000020202d0240ULL,
+    0x8918844842082200ULL,
+    0x4010011029020020ULL,
+};
+
+
+const int BitBoard::rookRelevantBits[64] = {
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12
+};
+
+
+const int BitBoard::bishopRelevantBits[64] = {
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6
+};
+
+
+BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES])),
+    m_bishopAttacks(BishopAttack(new std::shared_ptr<u64[512]>[NUMBER_OF_SQUARES])),
+    m_rookAttacks(RookAttack(new std::shared_ptr<u64[4096]>[NUMBER_OF_SQUARES]))
 {
     this->m_enPassantSquare = NO_ENPASSANT;
     this->m_moveFlags = 0b0;
@@ -21,10 +181,17 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
             this->m_pieces[color][piece] = 0ULL; // reseting pieces
         }
     }
-
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        this->m_bishopAttacks[square] = std::shared_ptr<u64[512]>(new u64[512]);
+        this->m_rookAttacks[square] = std::shared_ptr<u64[4096]>(new u64[4096]);
+    }
     initZobristKeys();
     parseFen(fen);
     initAtkDictionary();
+    initSliderAttacks(true);
+    initSliderAttacks(false);
+
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
@@ -36,8 +203,10 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
 
 
 // Using shallow copy for attack dictionary to avoid unnecessary computation 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant) :
-    m_attackPatterns(attackPatterns), m_enPassantSquare(enPassant) ,m_moveFlags(flags)
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant,
+    const BishopAttack& bishopAttacks, const RookAttack& rookAttacks) :
+    m_attackPatterns(attackPatterns), m_enPassantSquare(enPassant) ,m_moveFlags(flags),
+    m_bishopAttacks(bishopAttacks), m_rookAttacks(rookAttacks)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -53,6 +222,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
     this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
+
 }
 
 
@@ -316,7 +486,7 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
     bool color = COLOR;
     nextFlags ^= 0b1; // changing color turn
     // creating the instance of the next position
-    std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
+    std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant, this->m_bishopAttacks, this->m_rookAttacks);
 
     if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
     if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }
@@ -334,6 +504,7 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
     u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     std::deque<Move> moves;
     int mostImportantIndex = 0;
@@ -353,13 +524,13 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
                         this->getEnPassantPattern(square, color);
                     break;
                 case rook:
-                    pattern = this->removeRookBlockedAtk(square, pattern, color);
+                    pattern = getRookAtk(square, currOccupancy | oppositeOccupancy) & (~currOccupancy);
                     break;
                 case bishop:
-                    pattern = this->removeBishopBlockedAtk(square, pattern, color);
+                    pattern = getBishopAtk(square, currOccupancy | oppositeOccupancy) & (~currOccupancy);
                     break;
                 case queen:
-                    pattern = this->removeQueenBlockedAtk(square, pattern, color);
+                    pattern = this->removeQueenBlockedAtk(square) & (~currOccupancy);
                     break;
                 case knight: case king:
                     pattern ^= pattern & currOccupancy;
@@ -558,6 +729,42 @@ void BitBoard::initZobristKeys()
 
 
 /*
+* Inits slider attack magic bitboards
+* input: is Bishop piece (false means rook)
+* output: None
+*/
+void BitBoard::initSliderAttacks(bool isBishop)
+{
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        u64 bishopAtk = this->m_attackPatterns[WHITE][bishop][square];
+        u64 rookAtk = this->m_attackPatterns[WHITE][rook][square];
+
+        u64 mask = isBishop ? bishopAtk : rookAtk;
+        int bits = bitCount(mask);
+
+        int occupancyVariations = 1 << bits;
+
+        for (int count = 0; count < occupancyVariations; count++)
+        {
+            if (isBishop)
+            {
+                u64 occupancy = setOccupancy(count, bits, mask);
+                u64 magicIndex = occupancy * bishopMagic[square] >> 64 - bishopRelevantBits[square];
+                this->m_bishopAttacks[square][magicIndex] = removeBishopBlockedAtk(square, occupancy);
+            }
+            else
+            {
+                u64 occupancy = setOccupancy(count, bits, mask);
+                u64 magicIndex = occupancy * rookMagic[square] >> 64 - rookRelevantBits[square];
+                this->m_rookAttacks[square][magicIndex] = removeRookBlockedAtk(square, occupancy);
+            }
+        }
+    }
+}
+
+
+/*
 * Manipulates bitboards to play move
 * input: board, color of current turn, piece, target, start Square, end Square, piece promotion
 * output: None
@@ -651,7 +858,7 @@ int BitBoard::getLsbIndex(u64 board)
     {
         return -1;
     }
-    return bitCount((board & -board) - 1);
+    return bitCount((board & (-(signed long long)board)) - 1);
 }
 
 
@@ -761,11 +968,16 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
+    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
     std::deque<Move> pseudoLegal = color ?
         this->m_whiteMoveList :
         this->m_blackMoveList;
     for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
     {
+        if(getPieceType(it->from, color) == pawn && !(it->to & oppositeOccupancy))
+        {
+            continue;
+        }
         attack |= it->to;
     }
     return attack;
@@ -783,70 +995,93 @@ u64 BitBoard::getPromotionMask(bool color) const
     return color ? 255ULL : 18374686479671623680ULL;
 }
 
+/*
+* Sets the occupancy based on an attack mask an index and a bitcount of mask
+* input: index, mask bit count and mask board
+* output: occupancy
+*/
+u64 BitBoard::setOccupancy(int index, int maskBitCount, u64 attackMask)
+{
+    u64 occupancy = 0ULL;
+
+    for (int count = 0; count < maskBitCount; count++)
+    {
+        int square = getLsbIndex(attackMask);
+        POP_BIT(attackMask, square);
+        if (index & (1 << count))
+            occupancy |= (1ULL << square);
+    }
+    return occupancy;
+}
+
+
+/*
+* Gets a bishop attack from the magic bitboard
+* input: square and occupancy of board
+* output: pre caluclated bishop attack
+*/
+u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
+{
+    occupancy &= this->m_attackPatterns[WHITE][bishop][square];
+    occupancy *= bishopMagic[square];
+    occupancy >>= 64 - bishopRelevantBits[square];
+    return m_bishopAttacks[square][occupancy];
+}
+
+
+/*
+* Gets a rook attack from the magic bitboard
+* input: square and occupancy of board
+* output: pre caluclated rook attack
+*/
+u64 BitBoard::getRookAtk(int square, u64 occupancy) const
+{
+    occupancy &= this->m_attackPatterns[WHITE][rook][square];
+    occupancy *= rookMagic[square];
+    occupancy >>= 64 - rookRelevantBits[square];
+
+    return m_rookAttacks[square][occupancy];
+}
+
 
 /*
 * Method for removing blocked attack squares from a bishop attack pattern
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk, bool color) const
+u64 BitBoard::removeBishopBlockedAtk(int square, u64 occupancy) const
 {
-    int f = 0, r = 0;
-    int rank = square / 8;
-    int file = square % 8;
-    bool isBlocked = false;
-    u64 currColorOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 oppositeColorOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 attack = 0ULL;
 
-    // bishop moving shl 9
-    for (r = rank + 1, f = file + 1, isBlocked = false; r <= 7 && f <= 7; r++, f++)
+    int f, r;
+    int targetRank = square / 8;
+    int targetFile = square % 8;
+
+    // generate attacks
+    for (r = targetRank + 1, f = targetFile + 1; r <= 7 && f <= 7; r++, f++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shr 9
-    for (r = rank + -1, f = file - 1, isBlocked = false; r >= 0 && f >= 0; r--, f--)
+    for (r = targetRank + 1, f = targetFile - 1; r <= 7 && f >= 0; r++, f--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shr 7
-    for (r = rank - 1, f = file + 1, isBlocked = false; r >= 0 && f <= 7; r--, f++)
+    for (r = targetRank - 1, f = targetFile + 1; r >= 0 && f <= 7; r--, f++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shl 7
-    for (r = rank + 1, f = file - 1, isBlocked = false; r <= 7 && f >= 0; r++, f--)
+    for (r = targetRank - 1, f = targetFile - 1; r >= 0 && f >= 0; r--, f--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
-
-    return atk;
+    return attack;
 }
 
 
@@ -855,64 +1090,40 @@ u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk, bool color) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeRookBlockedAtk(int square, u64 atk, bool color) const
+u64 BitBoard::removeRookBlockedAtk(int square, u64 occupancy) const
 {
-    int f = 0, r = 0;
-    int rank = square / 8;
-    int file = square % 8;
-    bool isBlocked = false;
-    u64 currColorOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 oppositeColorOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 attack = 0ULL;
 
-    // rook shl 8
-    for (r = rank + 1, isBlocked = false; r <= 7; r++)
+    int file, rank;
+
+    int targetRank = square / 8;
+    int targetFile = square % 8;
+
+    for (rank = targetRank + 1; rank <= 7; rank++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + file)) & currColorOccupancy); }
-        if(isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + file));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + file)) & oppositeColorOccupancy;
+        attack |= (1ULL << (rank * 8 + targetFile));
+        if (occupancy & (1ULL << (rank * 8 + targetFile))) { break; }
     }
 
-    // rook shr 8
-    for (r = rank - 1, isBlocked = false; r >= 0; r--)
+    for (rank = targetRank - 1; rank >= 0; rank--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + file)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + file));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + file)) & oppositeColorOccupancy;
+        attack |= (1ULL << (rank * 8 + targetFile));
+        if (occupancy & (1ULL << (rank * 8 + targetFile))) { break; }
     }
 
-    // rook shl 1
-    for (f = file + 1, isBlocked = false; f <= 7; f++)
+    for (file = targetFile + 1; file <= 7; file++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((rank * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((rank * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((rank * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (targetRank * 8 + file));
+        if (occupancy & (1ULL << (targetRank * 8 + file))) { break; }
     }
 
-    // rook shr 1
-    for (f = file - 1, isBlocked = false; f >= 0; f--)
+    for (file = targetFile - 1; file >= 0; file--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((rank * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((rank * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((rank * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (targetRank * 8 + file));
+        if (occupancy & (1ULL << (targetFile * 8 + file))) { break; }
     }
 
-    return atk;
+    return attack;
 }
 
 
@@ -921,11 +1132,11 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 atk, bool color) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk, bool color) const
+u64 BitBoard::removeQueenBlockedAtk(int square) const
 {
-    u64 diagonal = atk & this->m_attackPatterns[WHITE][bishop][square];
-    u64 lateral = atk & this->m_attackPatterns[WHITE][rook][square];
-    return this->removeBishopBlockedAtk(square, diagonal, color) | this->removeRookBlockedAtk(square, lateral, color);
+    u64 diagonal = getBishopAtk(square, m_whiteOccupancy | m_blackOccupancy);
+    u64 lateral = getRookAtk(square, m_whiteOccupancy | m_blackOccupancy);
+    return lateral | diagonal;
 }
 
 
@@ -1206,19 +1417,19 @@ u64 BitBoard::calcBishopAtkPattern(int square)
     int file = square % 8;
 
     // bishop moving shl 9
-    for(r = rank + 1, f = file + 1; r <= 7 && f <= 7; r++, f++)
+    for(r = rank + 1, f = file + 1; r <= 6 && f <= 6; r++, f++)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shr 9
-    for(r = rank + -1, f = file - 1; r >= 0 && f >= 0; r--, f--)
+    for(r = rank + -1, f = file - 1; r >= 1 && f >= 1; r--, f--)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shr 7
-    for(r = rank - 1, f = file + 1; r >= 0 && f <= 7; r--, f++)
+    for(r = rank - 1, f = file + 1; r >= 1 && f <= 6; r--, f++)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shl 7
-    for(r = rank + 1, f = file - 1; r <= 7 && f >= 0; r++, f--)
+    for(r = rank + 1, f = file - 1; r <= 6 && f >= 1; r++, f--)
     { attack |= (1ULL << ((r * 8) + f)); }
     
     return attack;
@@ -1241,19 +1452,19 @@ u64 BitBoard::calcRookAtkPattern(int square)
     int file = square % 8;
 
     // rook shl 8
-    for (r = rank + 1; r <= 7; r++)
+    for (r = rank + 1; r <= 6; r++)
     { attack |= (1ULL << ((r * 8) + file)); }
 
     // rook shr 8
-    for (r = rank -1; r >= 0; r--)
+    for (r = rank -1; r >= 1; r--)
     { attack |= (1ULL << ((r * 8) + file)); }
 
     // rook shl 1
-    for (f = file + 1; f <= 7; f++)
+    for (f = file + 1; f <= 6; f++)
     { attack |= (1ULL << ((rank * 8) + f)); }
 
     // rook shr 1
-    for (f = file - 1;f >= 0; f--)
+    for (f = file - 1;f >= 1; f--)
     { attack |= (1ULL << ((rank * 8) + f)); }
 
     return attack;
