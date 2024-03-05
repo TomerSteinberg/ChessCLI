@@ -27,6 +27,5 @@ void ContinueCommand::execute(Context& ctx)
     /* Getting number of milliseconds as a double. */
     duration<double, std::milli> ms_double = t2 - t1;
 
-    std::cout << ms_int.count() << "ms\n";
-    std::cout << ms_double.count() << "ms\n";
+    std::cout << "Execution time: " << ms_int.count() << "ms\n";
 }

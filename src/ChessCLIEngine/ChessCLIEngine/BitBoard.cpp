@@ -236,6 +236,7 @@ int BitBoard::evaluate() const
     const int PIECE_VALUES[] = { 100, 300, 300, 500, 900 };
     int evaluation = 0;
     bool color = COLOR;
+
     int whiteProximityCount = getProximityCount(getLsbIndex(this->m_pieces[WHITE][king]), WHITE) * 10;
     int blackProximityCount = getProximityCount(getLsbIndex(this->m_pieces[BLACK][king]), BLACK) * 10;
 
@@ -844,7 +845,7 @@ int BitBoard::getPieceType(u64 square, bool color) const
     }
     return -1;
 }
-
+ 
 
 /*
 * Method for getting the index of the least significant bit (LSB) in a given
@@ -852,13 +853,24 @@ int BitBoard::getPieceType(u64 square, bool color) const
 * input: bitboard (u64)
 * output: index of LSB in given board
 */
-int BitBoard::getLsbIndex(u64 board)
+unsigned long BitBoard::getLsbIndex(u64 board)
 {
-    if (!board)
-    {
-        return -1;
-    }
-    return bitCount((board & (-(signed long long)board)) - 1);
+    static const int lookup67[68] = {
+   64,  0,  1, 39,  2, 15, 40, 23,
+    3, 12, 16, 59, 41, 19, 24, 54,
+    4, -1, 13, 10, 17, 62, 60, 28,
+   42, 30, 20, 51, 25, 44, 55, 47,
+    5, 32, -1, 38, 14, 22, 11, 58,
+   18, 53, 63,  9, 61, 27, 29, 50,
+   43, 46, 31, 37, 21, 57, 52,  8,
+   26, 49, 45, 36, 56,  7, 48, 35,
+    6, 34, 33, -1 };
+    return lookup67[(board & -(long long)board) % 67];
+    //if (!board)
+    //{
+    //    return -1;
+    //}
+    //return bitCount((board & (-(signed long long)board)) - 1);
 }
 
 
@@ -1270,13 +1282,21 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
 */
 inline int BitBoard::bitCount(u64 board)
 {
-    int count = 0;
-    while (board)
-    {
-        board &= board - 1;
-        count++;
-    }
-    return count;
+    constexpr uint64_t m1 = 0x5555555555555555; 
+    constexpr uint64_t m2 = 0x3333333333333333; 
+    constexpr uint64_t m4 = 0x0f0f0f0f0f0f0f0f; 
+    constexpr uint64_t h01 = 0x0101010101010101;
+    board -= (board >> 1) & m1;
+    board = (board & m2) + ((board >> 2) & m2);
+    board = (board + (board >> 4)) & m4;
+    return (board * h01) >> 56;
+    //int count = 0;
+    //while (board)
+    //{
+    //    board &= board - 1;
+    //    count++;
+    //}
+    //return count;
 }
 
 

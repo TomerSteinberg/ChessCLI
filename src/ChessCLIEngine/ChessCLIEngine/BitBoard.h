@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <deque>
 #include <random>
+#include <bitset>
 
 
 #include "MissingPieceException.h"
@@ -88,7 +89,7 @@ public:
 	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
-	static int getLsbIndex(u64 board);
+	static unsigned long getLsbIndex(u64 board);
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
