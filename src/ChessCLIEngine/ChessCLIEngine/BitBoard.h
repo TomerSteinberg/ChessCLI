@@ -7,7 +7,8 @@
 #include <unordered_map>
 #include <deque>
 #include <random>
-#include <bitset>
+
+#include <assert.h>     /* assert */
 
 
 #include "MissingPieceException.h"
@@ -30,7 +31,7 @@
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
 #define WHITE_ROOKS_OFFSET 56
-#define COLOR this->m_moveFlags & WHITE
+#define COLOR (this->m_moveFlags & WHITE)
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
 #define SET_BIT(board, square) (board |= (1ULL << square))
@@ -115,6 +116,7 @@ private:
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
+	u64 m_hash;
 	static const u64 bishopMagic[NUMBER_OF_SQUARES];
 	static const u64 rookMagic[NUMBER_OF_SQUARES];
 	static const int bishopRelevantBits[64];
@@ -126,6 +128,7 @@ private:
 	bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
+	u64 getInitialZobristHash() const;
 	void initAtkDictionary();
 	void initZobristKeys();
 	void initSliderAttacks(bool isBishop);
