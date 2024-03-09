@@ -195,10 +195,9 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
-    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    this->m_moveList = getPseudoLegalMoves(COLOR);
     this->m_hash = getInitialZobristHash();
 }
 
@@ -219,10 +218,9 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
-    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
+    this->m_moveList = getPseudoLegalMoves(COLOR);
     this->m_hash = this->getInitialZobristHash();
 }
 
@@ -250,7 +248,7 @@ int BitBoard::evaluate() const
     {
         evaluation += 70;
     }
-    evaluation += this->m_whiteMoveList.size() - this->m_blackMoveList.size();
+    evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
 
     evaluation += blackProximityCount - whiteProximityCount;
     return evaluation;
@@ -408,7 +406,7 @@ u64 BitBoard::getZobristHash() const
 
 std::deque<Move> BitBoard::getMoveList()
 {
-    return COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
+    return this->m_moveList;
 }
 
 
@@ -484,6 +482,7 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     std::deque<Move> moves;
     int mostImportantIndex = 0;
     int leastImportantIndex = 0;
@@ -539,11 +538,11 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
                     {
                         moves.insert(moves.begin() + mostImportantIndex , { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                     }
-                    /*else if (index & oppositeAtk)
+                    else if (index & oppositeAtk)
                     {
                         moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                         leastImportantIndex++;
-                    }*/
+                    }
                     else
                     {
                         moves.insert(moves.end() - leastImportantIndex, { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
@@ -577,12 +576,11 @@ bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) con
     int piece = getPieceType(startSquare, color);
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
-    auto moveList = color ? this->m_whiteMoveList : this->m_blackMoveList;
 
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
 
-    for(auto it = moveList.begin(); it != moveList.end(); it++)
+    for(auto it = m_moveList.begin(); it != m_moveList.end(); it++)
     {
         if (it->from == startPos && it->to == endPos)
         {
@@ -911,7 +909,7 @@ bool BitBoard::isMate(bool color) const
     {
         return false;
     }
-    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
+    auto moves = this->m_moveList;
     for (size_t i = 0; i < moves.size(); i++)
     {
         try 
@@ -947,7 +945,7 @@ bool BitBoard::isStale(bool color) const
     {
         return false;
     }
-    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
+    auto moves = this->m_moveList;
     for (size_t i = 0; i < moves.size(); i++)
     {
         try
@@ -996,17 +994,42 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
+    u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
-    std::deque<Move> pseudoLegal = color ?
-        this->m_whiteMoveList :
-        this->m_blackMoveList;
-    for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
+    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
-        if(getPieceType(it->from, color) == pawn && !(it->to & oppositeOccupancy))
+        u64 pieceBoard = this->m_pieces[color][piece];
+        while (pieceBoard)
         {
-            continue;
+            int square = getLsbIndex(pieceBoard);
+            u64 pattern = this->m_attackPatterns[color][piece][square];
+            switch (piece)
+            {
+            case pawn:
+                pattern = this->removePawnIllegalAtk(pattern, color) |
+                    //this->getPawnMovementPattern(square, color) |
+                    this->getEnPassantPattern(square, color);
+                if (!(pattern & oppositeOccupancy)) { pattern = 0ULL; }
+                break;
+            case rook:
+                pattern = getRookAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case bishop:
+                pattern = getBishopAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case queen:
+                pattern = this->removeQueenBlockedAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case knight: case king:
+                pattern ^= pattern & currOccupancy;
+                break;
+            }
+            attack |= pattern;
+            pieceBoard &= pieceBoard - 1;
         }
-        attack |= it->to;
     }
     return attack;
 }

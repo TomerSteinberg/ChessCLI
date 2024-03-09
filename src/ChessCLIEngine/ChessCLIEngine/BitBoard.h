@@ -110,8 +110,7 @@ private:
 	const BishopAttack m_bishopAttacks;
 	const RookAttack m_rookAttacks;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::deque<Move> m_whiteMoveList;
-	std::deque<Move> m_blackMoveList;
+	std::deque<Move> m_moveList;
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;

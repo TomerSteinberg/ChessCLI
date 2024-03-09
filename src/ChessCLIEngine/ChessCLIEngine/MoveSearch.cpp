@@ -4,6 +4,7 @@
 std::unordered_map<u64, std::pair<double, int>> MoveSearch::transpositionTable = std::unordered_map<u64, std::pair<double, int>>();
 int MoveSearch::nodes = 0;
 
+
 /*
 * Minimax algorithm with chess board
 * input: board position, is maximizing or minimizing, depth of search
