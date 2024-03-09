@@ -1,7 +1,7 @@
 #include "MoveSearch.h"
 
 
-std::unordered_map<u64, std::pair<double,int>> transpositionTable;
+std::unordered_map<u64, std::pair<double, int>> MoveSearch::transpositionTable = std::unordered_map<u64, std::pair<double, int>>();
 
 /*
 * Minimax algorithm with chess board
@@ -48,16 +48,22 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
         }
         int score = 0;
 
-        u64 zobristHash = afterMove->getZobristHash();
-
-        if (transpositionTable.find(zobristHash) != transpositionTable.end() && transpositionTable[zobristHash].second >= (depth - 1))
+        if ((depth - 1) != 0)
         {
-            score = transpositionTable[zobristHash].first;
+            u64 zobristHash = afterMove->getZobristHash();
+            if (transpositionTable.find(zobristHash) != transpositionTable.end() && transpositionTable[zobristHash].second >= (depth - 1))
+            {
+                score = transpositionTable[zobristHash].first;
+            }
+            else
+            {
+                score = minimax(afterMove, !isMaximizingPlayer, depth-1, alpha, beta);
+                transpositionTable.insert({ zobristHash, {score, depth - 1} });
+            }
         }
         else
         {
             score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
-            transpositionTable.insert({ zobristHash, {score, depth-1} });
         }
         if (isMaximizingPlayer)
         {

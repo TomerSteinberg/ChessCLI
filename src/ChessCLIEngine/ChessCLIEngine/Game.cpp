@@ -299,7 +299,18 @@ void Game::playBest()
 			continue;
 		}
 
-		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
+
+		u64 zobristHash = nextPosition->getZobristHash();
+
+		if (MoveSearch::transpositionTable.find(zobristHash) != MoveSearch::transpositionTable.end() && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
+		{
+			score = MoveSearch::transpositionTable[zobristHash].first;
+		}
+		else
+		{
+			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
+			MoveSearch::transpositionTable.insert({ zobristHash, {score, SEARCH_DEPTH} });
+		}
 		if (color)
 		{
 			bestScore = std::max(bestScore, score);
@@ -314,6 +325,7 @@ void Game::playBest()
 	if (bestMove.castle)
 	{
 		this->move(bestMove.isLong, notationFromMove(bestMove));
+		return;
 	}
 	this->move(BitBoard::getLsbIndex(bestMove.from),
 		BitBoard::getLsbIndex(bestMove.to),
