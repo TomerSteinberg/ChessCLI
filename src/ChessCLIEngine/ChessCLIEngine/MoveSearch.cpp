@@ -1,7 +1,8 @@
 #include "MoveSearch.h"
 
 
-std::unordered_map<u64, std::pair<double, int>> MoveSearch::transpositionTable = std::unordered_map<u64, std::pair<double, int>>();
+int MoveSearch::transpositionTable[TRANSPOTION_TABLE_SIZE];
+int MoveSearch::depthTable[TRANSPOTION_TABLE_SIZE] = { -1 };
 int MoveSearch::nodes = 0;
 
 
@@ -13,14 +14,14 @@ int MoveSearch::nodes = 0;
 int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha, int beta)
 {
     nodes++;
-    if (position->isMate(isMaximizingPlayer))
-    {
-        return isMaximizingPlayer ? MIN_INFINITY - depth : MAX_INFINITY + depth;
-    }
-    if (position->isStale(isMaximizingPlayer))
-    {
-        return EQUAL;
-    }
+    //if (position->isMate(isMaximizingPlayer))
+    //{
+    //    return isMaximizingPlayer ? MIN_INFINITY - depth : MAX_INFINITY + depth;
+    //}
+    //if (position->isStale(isMaximizingPlayer))
+    //{
+    //    return EQUAL;
+    //}
     if (depth == 0)
     {
         return position->evaluate();
@@ -54,14 +55,15 @@ int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPla
         if ((depth - 1) != 0)
         {
             u64 zobristHash = afterMove->getZobristHash();
-            if (transpositionTable.find(zobristHash) != transpositionTable.end() && transpositionTable[zobristHash].second >= (depth - 1))
+            if (depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] != -1 && depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] >= (depth - 1))
             {
-                score = transpositionTable[zobristHash].first;
+                score = transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE];
             }
             else
             {
                 score = minimax(afterMove, !isMaximizingPlayer, depth-1, alpha, beta);
-                transpositionTable.insert({ zobristHash, {score, depth - 1} });
+                transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = score;
+                depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] = depth - 1;
             }
         }
         else

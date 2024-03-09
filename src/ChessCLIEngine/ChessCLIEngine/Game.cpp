@@ -302,14 +302,15 @@ void Game::playBest()
 
 		u64 zobristHash = nextPosition->getZobristHash();
 
-		if (MoveSearch::transpositionTable.find(zobristHash) != MoveSearch::transpositionTable.end() && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
+		if (MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] != -1 && MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] >= (SEARCH_DEPTH))
 		{
-			score = MoveSearch::transpositionTable[zobristHash].first;
+			score = MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE];
 		}
 		else
 		{
 			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-			MoveSearch::transpositionTable.insert({ zobristHash, {score, SEARCH_DEPTH} });
+			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = score;
+			MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] = SEARCH_DEPTH;
 		}
 		if (color)
 		{

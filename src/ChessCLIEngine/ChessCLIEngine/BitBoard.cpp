@@ -261,14 +261,14 @@ int BitBoard::evaluate() const
 * input: start and end square of move, promotion piece
 * output: bitboard after move was played
 */
-std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
+inline std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
 {
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
     const bool color = COLOR;
     bool isAttackingEnPassant = false;
     int target = NO_CAPTURE;
-    int piece = 0;
+    uint8_t piece = 0;
     u64 startPos = 0ULL, endPos = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     const u64 promotionMask = this->getPromotionMask(color);
@@ -458,7 +458,7 @@ void BitBoard::printBoard(bool isUnicode) const
 * input: next position board (u64[][]), flags for the position (uint8_t), next enPassant square (uint8_t)
 * output: shared ptr of next position (shared_ptr<BitBoard>)
 */
-std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
+inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
 {
     bool color = COLOR;
     nextFlags ^= 0b1; // changing color turn
@@ -478,7 +478,7 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
+inline std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
@@ -486,7 +486,7 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
     std::deque<Move> moves;
     int mostImportantIndex = 0;
     int leastImportantIndex = 0;
-    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+    for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 board = this->m_pieces[color][piece];
         while (board)
@@ -518,7 +518,7 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
             }
             while (pattern)
             {
-                int index = getLsbIndex(pattern);
+                uint8_t index = getLsbIndex(pattern);
                 if ((1ULL << square) & this->m_pieces[color][pawn] && 
                     (1ULL << index) & getPromotionMask(color) && index != -1)
                 {
@@ -571,7 +571,7 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 * input: start and end square of move (int,int)
 * output: true if move is found, false otherwise (bool)
 */
-bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) const
+inline bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) const
 {
     int piece = getPieceType(startSquare, color);
     u64 startPos = 0ULL;
@@ -620,7 +620,7 @@ void BitBoard::parseFen(std::string fen)
         }
         if (std::isdigit(fenParts[0][i]))
         {
-            square += (int)fenParts[0][i] - 48;
+            square += (size_t)fenParts[0][i] - 48;
             continue;
         }
 
@@ -653,15 +653,15 @@ void BitBoard::parseFen(std::string fen)
 * input: None
 * output: Zobrist Hash
 */
-u64 BitBoard::getInitialZobristHash() const
+inline u64 BitBoard::getInitialZobristHash() const
 {
     u64 hash = 0ULL;
     uint8_t flags = this->m_moveFlags;
     flags >>= 1;
 
-    for (int color = 0; color < SIDES; color++)
+    for (uint8_t color = 0; color < SIDES; color++)
     {
-        for (int i = 0; i < NUMBER_OF_PIECES; i++)
+        for (uint8_t i = 0; i < NUMBER_OF_PIECES; i++)
         {
             u64 piece = this->m_pieces[color][i];
             while (piece)
@@ -728,11 +728,11 @@ void BitBoard::initZobristKeys()
     std::random_device randomDevice;
     std::mt19937_64 rng(randomDevice());
     std::uniform_int_distribution<u64> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2, 62)));
-    for (int side = 0; side < SIDES; side++)
+    for (uint8_t side = 0; side < SIDES; side++)
     {
-        for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+        for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            for(int square = 0; square < ZOBRIST_SQUARES; square++)
+            for(uint8_t square = 0; square < ZOBRIST_SQUARES; square++)
             {
                 BitBoard::zobristKeys[side][piece][square] = dist(rng);
             }
@@ -748,7 +748,7 @@ void BitBoard::initZobristKeys()
 */
 void BitBoard::initSliderAttacks(bool isBishop)
 {
-    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    for (uint8_t square = 0; square < NUMBER_OF_SQUARES; square++)
     {
         u64 bishopAtk = this->m_attackPatterns[WHITE][bishop][square];
         u64 rookAtk = this->m_attackPatterns[WHITE][rook][square];
@@ -763,13 +763,13 @@ void BitBoard::initSliderAttacks(bool isBishop)
             if (isBishop)
             {
                 u64 occupancy = setOccupancy(count, bits, mask);
-                u64 magicIndex = occupancy * bishopMagic[square] >> 64 - bishopRelevantBits[square];
+                u64 magicIndex = occupancy * bishopMagic[square] >> (64 - bishopRelevantBits[square]);
                 this->m_bishopAttacks[square][magicIndex] = removeBishopBlockedAtk(square, occupancy);
             }
             else
             {
                 u64 occupancy = setOccupancy(count, bits, mask);
-                u64 magicIndex = occupancy * rookMagic[square] >> 64 - rookRelevantBits[square];
+                u64 magicIndex = occupancy * rookMagic[square] >> (64 - rookRelevantBits[square]);
                 this->m_rookAttacks[square][magicIndex] = removeRookBlockedAtk(square, occupancy);
             }
         }
@@ -782,7 +782,7 @@ void BitBoard::initSliderAttacks(bool isBishop)
 * input: board, color of current turn, piece, target, start Square, end Square, piece promotion
 * output: None
 */
-void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
+inline void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
 {
     SET_BIT(nextPos[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
     POP_BIT(nextPos[color][piece], startSquare);
@@ -799,7 +799,7 @@ void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int
 * input: is Long castle (bool)
 * output: bitboard of the next position
 */
-std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
+inline std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
 {
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
@@ -837,7 +837,7 @@ int BitBoard::getPieceType(int square, bool color) const
     u64 board = 0ULL;
     SET_BIT(board, square);
 
-    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+    for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         if (board & this->m_pieces[color][piece])
         {
@@ -893,7 +893,7 @@ unsigned inline long BitBoard::getLsbIndex(u64 board)
 * input: color of king to check
 * output: true if the king is in check, false otherwise.
 */
-bool BitBoard::isCheck(bool color) const
+inline bool BitBoard::isCheck(bool color) const
 {
     return this->m_pieces[color][king] & (!color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs);
 }
@@ -975,7 +975,7 @@ bool BitBoard::isStale(bool color) const
 * input: color of pieces
 * output: a occupancy bitboard that contains all pieces of given color (u64)
 */
-u64 BitBoard::getSideOccupancy(const bool color) const
+inline u64 BitBoard::getSideOccupancy(const bool color) const
 {
     u64 unifiedBoard = 0ULL;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
@@ -991,7 +991,7 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 * input: side (white|black) (bool)
 * output: bitboard of all attacked squares (u64)
 */
-u64 BitBoard::getAttackSqrs(const bool color) const
+inline u64 BitBoard::getAttackSqrs(const bool color) const
 {
     u64 attack = 0ULL;
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
@@ -1265,7 +1265,7 @@ u64 BitBoard::getEnPassantPattern(int square, bool color) const
 * input: array of bitboards to copy into
 * output: None
 */
-void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
+inline void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
 {
     for (int i = 0; i < SIDES; i++)
     {

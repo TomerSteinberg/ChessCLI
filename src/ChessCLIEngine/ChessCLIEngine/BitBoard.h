@@ -79,19 +79,19 @@ public:
 
 	int evaluate() const;
 
-	std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
-	std::shared_ptr<BitBoard> castleMove(bool isLong) const;
+	inline std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
+	inline std::shared_ptr<BitBoard> castleMove(bool isLong) const;
 	std::string getFen() const;
 	u64 getZobristHash() const;
 	std::deque<Move> getMoveList();
 
-	bool isCheck(bool color) const;
+	inline bool isCheck(bool color) const;
 	bool isMate(bool color) const;
 	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
 	static inline unsigned long getLsbIndex(u64 board);
-	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
+	inline void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
 
@@ -122,23 +122,23 @@ private:
 	static const int rookRelevantBits[64];
 	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 
-	std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	std::deque<Move> getPseudoLegalMoves(bool color) const;
-	bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
+	inline std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
+	inline std::deque<Move> getPseudoLegalMoves(bool color) const;
+	inline bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
-	u64 getInitialZobristHash() const;
+	inline u64 getInitialZobristHash() const;
 	void initAtkDictionary();
 	void initZobristKeys();
 	void initSliderAttacks(bool isBishop);
-	void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
+	inline void expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const;
 
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
 	static inline int bitCount(u64 board);
 	int getProximityCount(int square, bool color) const;
-	u64 getSideOccupancy(const bool color) const; 
-	u64 getAttackSqrs(const bool color) const;
+	inline u64 getSideOccupancy(const bool color) const; 
+	inline u64 getAttackSqrs(const bool color) const;
 	u64 getPromotionMask(bool color) const;
 	u64 setOccupancy(int index, int maskBitCount, u64 attackMask)const ;
 
