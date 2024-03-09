@@ -11,6 +11,7 @@
 class MoveSearch
 {
 public:
+	static int nodes;
 	static std::unordered_map<u64, std::pair<double, int>> transpositionTable;
 	static int minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha=MIN_INFINITY, int beta=MAX_INFINITY);
 };

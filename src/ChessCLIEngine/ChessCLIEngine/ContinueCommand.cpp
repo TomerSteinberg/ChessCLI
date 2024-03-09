@@ -28,4 +28,6 @@ void ContinueCommand::execute(Context& ctx)
     duration<double, std::milli> ms_double = t2 - t1;
 
     std::cout << "Execution time: " << ms_int.count() << "ms\n";
+    std::cout << "Nodes Searched: " << MoveSearch::nodes << std::endl;
+    MoveSearch::nodes = 0;
 }

@@ -2,6 +2,7 @@
 
 
 std::unordered_map<u64, std::pair<double, int>> MoveSearch::transpositionTable = std::unordered_map<u64, std::pair<double, int>>();
+int MoveSearch::nodes = 0;
 
 /*
 * Minimax algorithm with chess board
@@ -10,6 +11,7 @@ std::unordered_map<u64, std::pair<double, int>> MoveSearch::transpositionTable =
 */
 int MoveSearch::minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha, int beta)
 {
+    nodes++;
     if (position->isMate(isMaximizingPlayer))
     {
         return isMaximizingPlayer ? MIN_INFINITY - depth : MAX_INFINITY + depth;
