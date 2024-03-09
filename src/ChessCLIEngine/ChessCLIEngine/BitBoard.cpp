@@ -484,7 +484,6 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 {
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
-    u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     std::deque<Move> moves;
     int mostImportantIndex = 0;
     int leastImportantIndex = 0;
@@ -503,13 +502,16 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
                         this->getEnPassantPattern(square, color);
                     break;
                 case rook:
-                    pattern = removeRookBlockedAtk(square, currOccupancy | oppositeOccupancy) & (~currOccupancy);
+                    pattern = getRookAtk(square, currOccupancy | oppositeOccupancy);
+                    pattern &= (~currOccupancy);
                     break;
                 case bishop:
-                    pattern = removeBishopBlockedAtk(square, currOccupancy | oppositeOccupancy) & (~currOccupancy);
+                    pattern = getBishopAtk(square, currOccupancy | oppositeOccupancy); 
+                    pattern &= (~currOccupancy);
                     break;
                 case queen:
-                    pattern = this->removeQueenBlockedAtk(square) & (~currOccupancy);
+                    pattern = this->removeQueenBlockedAtk(square, currOccupancy | oppositeOccupancy);
+                    pattern &= (~currOccupancy);
                     break;
                 case knight: case king:
                     pattern ^= pattern & currOccupancy;
@@ -537,11 +539,11 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
                     {
                         moves.insert(moves.begin() + mostImportantIndex , { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                     }
-                    else if (index & oppositeAtk)
+                    /*else if (index & oppositeAtk)
                     {
                         moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
                         leastImportantIndex++;
-                    }
+                    }*/
                     else
                     {
                         moves.insert(moves.end() - leastImportantIndex, { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
@@ -1050,7 +1052,7 @@ u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
 {
     occupancy &= this->m_attackPatterns[WHITE][bishop][square];
     occupancy *= bishopMagic[square];
-    occupancy >>= 64 - bishopRelevantBits[square];
+    occupancy >>= (64 - (u64)bishopRelevantBits[square]);
     return m_bishopAttacks[square][occupancy];
 }
 
@@ -1064,7 +1066,7 @@ u64 BitBoard::getRookAtk(int square, u64 occupancy) const
 {
     occupancy &= this->m_attackPatterns[WHITE][rook][square];
     occupancy *= rookMagic[square];
-    occupancy >>= 64 - rookRelevantBits[square];
+    occupancy >>= (64 - (u64)rookRelevantBits[square]);
     return m_rookAttacks[square][occupancy];
 }
 
@@ -1145,7 +1147,7 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 occupancy) const
     for (file = targetFile - 1; file >= 0; file--)
     {
         attack |= (1ULL << (targetRank * 8 + file));
-        if (occupancy & (1ULL << (targetFile * 8 + file))) { break; }
+        if (occupancy & (1ULL << (targetRank * 8 + file))) { break; }
     }
 
     return attack;
@@ -1157,11 +1159,11 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 occupancy) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeQueenBlockedAtk(int square) const
+u64 BitBoard::removeQueenBlockedAtk(int square, u64 occupancy) const
 {
-    u64 diagonal = removeBishopBlockedAtk(square, m_whiteOccupancy | m_blackOccupancy);
-    u64 lateral = removeRookBlockedAtk(square, m_whiteOccupancy | m_blackOccupancy);
-    return lateral | diagonal;
+    u64 diagonal = getBishopAtk(square, occupancy);
+    u64 lateral = getRookAtk(square, occupancy);
+    return (lateral | diagonal);
 }
 
 

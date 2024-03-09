@@ -311,6 +311,10 @@ void Game::playBest()
 			bestMove = score <= bestScore ? *it : bestMove;
 		}
 	}
+	if (bestMove.castle)
+	{
+		this->move(bestMove.isLong, notationFromMove(bestMove));
+	}
 	this->move(BitBoard::getLsbIndex(bestMove.from),
 		BitBoard::getLsbIndex(bestMove.to),
 		bestMove.promotion, notationFromMove(bestMove));

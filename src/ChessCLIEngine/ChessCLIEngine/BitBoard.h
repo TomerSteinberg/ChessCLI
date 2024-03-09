@@ -148,7 +148,7 @@ private:
 	u64 getRookAtk(int square, u64 occupancy) const;
 	u64 removeBishopBlockedAtk(int square, u64 occupancy) const;
 	u64 removeRookBlockedAtk(int square, u64 occupancy) const;
-	u64 removeQueenBlockedAtk(int square) const;
+	u64 removeQueenBlockedAtk(int square, u64 occupancy) const;
 	u64 removePawnIllegalAtk(u64 atk, bool color) const;
 	u64 getPawnMovementPattern(int square, bool color) const;
 	u64 getEnPassantPattern(int square, bool color) const;
