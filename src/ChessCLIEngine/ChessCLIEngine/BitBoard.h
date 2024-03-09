@@ -74,7 +74,7 @@ class BitBoard
 {
 public:
 	BitBoard(std::string fen);
-	BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant,
+	explicit BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant,
 		const BishopAttack& bishopAttacks, const RookAttack& rookAttacks);
 
 	int evaluate() const;
@@ -90,7 +90,7 @@ public:
 	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
-	static unsigned long getLsbIndex(u64 board);
+	static inline unsigned long getLsbIndex(u64 board);
 	void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
@@ -141,14 +141,14 @@ private:
 	u64 getSideOccupancy(const bool color) const; 
 	u64 getAttackSqrs(const bool color) const;
 	u64 getPromotionMask(bool color) const;
-	u64 setOccupancy(int index, int maskBitCount, u64 attackMask);
+	u64 setOccupancy(int index, int maskBitCount, u64 attackMask)const ;
 
 
-	u64 getBishopAtk(int square, u64 occupancy) const;
-	u64 getRookAtk(int square, u64 occupancy) const;
+	inline u64 getBishopAtk(int square, u64 occupancy) const;
+	inline u64 getRookAtk(int square, u64 occupancy) const;
 	u64 removeBishopBlockedAtk(int square, u64 occupancy) const;
 	u64 removeRookBlockedAtk(int square, u64 occupancy) const;
-	u64 removeQueenBlockedAtk(int square, u64 occupancy) const;
+	inline u64 removeQueenBlockedAtk(int square, u64 occupancy) const;
 	u64 removePawnIllegalAtk(u64 atk, bool color) const;
 	u64 getPawnMovementPattern(int square, bool color) const;
 	u64 getEnPassantPattern(int square, bool color) const;

@@ -874,7 +874,7 @@ int BitBoard::getPieceType(u64 square, bool color) const
 * input: bitboard (u64)
 * output: index of LSB in given board
 */
-unsigned long BitBoard::getLsbIndex(u64 board)
+unsigned inline long BitBoard::getLsbIndex(u64 board)
 {
     static const int lookup67[68] = {
    64,  0,  1, 39,  2, 15, 40, 23,
@@ -1028,7 +1028,7 @@ u64 BitBoard::getPromotionMask(bool color) const
 * input: index, mask bit count and mask board
 * output: occupancy
 */
-u64 BitBoard::setOccupancy(int index, int maskBitCount, u64 attackMask)
+u64 BitBoard::setOccupancy(int index, int maskBitCount, u64 attackMask) const
 {
     u64 occupancy = 0ULL;
 
@@ -1048,7 +1048,7 @@ u64 BitBoard::setOccupancy(int index, int maskBitCount, u64 attackMask)
 * input: square and occupancy of board
 * output: pre caluclated bishop attack
 */
-u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
+inline u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
 {
     occupancy &= this->m_attackPatterns[WHITE][bishop][square];
     occupancy *= bishopMagic[square];
@@ -1062,7 +1062,7 @@ u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
 * input: square and occupancy of board
 * output: pre caluclated rook attack
 */
-u64 BitBoard::getRookAtk(int square, u64 occupancy) const
+inline u64 BitBoard::getRookAtk(int square, u64 occupancy) const
 {
     occupancy &= this->m_attackPatterns[WHITE][rook][square];
     occupancy *= rookMagic[square];
@@ -1159,7 +1159,7 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 occupancy) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeQueenBlockedAtk(int square, u64 occupancy) const
+inline u64 BitBoard::removeQueenBlockedAtk(int square, u64 occupancy) const
 {
     u64 diagonal = getBishopAtk(square, occupancy);
     u64 lateral = getRookAtk(square, occupancy);
