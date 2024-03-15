@@ -79,8 +79,8 @@ public:
 
 	int evaluate() const;
 
-	inline std::shared_ptr<BitBoard> move(const int startSquare, int endSquare, const int promotionPiece=NO_PROMOTION) const;
-	inline std::shared_ptr<BitBoard> castleMove(const bool isLong) const;
+	std::shared_ptr<BitBoard> move(const int startSquare, int endSquare, const int promotionPiece=NO_PROMOTION) const;
+	std::shared_ptr<BitBoard> castleMove(const bool isLong) const;
 	std::string getFen() const;
 	u64 getZobristHash() const;
 	std::deque<Move> getMoveList();

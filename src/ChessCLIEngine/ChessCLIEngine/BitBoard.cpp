@@ -261,7 +261,7 @@ int BitBoard::evaluate() const
 * input: start and end square of move, promotion piece
 * output: bitboard after move was played
 */
-inline std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, const int promotionPiece) const
+std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, const int promotionPiece) const
 {
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
@@ -855,7 +855,7 @@ inline void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool col
 * input: is Long castle (bool)
 * output: bitboard of the next position
 */
-inline std::shared_ptr<BitBoard> BitBoard::castleMove(const bool isLongCastle) const
+std::shared_ptr<BitBoard> BitBoard::castleMove(const bool isLongCastle) const
 {
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
@@ -973,23 +973,7 @@ bool BitBoard::isMate(bool color) const
 bool BitBoard::isStale(bool color) const
 {
     return !this->isCheck(color) && !m_moveList.size();
-    auto moves = this->m_moveList;
-    for (size_t i = 0; i < moves.size(); i++)
-    {
-            Move option = moves[i];
-            if (option.castle)
-            {
-                this->castleMove(option.isLong);
-            }
-            else
-            {
-                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
-            }
-            //return false;
-    }
-    return true;
 }
-
 
 /*
 * Method to get the  occupancy board with the location of all pieces of a specific color
