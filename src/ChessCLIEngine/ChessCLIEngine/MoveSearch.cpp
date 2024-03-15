@@ -54,8 +54,7 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
             else
             {
                 score = minimax(afterMove, !isMaximizingPlayer, depth-1, alpha, beta);
-                transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first = score;
-                transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second = depth - 1;
+                transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = { score, depth -1 };
             }
         }
         else

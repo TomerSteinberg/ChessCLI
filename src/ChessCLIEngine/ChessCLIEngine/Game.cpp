@@ -266,6 +266,17 @@ void Game::analyze()
 void Game::playBest()
 {
 	std::deque<Move> moves = this->m_currPosition->getMoveList();
+	if (moves.size() == 0)
+	{
+		return;
+	}
+	if (moves.size() == 1)
+	{
+		this->move(BitBoard::getLsbIndex(moves[0].from),
+			BitBoard::getLsbIndex(moves[0].to),
+			moves[0].promotion, notationFromMove(moves[0]));
+		return;
+	}
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
 	int bestScore = color ? MIN_INFINITY : MAX_INFINITY;
@@ -294,8 +305,7 @@ void Game::playBest()
 		else
 		{
 			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first = score;
-			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second = SEARCH_DEPTH;
+			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = { score, SEARCH_DEPTH };
 		}
 		if (color)
 		{
@@ -313,10 +323,15 @@ void Game::playBest()
 		this->move(bestMove.isLong, notationFromMove(bestMove));
 		return;
 	}
+	if (!bestMove.castle && bestMove.from == bestMove.to)
+	{
+		return;
+	}
 	this->move(BitBoard::getLsbIndex(bestMove.from),
 		BitBoard::getLsbIndex(bestMove.to),
 		bestMove.promotion, notationFromMove(bestMove));
 }
+
 
 int Game::perft(int depth)
 {
