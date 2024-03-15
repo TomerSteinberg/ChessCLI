@@ -29,6 +29,7 @@ public:
 	double evaluate();
 	void analyze();
 	void playBest();
+	static int perft(int depth);
 	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 	std::string getFen() const;
 	std::vector<std::string> getAllFen() const;

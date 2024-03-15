@@ -14,8 +14,8 @@ class MoveSearch
 {
 public:
 	static int nodes;
-	static int transpositionTable[TRANSPOTION_TABLE_SIZE];
-	static int depthTable[TRANSPOTION_TABLE_SIZE];
-	static int minimax(std::shared_ptr<BitBoard> position, bool isMaximizingPlayer, unsigned int depth, int alpha=MIN_INFINITY, int beta=MAX_INFINITY);
+	static std::pair<int, int> transpositionTable[TRANSPOTION_TABLE_SIZE];
+	static int minimax(const std::shared_ptr<BitBoard> position, const bool isMaximizingPlayer, const unsigned int depth, int alpha=MIN_INFINITY, int beta=MAX_INFINITY);
+	static int perft(BitBoard position, const unsigned int depth);
 };
 

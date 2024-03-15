@@ -121,7 +121,6 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -168,6 +167,7 @@
     <ClCompile Include="MoveSearch.cpp" />
     <ClCompile Include="NextCommand.cpp" />
     <ClCompile Include="OptionsCommand.cpp" />
+    <ClCompile Include="PerftCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
@@ -203,6 +203,7 @@
     <ClInclude Include="MoveSearch.h" />
     <ClInclude Include="NextCommand.h" />
     <ClInclude Include="OptionsCommand.h" />
+    <ClInclude Include="PerftCommand.h" />
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="ShowCommand.h" />

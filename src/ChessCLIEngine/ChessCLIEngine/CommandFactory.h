@@ -25,10 +25,11 @@
 #include "EvaluateCommand.h"
 #include "ContinueCommand.h"
 #include "AnalyzeCommand.h"
+#include "PerftCommand.h"
 
 class ICommand;
 
-#define CREATE_COMMAND_OBJECT(objType) args.size() <= objType::maxArg ? \
+#define CREATE_COMMAND_OBJECT(objType) (int)args.size() <= objType::maxArg ? \
 	std::unique_ptr<ICommand>(std::make_unique<objType>(args)) : throw ExceededMaxArgumentsException(args.size(), objType::maxArg)
 
 #define CREATE_COMMAND_OBJECT_LAMBDA(objType) [](std::vector<std::string> args) {return CREATE_COMMAND_OBJECT(objType); }

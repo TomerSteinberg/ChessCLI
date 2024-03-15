@@ -261,7 +261,7 @@ int BitBoard::evaluate() const
 * input: start and end square of move, promotion piece
 * output: bitboard after move was played
 */
-inline std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
+inline std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, const int promotionPiece) const
 {
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
@@ -281,8 +281,8 @@ inline std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, 
     this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
-    u64 currColorBoard = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
+    const u64 currColorBoard = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    const u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
 
     if (!(startPos & currColorBoard)) { throw MissingPieceException(startSquare, color); }
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
@@ -300,7 +300,7 @@ inline std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, 
     }
     else if (piece == pawn)
     {
-        u64 enPassantBoard = this->getEnPassantPattern(startSquare, color);
+        const u64 enPassantBoard = this->getEnPassantPattern(startSquare, color);
         if (endPos & enPassantBoard) { isAttackingEnPassant = true; target = pawn; }
         if (abs(startSquare - endSquare) == PAWN_DOUBLE_JUMP_DIFFERENCE)
         { nextEnPasssant = color ? endSquare + 8 : endSquare - 8; }
@@ -460,13 +460,16 @@ void BitBoard::printBoard(bool isUnicode) const
 */
 inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
 {
-    bool color = COLOR;
+    const bool color = COLOR;
     nextFlags ^= 0b1; // changing color turn
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant, this->m_bishopAttacks, this->m_rookAttacks);
 
     if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
-    if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }
+    if (afterMove->isCheck(color))
+    {
+        throw IllegalMoveException("You can't move into check"); 
+    }
 
     return afterMove;
 }
@@ -478,11 +481,11 @@ inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES]
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-inline std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
+inline std::deque<Move> BitBoard::getPseudoLegalMoves(const bool color)
 {
-    u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
-    u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
+    const u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    const u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    const u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     std::deque<Move> moves;
     int mostImportantIndex = 0;
     int leastImportantIndex = 0;
@@ -492,6 +495,7 @@ inline std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
         while (board)
         {
             int square = getLsbIndex(board);
+            u64 squareBoard = (1ULL << square);
             u64 pattern = this->m_attackPatterns[color][piece][square];
             switch (piece)
             {
@@ -518,34 +522,47 @@ inline std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
             }
             while (pattern)
             {
-                uint8_t index = getLsbIndex(pattern);
-                if ((1ULL << square) & this->m_pieces[color][pawn] && 
-                    (1ULL << index) & getPromotionMask(color) && index != -1)
+                const int8_t index = getLsbIndex(pattern);
+                const u64 indexBoard = (1ULL << index);
+                if (index != -1 && squareBoard & this->m_pieces[color][pawn] && 
+                    indexBoard & getPromotionMask(color))
                 {
-                    moves.push_back({ (1ULL << square), (1ULL << index), queen, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), rook, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), bishop, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), knight, false, false });
+                    if (!isMoveLegal(square, index, squareBoard, indexBoard, color))
+                    {
+                        pattern &= pattern - 1;
+                        continue;
+                    }
+
+                    moves.push_back({ squareBoard, indexBoard, queen, false, false });
+                    moves.push_back({ squareBoard, indexBoard, rook, false, false });
+                    moves.push_back({ squareBoard, indexBoard, bishop, false, false });
+                    moves.push_back({ squareBoard, indexBoard, knight, false, false });
                 }
-                else if (index != -1) {
+                else if (index != -1) 
+                {
+                    if (!isMoveLegal(square, index, squareBoard, indexBoard, color))
+                    {
+                        pattern &= pattern - 1;
+                        continue;
+                    }
 
                     if (getPieceType(index, !color) > getPieceType(square, color))
                     {
-                        moves.push_front({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.push_front({ squareBoard, indexBoard, NO_PROMOTION, false, false });
                         mostImportantIndex++;
                     }
                     else if (getPieceType(index, !color) != NO_CAPTURE)
                     {
-                        moves.insert(moves.begin() + mostImportantIndex , { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.insert(moves.begin() + mostImportantIndex , { squareBoard, indexBoard, NO_PROMOTION, false, false });
                     }
                     else if (index & oppositeAtk)
                     {
-                        moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.push_back({ squareBoard, indexBoard, NO_PROMOTION, false, false });
                         leastImportantIndex++;
                     }
                     else
                     {
-                        moves.insert(moves.end() - leastImportantIndex, { (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        moves.insert(moves.end() - leastImportantIndex, { squareBoard, indexBoard, NO_PROMOTION, false, false });
                     }
                 }
                 pattern &= pattern - 1;
@@ -563,6 +580,45 @@ inline std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
     }
 
     return moves;
+}
+
+
+/*
+* Checks if a move is legal by playing it seeing if the king is in check and unplaying it 
+* input: move indexes and their bitboards. color of side
+* output: true if the move is fully legal and false otherwise
+*/
+inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool color)
+{
+    int8_t target = getPieceType(to, !color);
+    int8_t moving = getPieceType(from, color);
+    u64 prevW = this->m_whiteOccupancy;
+    u64 prevB = this->m_blackOccupancy;
+    uint8_t prevEnPassant = this->m_enPassantSquare;
+
+    expressMove(this->m_pieces, color, moving, target, from, to, NO_PROMOTION);
+    if (moving == pawn)
+    {
+        if (abs(from - to) == PAWN_DOUBLE_JUMP_DIFFERENCE)
+        {
+            this->m_enPassantSquare = color ? to + 8 : to - 8;
+        }
+    }
+    this->m_whiteOccupancy = getSideOccupancy(WHITE);
+    this->m_blackOccupancy = getSideOccupancy(BLACK);
+    bool legal = !(this->m_pieces[color][king] & this->getAttackSqrs(!color));
+
+    expressMove(this->m_pieces, color, moving, NO_CAPTURE, to, from, NO_PROMOTION);
+    this->m_whiteOccupancy = prevW;
+    this->m_blackOccupancy = prevB;
+    this->m_enPassantSquare = prevEnPassant;
+
+    if (target != NO_CAPTURE)
+    {
+        SET_BIT(this->m_pieces[!color][target], to);
+    }
+
+    return legal;
 }
 
 
@@ -799,12 +855,12 @@ inline void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool col
 * input: is Long castle (bool)
 * output: bitboard of the next position
 */
-inline std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
+inline std::shared_ptr<BitBoard> BitBoard::castleMove(const bool isLongCastle) const
 {
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
     uint8_t nextEnPasssant = NO_ENPASSANT;
-    bool color = COLOR;
+    const bool color = COLOR;
 
     this->getPiecesCopy(nextPosition);
     u64 rookSquare = 0ULL; 
@@ -872,9 +928,9 @@ int BitBoard::getPieceType(u64 square, bool color) const
 * input: bitboard (u64)
 * output: index of LSB in given board
 */
-unsigned inline long BitBoard::getLsbIndex(u64 board)
+inline int8_t BitBoard::getLsbIndex(u64 board)
 {
-    static const int lookup67[68] = {
+    static const int8_t lookup67[68] = {
    64,  0,  1, 39,  2, 15, 40, 23,
     3, 12, 16, 59, 41, 19, 24, 54,
     4, -1, 13, 10, 17, 62, 60, 28,
@@ -905,32 +961,7 @@ inline bool BitBoard::isCheck(bool color) const
 */
 bool BitBoard::isMate(bool color) const
 {
-    if (!this->isCheck(color))
-    {
-        return false;
-    }
-    auto moves = this->m_moveList;
-    for (size_t i = 0; i < moves.size(); i++)
-    {
-        try 
-        {
-            Move option = moves[i];
-            if (option.castle)
-            {
-                this->castleMove(option.isLong);
-            }
-            else
-            {
-                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
-            }
-            return false;
-        }
-        catch (...)
-        {
-            continue;
-        }
-    }
-    return true;
+    return this->isCheck(color) && !m_moveList.size();
 }
 
 
@@ -941,15 +972,10 @@ bool BitBoard::isMate(bool color) const
 */
 bool BitBoard::isStale(bool color) const
 {
-    if (this->isCheck(color) || color != (COLOR))
-    {
-        return false;
-    }
+    return !this->isCheck(color) && !m_moveList.size();
     auto moves = this->m_moveList;
     for (size_t i = 0; i < moves.size(); i++)
     {
-        try
-        {
             Move option = moves[i];
             if (option.castle)
             {
@@ -959,12 +985,7 @@ bool BitBoard::isStale(bool color) const
             {
                 this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
             }
-            return false;
-        }
-        catch (...)
-        {
-            continue;
-        }
+            //return false;
     }
     return true;
 }
@@ -1007,7 +1028,6 @@ inline u64 BitBoard::getAttackSqrs(const bool color) const
             {
             case pawn:
                 pattern = this->removePawnIllegalAtk(pattern, color) |
-                    //this->getPawnMovementPattern(square, color) |
                     this->getEnPassantPattern(square, color);
                 if (!(pattern & oppositeOccupancy)) { pattern = 0ULL; }
                 break;
@@ -1041,7 +1061,7 @@ inline u64 BitBoard::getAttackSqrs(const bool color) const
 * input: None
 * output: Promotion rank mask (u64)
 */
-u64 BitBoard::getPromotionMask(bool color) const
+constexpr inline u64 BitBoard::getPromotionMask(bool color) const
 {
     return color ? 255ULL : 18374686479671623680ULL;
 }
@@ -1294,7 +1314,8 @@ uint8_t BitBoard::getEnPassant() const
 bool BitBoard::isCastlingPossible(bool isLongCastle) const
 {
     u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
+    u64 oppAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
 
     // mask for empty squares between king and rook
     u64 emptyMask = (isLongCastle ? 14ULL : 96ULL) << (56 * color);
@@ -1305,6 +1326,8 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     if ((this->m_moveFlags & (0b1 << (1 + (!color * 2) + isLongCastle))) == 0)
     {   return false; }
     if (emptyMask & fullOccupancy)
+    {   return false; }
+    if (emptyMask & oppAtk)
     {   return false; }
     if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
     {   return false; }

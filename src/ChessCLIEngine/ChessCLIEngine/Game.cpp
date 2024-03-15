@@ -228,23 +228,16 @@ void Game::analyze()
 	{
 		std::shared_ptr<BitBoard> nextPosition;
 		int score = 0;
-		try
+		if (!it->castle)
 		{
-			if (!it->castle)
-			{
-				nextPosition = this->m_currPosition->move(
-					BitBoard::getLsbIndex(it->from),
-					BitBoard::getLsbIndex(it->to),
-					it->promotion);
-			}
-			else
-			{
-				nextPosition = this->m_currPosition->castleMove(it->isLong);
-			}
+			nextPosition = this->m_currPosition->move(
+				BitBoard::getLsbIndex(it->from),
+				BitBoard::getLsbIndex(it->to),
+				it->promotion);
 		}
-		catch (...)
+		else
 		{
-			continue;
+			nextPosition = this->m_currPosition->castleMove(it->isLong);
 		}
 
 		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
@@ -280,37 +273,29 @@ void Game::playBest()
 	{
 		std::shared_ptr<BitBoard> nextPosition;
 		int score = 0;
-		try
+		if (!it->castle)
 		{
-			if (!it->castle)
-			{
-				nextPosition = this->m_currPosition->move(
-					BitBoard::getLsbIndex(it->from),
-					BitBoard::getLsbIndex(it->to),
-					it->promotion);
-			}
-			else
-			{
-				nextPosition = this->m_currPosition->castleMove(it->isLong);
-			}
+			nextPosition = this->m_currPosition->move(
+				BitBoard::getLsbIndex(it->from),
+				BitBoard::getLsbIndex(it->to),
+				it->promotion);
 		}
-		catch (...)
+		else
 		{
-			continue;
+			nextPosition = this->m_currPosition->castleMove(it->isLong);
 		}
 
+		const u64 zobristHash = nextPosition->getZobristHash();
 
-		u64 zobristHash = nextPosition->getZobristHash();
-
-		if (MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] != -1 && MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] >= (SEARCH_DEPTH))
+		if (MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second != -1 && MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second >= (SEARCH_DEPTH))
 		{
-			score = MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE];
+			score = MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first;
 		}
 		else
 		{
 			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = score;
-			MoveSearch::depthTable[zobristHash % TRANSPOTION_TABLE_SIZE] = SEARCH_DEPTH;
+			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first = score;
+			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second = SEARCH_DEPTH;
 		}
 		if (color)
 		{
@@ -331,6 +316,12 @@ void Game::playBest()
 	this->move(BitBoard::getLsbIndex(bestMove.from),
 		BitBoard::getLsbIndex(bestMove.to),
 		bestMove.promotion, notationFromMove(bestMove));
+}
+
+int Game::perft(int depth)
+{
+	BitBoard startingPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	return MoveSearch::perft(startingPosition, depth);
 }
 
 

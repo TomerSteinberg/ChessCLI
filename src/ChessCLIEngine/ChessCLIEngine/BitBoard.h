@@ -79,8 +79,8 @@ public:
 
 	int evaluate() const;
 
-	inline std::shared_ptr<BitBoard> move(int startSquare, int endSquare, int promotionPiece=NO_PROMOTION) const;
-	inline std::shared_ptr<BitBoard> castleMove(bool isLong) const;
+	inline std::shared_ptr<BitBoard> move(const int startSquare, int endSquare, const int promotionPiece=NO_PROMOTION) const;
+	inline std::shared_ptr<BitBoard> castleMove(const bool isLong) const;
 	std::string getFen() const;
 	u64 getZobristHash() const;
 	std::deque<Move> getMoveList();
@@ -90,7 +90,7 @@ public:
 	bool isStale(bool color) const;
 
 	void printBoard(bool isUnicode=false) const;
-	static inline unsigned long getLsbIndex(u64 board);
+	static inline int8_t getLsbIndex(u64 board);
 	inline void getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const;
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
@@ -123,7 +123,8 @@ private:
 	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 
 	inline std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	inline std::deque<Move> getPseudoLegalMoves(bool color) const;
+	inline std::deque<Move> getPseudoLegalMoves(const bool color);
+	inline bool isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool color);
 	inline bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
 
 	void parseFen(std::string fen);
@@ -139,7 +140,7 @@ private:
 	int getProximityCount(int square, bool color) const;
 	inline u64 getSideOccupancy(const bool color) const; 
 	inline u64 getAttackSqrs(const bool color) const;
-	u64 getPromotionMask(bool color) const;
+	constexpr inline u64 getPromotionMask(bool color) const;
 	u64 setOccupancy(int index, int maskBitCount, u64 attackMask)const ;
 
 

@@ -32,5 +32,6 @@ void HelpCommand::execute(Context& ctx)
 		<< "evaluate  [FEN|None]\tEvaluate current position\n"
 		<< "analyze  [FEN|None]\tEvaluate Options\n"
 		<< "continue  [-r]\t\tPlay computer move\n"
+		<< "perft  [depth] [-r]\tRun Perft test\n"
 		<< "quit\t\t\tClose application\n\n";
 }
