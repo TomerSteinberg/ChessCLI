@@ -85,24 +85,29 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
 * input: position and depth of test
 * output: number of nodes gone over in the test
 */
-int MoveSearch::perft(BitBoard position, const unsigned int depth)
+int MoveSearch::perft(std::shared_ptr<BitBoard> position, const unsigned int depth)
 {
         int32_t nodes = 0;
         if (depth == 0)
         {
-            return position.getMoveList().size();
+            return position->getMoveList().size();
         }
 
-        std::deque<Move> moves = position.getMoveList();
+        std::deque<Move> moves = position->getMoveList();
         for (auto move = moves.begin(); move != moves.end(); move++)
         {
             if (move->castle)
             {
-                nodes +=  perft(*position.castleMove(move->isLong), depth - 1);
+                nodes +=  perft(position->castleMove(move->isLong), depth - 1);
             }
             else
             {
-                nodes += perft(*position.move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
+                int nodes_test = perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
+                nodes += perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
+                //if (depth == 1)
+                //{
+                //    std::cout << Game::notationFromMove(*move) << ": " << nodes_test << std::endl;
+                //}
             }
         }
         return nodes;

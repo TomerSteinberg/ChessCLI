@@ -14,21 +14,25 @@ unsigned int PerftCommand::maxArg = 2;
 
 void PerftCommand::execute(Context& ctx)
 {
+    if (!ctx.getCurrGame())
+    {
+        throw InvalidCommandException(COMMAND_NAME);
+    }
     if (m_args.size() < 1)
     {
-        throw InvalidArgumentException();
+        throw INVALID_PERFT_ARGUMENTS;
     }
     if (!std::regex_match(this->m_args[0], std::regex(INTEGER_REGEX)))
     {
-        throw InvalidArgumentException();
+        throw INVALID_PERFT_ARGUMENTS;
     }
     if ((std::stoi(m_args[0])) <= 0)
     {
-        throw InvalidArgumentException();
+        throw INVALID_PERFT_ARGUMENTS;
     }
     if (m_args.size() > 1 && m_args[1] != "-r")
     {
-        throw InvalidArgumentException();
+        throw INVALID_PERFT_ARGUMENTS;
     }
 
     if (m_args.size() > 1)
@@ -43,7 +47,12 @@ void PerftCommand::execute(Context& ctx)
             std::cout << "Depth: " << i << "\t";
             std::cout << "Nodes: " << nodes << "\t";
             std::cout << "Time: " << ms_int.count() << "ms" << "\t";
-            std::cout << "nps: " << (nodes / ms_int.count()) * 1000 << "\t" << std::endl;
+            if (ms_int.count() != 0)
+            {
+                std::cout << "nps: " << (nodes / ms_int.count()) * 1000 << "\t" << std::endl;
+                continue;
+            }
+            std::cout << "nps: " << 0 << "\t" << std::endl;
         }
     }
     else
@@ -55,6 +64,13 @@ void PerftCommand::execute(Context& ctx)
         auto ms_int = duration_cast<milliseconds>(t2 - t1);
         std::cout << "Nodes: " << nodes << "\t";
         std::cout << "Time: " << ms_int.count() << "ms" << "\t";
-        std::cout << "nps: " << (nodes / ms_int.count()) * 1000 << "\t" << std::endl;
+        if (ms_int.count() != 0)
+        {
+            std::cout << "nps: " << (nodes / ms_int.count()) * 1000 << "\t" << std::endl;
+        }
+        else 
+        {
+            std::cout << "nps: " << 0 << "\t" << std::endl;
+        }
     }
 }

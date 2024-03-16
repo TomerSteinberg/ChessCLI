@@ -324,7 +324,10 @@ std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, c
         { nextFlags ^= (2 << (color * 2) << (endPos & LEFT_CORNERS ? 1 : 0)); }
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
-        { endSquare = color ? endSquare + 8 : endSquare - 8; }
+        { 
+            endSquare = color ? endSquare + 8 : endSquare - 8;
+            POP_BIT(nextPosition[!color][pawn], endSquare);
+        }
     } 
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
@@ -596,6 +599,7 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
     u64 prevB = this->m_blackOccupancy;
     uint8_t prevEnPassant = this->m_enPassantSquare;
 
+    // TODO: right now this doesn't capture en passant correctly. Fix that
     expressMove(this->m_pieces, color, moving, target, from, to, NO_PROMOTION);
     if (moving == pawn)
     {
@@ -1238,6 +1242,8 @@ u64 BitBoard::getPawnMovementPattern(int square, bool color) const
 */
 u64 BitBoard::getEnPassantPattern(int square, bool color) const
 {
+    constexpr u64 hFileMask = 9259542123273814144ULL;
+    constexpr u64 aFileMask = 72340172838076673ULL;
     u64 board = 0ULL;
     u64 enPassantBoard = 0ULL;
     SET_BIT(board, square);
@@ -1246,6 +1252,12 @@ u64 BitBoard::getEnPassantPattern(int square, bool color) const
         return enPassantBoard;
     }
     SET_BIT(enPassantBoard, this->m_enPassantSquare);
+
+    if ((enPassantBoard & aFileMask && board & hFileMask)
+        || (enPassantBoard & hFileMask && board & aFileMask))
+    {
+        return 0ULL;
+    }
     if (color)
     {
         if (((board >> 9) | (board >> 7)) & enPassantBoard)
@@ -1297,6 +1309,7 @@ uint8_t BitBoard::getEnPassant() const
 */
 bool BitBoard::isCastlingPossible(bool isLongCastle) const
 {
+    constexpr u64 notBFileMask = 18302628885633695741ULL;
     u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
     bool color = COLOR;
     u64 oppAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
@@ -1311,7 +1324,7 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     {   return false; }
     if (emptyMask & fullOccupancy)
     {   return false; }
-    if (emptyMask & oppAtk)
+    if ((emptyMask  & notBFileMask) & oppAtk)
     {   return false; }
     if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
     {   return false; }
@@ -1319,6 +1332,7 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     return true;
 }
 
+#   include <immintrin.h>
 
 /*
 * Method for counting the bits in a bitboard

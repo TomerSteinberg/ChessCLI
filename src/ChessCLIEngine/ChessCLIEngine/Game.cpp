@@ -125,7 +125,7 @@ std::vector<std::string> Game::getOptions() const
 * input: Move object
 * output: string of move notation
 */
-std::string Game::notationFromMove(Move move) const
+std::string Game::notationFromMove(Move move)
 {
 	if (move.isLong)
 	{
@@ -335,8 +335,7 @@ void Game::playBest()
 
 int Game::perft(int depth)
 {
-	BitBoard startingPosition("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-	return MoveSearch::perft(startingPosition, depth);
+	return MoveSearch::perft(this->m_currPosition, depth);
 }
 
 

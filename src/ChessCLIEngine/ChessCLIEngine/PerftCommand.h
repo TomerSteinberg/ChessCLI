@@ -6,6 +6,7 @@
 #include "ICommand.h"
 #include "Context.h"
 #include "InvalidArgumentException.h"
+#include "InvalidCommandException.h"
 #include <chrono>
 #include <regex>
 
@@ -17,7 +18,7 @@
 
 #define INTEGER_REGEX "[0-9]+$"
 
-
+#define INVALID_PERFT_ARGUMENTS InvalidArgumentException("Usage -> perft <depth> [-r]")
 
 class PerftCommand : public ICommand
 {
