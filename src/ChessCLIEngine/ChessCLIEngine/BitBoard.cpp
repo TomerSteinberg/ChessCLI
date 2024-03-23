@@ -468,7 +468,10 @@ inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES]
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant, this->m_bishopAttacks, this->m_rookAttacks);
 
-    if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
+    if (this->isCheck(color) && afterMove->isCheck(color)) 
+    {
+        throw IllegalMoveException("You're in check"); 
+    }
     if (afterMove->isCheck(color))
     {
         throw IllegalMoveException("You can't move into check"); 
@@ -598,11 +601,16 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
     u64 prevW = this->m_whiteOccupancy;
     u64 prevB = this->m_blackOccupancy;
     uint8_t prevEnPassant = this->m_enPassantSquare;
+    bool attackingEnPassant = false;
 
-    // TODO: right now this doesn't capture en passant correctly. Fix that
     expressMove(this->m_pieces, color, moving, target, from, to, NO_PROMOTION);
     if (moving == pawn)
     {
+        if (to == this->m_enPassantSquare)
+        {
+            attackingEnPassant = true;
+            POP_BIT(this->m_pieces[!color][pawn], (color ? this->m_enPassantSquare + 8 : this->m_enPassantSquare - 8));
+        }
         if (abs(from - to) == PAWN_DOUBLE_JUMP_DIFFERENCE)
         {
             this->m_enPassantSquare = color ? to + 8 : to - 8;
@@ -620,6 +628,10 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
     if (target != NO_CAPTURE)
     {
         SET_BIT(this->m_pieces[!color][target], to);
+    }
+    if (attackingEnPassant)
+    {
+        SET_BIT(this->m_pieces[!color][pawn], (color ? this->m_enPassantSquare + 8 : this->m_enPassantSquare - 8));
     }
 
     return legal;
@@ -1312,7 +1324,14 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     constexpr u64 notBFileMask = 18302628885633695741ULL;
     u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
     bool color = COLOR;
+    const u64 pawnIlegalCastleMask = color ?
+        isLongCastle ? 1688849860263936 : 18014398509481984
+        : isLongCastle ? 1536 : 1536;
     u64 oppAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
+    if (this->isCheck(color))
+    {
+        return false;
+    }
 
     // mask for empty squares between king and rook
     u64 emptyMask = (isLongCastle ? 14ULL : 96ULL) << (56 * color);
@@ -1322,9 +1341,11 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
 
     if ((this->m_moveFlags & (0b1 << (1 + (!color * 2) + isLongCastle))) == 0)
     {   return false; }
+    if (this->m_pieces[!color][pawn] & pawnIlegalCastleMask)
+    {   return false; }
     if (emptyMask & fullOccupancy)
     {   return false; }
-    if ((emptyMask  & notBFileMask) & oppAtk)
+    if ((emptyMask & notBFileMask) & oppAtk)
     {   return false; }
     if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
     {   return false; }
@@ -1332,7 +1353,6 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     return true;
 }
 
-#   include <immintrin.h>
 
 /*
 * Method for counting the bits in a bitboard

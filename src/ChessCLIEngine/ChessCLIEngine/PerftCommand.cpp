@@ -52,7 +52,7 @@ void PerftCommand::execute(Context& ctx)
                 std::cout << "nps: " << (nodes / ms_int.count()) * 1000 << "\t" << std::endl;
                 continue;
             }
-            std::cout << "nps: " << 0 << "\t" << std::endl;
+            std::cout << "nps: " << "-" << "\t" << std::endl;
         }
     }
     else
@@ -70,7 +70,7 @@ void PerftCommand::execute(Context& ctx)
         }
         else 
         {
-            std::cout << "nps: " << 0 << "\t" << std::endl;
+            std::cout << "nps: " << "-" << "\t" << std::endl;
         }
     }
 }
