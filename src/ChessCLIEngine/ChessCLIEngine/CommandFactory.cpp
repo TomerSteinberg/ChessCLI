@@ -35,8 +35,5 @@ std::unique_ptr<ICommand> CommandFactory::createCommand(std::string cmdName, std
 	{
 		return CommandCreator[cmdName](args);
 	}
-	else
-	{
-		throw UnkownCommandException(cmdName);
-	}
+	throw UnkownCommandException(cmdName);
 }

@@ -197,7 +197,7 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     this->m_blackOccupancy = getSideOccupancy(BLACK);
     this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
-    this->m_moveList = getPseudoLegalMoves(COLOR);
+    this->m_moveList = getLegalMoves(COLOR);
     this->m_hash = getInitialZobristHash();
 }
 
@@ -220,7 +220,7 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
     this->m_blackOccupancy = getSideOccupancy(BLACK);
     this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
     this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
-    this->m_moveList = getPseudoLegalMoves(COLOR);
+    this->m_moveList = getLegalMoves(COLOR);
     this->m_hash = this->getInitialZobristHash();
 }
 
@@ -288,7 +288,7 @@ std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, c
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
 
     piece = getPieceType(startSquare, color);
-    if(!isMovePseudoLegal(startSquare, endSquare, color))
+    if(!isMoveInMoveList(startSquare, endSquare, color))
     {   throw IllegalMoveException(); }
 
     if (piece == king) { nextFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
@@ -487,7 +487,7 @@ inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES]
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-inline std::deque<Move> BitBoard::getPseudoLegalMoves(const bool color)
+inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
 {
     const u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     const u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
@@ -618,7 +618,10 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
     }
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    bool legal = !(this->m_pieces[color][king] & this->getAttackSqrs(!color));
+    
+    // using dynamic check for now. Needs further profiling
+    //bool legal = !(this->m_pieces[color][king] & this->getAttackSqrs(!color));
+    bool legal = !(this->dynamicCheck(color));
 
     expressMove(this->m_pieces, color, moving, NO_CAPTURE, to, from, NO_PROMOTION);
     this->m_whiteOccupancy = prevW;
@@ -643,7 +646,7 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
 * input: start and end square of move (int,int)
 * output: true if move is found, false otherwise (bool)
 */
-inline bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) const
+inline bool BitBoard::isMoveInMoveList(int startSquare, int endSquare, bool color) const
 {
     int piece = getPieceType(startSquare, color);
     u64 startPos = 0ULL;
@@ -657,6 +660,57 @@ inline bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool col
         if (it->from == startPos && it->to == endPos)
         {
             return true;
+        }
+    }
+    return false;
+}
+
+
+/*
+* Checks if Check is on the board dynamically without an attack bitBoard
+* input: color of king
+* output: if there's check (bool)
+*/
+bool BitBoard::dynamicCheck(bool color)
+{
+    u64 attack = 0ULL;
+    u64 currOccupancy = !color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 oppositeOccupancy = !color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    for (int piece = NUMBER_OF_PIECES - 1; piece >= 0; piece--)
+    {
+        u64 pieceBoard = this->m_pieces[!color][piece];
+        while (pieceBoard)
+        {
+            int square = getLsbIndex(pieceBoard);
+            u64 pattern = this->m_attackPatterns[!color][piece][square];
+            switch (piece)
+            {
+            case pawn:
+                pattern = this->removePawnIllegalAtk(pattern, !color) |
+                    this->getEnPassantPattern(square, !color);
+                if (!(pattern & oppositeOccupancy)) { pattern = 0ULL; }
+                break;
+            case rook:
+                pattern = getRookAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case bishop:
+                pattern = getBishopAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case queen:
+                pattern = this->removeQueenBlockedAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case knight: case king:
+                pattern ^= pattern & currOccupancy;
+                break;
+            }
+            if (this->m_pieces[color][king] & pattern)
+            {
+                return true;
+            }
+            pieceBoard &= pieceBoard - 1;
         }
     }
     return false;
@@ -886,11 +940,11 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(const bool isLongCastle) const
     {  throw IllegalMoveException();}
 
     // making castle move on bitboard
+    nextPosition[color][rook] &= rookSquare;
     nextPosition[color][king] = isLongCastle ?
         nextPosition[color][king] >> 2 : nextPosition[color][king] << 2;
     nextPosition[color][rook] = isLongCastle ?
         nextPosition[color][rook] << 3 : nextPosition[color][rook] >> 2;
-    nextPosition[color][rook] &= NO_SECOND_SEVENTH_RANK_MASK;
     nextPosition[color][rook] |= rookSquare ^ this->m_pieces[color][rook];
 
     nextFlags &= color ? 0b1111001 : 0b1100111;

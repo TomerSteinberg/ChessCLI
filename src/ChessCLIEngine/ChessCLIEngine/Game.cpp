@@ -104,7 +104,7 @@ std::vector<std::string> Game::getHistory() const
 
 
 /*
-* Gets Optional PseudoLegal moves
+* Gets Optional Legal moves
 * input: None
 * output: vector of move strings
 */

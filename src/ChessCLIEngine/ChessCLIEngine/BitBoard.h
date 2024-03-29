@@ -27,7 +27,6 @@
 #define NO_ENPASSANT 255
 #define CORNERS 9295429630892703873ULL
 #define LEFT_CORNERS 72057594037927937ULL
-#define NO_SECOND_SEVENTH_RANK_MASK 18374967954648269055ULL
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
 #define WHITE_ROOKS_OFFSET 56
@@ -123,9 +122,10 @@ private:
 	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 
 	inline std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	inline std::deque<Move> getPseudoLegalMoves(const bool color);
+	inline std::deque<Move> getLegalMoves(const bool color);
 	inline bool isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool color);
-	inline bool isMovePseudoLegal(int startSquare, int endSquare, bool color) const;
+	inline bool isMoveInMoveList(int startSquare, int endSquare, bool color) const;
+	bool dynamicCheck(bool color);
 
 	void parseFen(std::string fen);
 	inline u64 getInitialZobristHash() const;

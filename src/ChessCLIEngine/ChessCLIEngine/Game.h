@@ -10,8 +10,7 @@
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 2
-#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+#define SEARCH_DEPTH 3
 
 class BitBoard;
 
