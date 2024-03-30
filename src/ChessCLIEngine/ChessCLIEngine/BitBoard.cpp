@@ -295,8 +295,14 @@ std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, c
     else if (piece == rook) 
     {
         // taking ability to castle
-        if (color) { nextFlags &= startSquare % 8 == 0 ? 0b1111011 : 0b1111101; }
-        else { nextFlags &= startSquare % 8 == 0 ? 0b1101111 : 0b1110111; }
+        if (startSquare % 8 == 0)
+        {
+            nextFlags &= color ? 0b1111011 : 0b1101111;
+        }
+        else if ((startSquare + 1) % 8 == 0)
+        {
+            nextFlags &= color ? 0b1111101 : 0b1110111;
+        }
     }
     else if (piece == pawn)
     {
@@ -320,7 +326,10 @@ std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, c
     expressMove(nextPosition, color, piece, target, startSquare, endSquare, promotionPiece);
     if (target != NO_CAPTURE) 
     {
-        if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
+        // removing rook castling after getting captured
+        if (target == rook &&
+            ((color == BLACK && (endPos & BOTTOM_CORNERS)) 
+            || (color == WHITE && (endPos & TOP_CORNERS)))) 
         { nextFlags ^= (2 << (color * 2) << (endPos & LEFT_CORNERS ? 1 : 0)); }
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
@@ -1379,8 +1388,8 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
     u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
     bool color = COLOR;
     const u64 pawnIlegalCastleMask = color ?
-        isLongCastle ? 1688849860263936 : 18014398509481984
-        : isLongCastle ? 1536 : 1536;
+        isLongCastle ? 17451448556060672 : 33776997205278720
+        : isLongCastle ? 7680 : 30720;
     u64 oppAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
     if (this->isCheck(color))
     {
