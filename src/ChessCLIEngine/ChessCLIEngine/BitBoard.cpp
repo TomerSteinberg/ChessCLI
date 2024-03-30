@@ -295,13 +295,19 @@ std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, c
     else if (piece == rook) 
     {
         // taking ability to castle
-        if (startSquare % 8 == 0)
+        if (color)
         {
-            nextFlags &= color ? 0b1111011 : 0b1101111;
+            if(startSquare == a1)
+            {   nextFlags &= 0b1111011; }
+            else if(startSquare == h1)
+            {   nextFlags &= 0b1111101; }
         }
-        else if ((startSquare + 1) % 8 == 0)
+        else
         {
-            nextFlags &= color ? 0b1111101 : 0b1110111;
+            if (startSquare == a8)
+            {   nextFlags &= 0b1101111; }
+            else if (startSquare == h8)
+            {   nextFlags &= 0b1110111; }
         }
     }
     else if (piece == pawn)

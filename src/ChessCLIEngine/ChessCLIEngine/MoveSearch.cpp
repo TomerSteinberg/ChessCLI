@@ -98,21 +98,11 @@ int MoveSearch::perft(std::shared_ptr<BitBoard> position, const unsigned int dep
         {
             if (move->castle)
             {
-                nodes +=  perft(position->castleMove(move->isLong), depth - 1);
-                //if (depth == 1)
-                //{
-                //    int nodes_test = perft(position->castleMove(move->isLong), depth - 1);
-                //    std::cout << Game::notationFromMove(*move) << ": " << nodes_test << std::endl;
-                //}
+                nodes += perft(position->castleMove(move->isLong), depth - 1);
             }
             else
             {
                 nodes += perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
-                //if (depth == 1)
-                //{
-                //    int nodes_test = perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
-                //    std::cout << Game::notationFromMove(*move) << ": " << nodes_test << std::endl;
-                //}
             }
         }
         return nodes;
