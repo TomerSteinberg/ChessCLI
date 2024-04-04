@@ -483,12 +483,12 @@ inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES]
     // creating the instance of the next position
     std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant, this->m_bishopAttacks, this->m_rookAttacks);
 
-    if (this->isCheck(color) && afterMove->isCheck(color)) 
+    if (afterMove->isCheck(color)) 
     {
-        throw IllegalMoveException("You're in check"); 
-    }
-    if (afterMove->isCheck(color))
-    {
+        if (this->isCheck(color))
+        {
+            throw IllegalMoveException("You're in check"); 
+        }
         throw IllegalMoveException("You can't move into check"); 
     }
 
@@ -1373,14 +1373,27 @@ inline void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
     }
 }
 
+
 uint8_t BitBoard::getFlags() const
 {
     return this->m_moveFlags;
 }
 
+
 uint8_t BitBoard::getEnPassant() const
 {
     return this->m_enPassantSquare;
+}
+
+
+uint8_t BitBoard::makeMoveNoCopy(Move make)
+{
+    return uint8_t();
+}
+
+
+void BitBoard::unmakeMoveNoCopy(Move unmake, uint8_t captured)
+{
 }
 
 /*

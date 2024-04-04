@@ -97,6 +97,9 @@ public:
 
 private:
 
+	friend class MoveSearch;
+	uint8_t makeMoveNoCopy(Move make);
+	void unmakeMoveNoCopy(Move unmake, uint8_t captured);
 	/* Move flags:
 	* LSB - Side flag
 	* White castle
