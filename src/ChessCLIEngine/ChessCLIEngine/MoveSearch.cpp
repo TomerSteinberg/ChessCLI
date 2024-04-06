@@ -102,7 +102,22 @@ int MoveSearch::perft(std::shared_ptr<BitBoard> position, const unsigned int dep
             }
             else
             {
+                // Code for testing new make/unmake playing method
+                /*uint8_t flags = position->m_moveFlags;
+                std::deque<Move> moveList = position->m_moveList;
+                uint8_t enPassant = position->m_enPassantSquare;
+                u64 whiteAtkedSqrs = position->m_whiteAtkedSqrs;
+                u64 blackAtkedSqrs = position->m_blackAtkedSqrs;
+                u64 whiteOccupancy = position->m_whiteOccupancy;
+                u64 blackOccupancy = position->m_blackOccupancy;
+                u64 hash = position->m_hash;
+
+                std::pair<int8_t, int8_t> moveCache = position->makeMoveNoCopy(*move);
+                nodes += perft(position, depth - 1);*/
                 nodes += perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
+                /*position->unmakeMoveNoCopy(*move, moveCache.second, moveCache.first,
+                    whiteAtkedSqrs, blackAtkedSqrs, hash, whiteOccupancy, blackOccupancy,
+                    moveList, enPassant, flags);*/
             }
         }
         return nodes;

@@ -1386,14 +1386,105 @@ uint8_t BitBoard::getEnPassant() const
 }
 
 
-uint8_t BitBoard::makeMoveNoCopy(Move make)
+/*
+* Makes a move on the immediate board. !Should only be used in search. Assumes legality.
+* input: move to be made
+* output: captured piece type and it's square (pair<uint8_t, uint8_t>)
+*/
+std::pair<int8_t, int8_t> BitBoard::makeMoveNoCopy(Move make)
 {
-    return uint8_t();
+    bool color = COLOR;
+    bool isAttackingEnPassant = false;
+    bool nextEnPassant = false;
+    int8_t target = getPieceType(make.to, !color);
+    int8_t moving = getPieceType(make.from, color);
+    int8_t startSquare = getLsbIndex(make.from);
+    int8_t endSquare = getLsbIndex(make.to);
+    if (moving == king) { this->m_moveFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
+    else if (moving == rook)
+    {
+        // taking ability to castle
+        if (color)
+        {
+            if (startSquare == a1)
+            {
+                this->m_moveFlags &= 0b1111011;
+            }
+            else if (startSquare == h1)
+            {
+                this->m_moveFlags &= 0b1111101;
+            }
+        }
+        else
+        {
+            if (startSquare == a8)
+            {
+                this->m_moveFlags &= 0b1101111;
+            }
+            else if (startSquare == h8)
+            {
+                this->m_moveFlags &= 0b1110111;
+            }
+        }
+    }
+
+    expressMove(this->m_pieces, color, moving, target, startSquare, endSquare, make.promotion);
+    if (moving == pawn)
+    {
+        if (endSquare == this->m_enPassantSquare)
+        {
+            isAttackingEnPassant = true;
+            POP_BIT(this->m_pieces[!color][pawn], (color ? this->m_enPassantSquare + 8 : this->m_enPassantSquare - 8));
+        }
+        if (abs(startSquare - endSquare) == PAWN_DOUBLE_JUMP_DIFFERENCE)
+        {
+            this->m_enPassantSquare = color ? endSquare + 8 : endSquare - 8;
+        }
+    }
+    this->m_moveFlags ^= 0b1;
+    this->m_whiteOccupancy = this->getSideOccupancy(WHITE);
+    this->m_blackOccupancy = this->getSideOccupancy(BLACK);
+    this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
+    this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
+    this->m_moveList = this->getLegalMoves(COLOR);
+    this->m_hash = this->getInitialZobristHash();
+    if (!isAttackingEnPassant)
+    {
+        this->m_enPassantSquare = NO_ENPASSANT;
+    }
+
+    return { target, endSquare };
 }
 
 
-void BitBoard::unmakeMoveNoCopy(Move unmake, uint8_t captured)
+/*
+* Unmakes a move on the immediate board
+* input: move to unmake, captured piece type and square and saved data from position before move
+* output: None
+*/
+void BitBoard::unmakeMoveNoCopy(Move unmake, int8_t capturedSquare, int8_t capturedPiece, u64 whiteAtkedSqrs,
+    u64 blackAtkedSqrs, u64 hash, u64 whiteOcc, u64 blackOcc, std::deque<Move> moveList,
+    uint8_t enPassantSquare, uint8_t flags)
 {
+    this->m_moveFlags = flags;
+    bool color = COLOR;
+    uint8_t moving = getPieceType(unmake.to, color);
+    int startSquare = getLsbIndex(unmake.from);
+    this->m_moveList = moveList;
+    this->m_enPassantSquare = enPassantSquare;
+    this->m_whiteAtkedSqrs = whiteAtkedSqrs;
+    this->m_blackAtkedSqrs = blackAtkedSqrs;
+    this->m_whiteOccupancy = whiteOcc;
+    this->m_blackOccupancy = blackOcc;
+    this->m_hash = hash;
+
+    //expressMove(this->m_pieces, color, moving, capturedPiece, startSquare, getLsbIndex(unmake.to), unmake.promotion);
+    SET_BIT(this->m_pieces[color][moving], startSquare);
+    POP_BIT(this->m_pieces[color][moving], getLsbIndex(unmake.to));
+    if (capturedPiece != NO_CAPTURE)
+    {
+        SET_BIT(this->m_pieces[!color][capturedPiece], capturedSquare);
+    }
 }
 
 /*
