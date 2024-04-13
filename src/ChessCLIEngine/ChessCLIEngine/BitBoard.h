@@ -96,11 +96,6 @@ public:
 	uint8_t getEnPassant() const;
 
 private:
-	friend class MoveSearch;
-	std::pair<int8_t, int8_t> makeMoveNoCopy(Move make);
-	void unmakeMoveNoCopy(Move unmake, int8_t capturedSquare, int8_t capturedPiece, u64 whiteAtkedSqrs,
-		u64 blackAtkedSqrs, u64 hash, u64 whiteOcc, u64 blackOcc, std::deque<Move> moveList,
-		uint8_t enPassantSquare, uint8_t flags);
 
 	/* Move flags:
 	* LSB - Side flag
@@ -172,6 +167,7 @@ private:
 
 
 	//======= Positional Evaluation =======//
+	int getEndgameWeight(int combinedMaterialValue) const;
 	int evaluatePawns(bool color) const;
 };
 

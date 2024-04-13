@@ -6,11 +6,12 @@
 #include "BitBoard.h"
 #include <exception>
 #include <memory>
+#include <deque>
 #include <algorithm>
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 3
+#define SEARCH_DEPTH 4
 
 class BitBoard;
 

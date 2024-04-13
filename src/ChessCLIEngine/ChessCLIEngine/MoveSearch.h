@@ -9,7 +9,7 @@
 #define MIN_INFINITY -1000000
 #define EQUAL 0
 
-#define TRANSPOTION_TABLE_SIZE 2000000
+#define TRANSPOTION_TABLE_SIZE 67108864
 
 class MoveSearch
 {
