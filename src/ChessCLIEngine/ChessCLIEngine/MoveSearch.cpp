@@ -1,7 +1,7 @@
 #include "MoveSearch.h"
 
 
-std::pair<int, int> MoveSearch::transpositionTable[TRANSPOTION_TABLE_SIZE] = { {0, -1} };
+std::unordered_map<u64, std::pair<int, int>> MoveSearch::transpositionTable;
 int MoveSearch::nodes = 0;
 
 
@@ -47,20 +47,33 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
         if ((depth - 1) != 0)
         {
             const u64 zobristHash = afterMove->getZobristHash();
-            if (transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second != -1 && transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second >= (depth - 1))
+            if (transpositionTable[zobristHash].second != -1 && transpositionTable[zobristHash].second >= (depth - 1))
             {
-                nodes++;
-                score = transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first;
+                score = transpositionTable[zobristHash].first;
             }
             else
             {
-                score = minimax(afterMove, !isMaximizingPlayer, depth-1, alpha, beta);
-                transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = { score, depth -1 };
+                if (afterMove->isCheck(isMaximizingPlayer))
+                {
+                    score = minimax(afterMove, !isMaximizingPlayer, depth, alpha, beta);
+                }
+                else
+                {
+                    score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+                }
+                transpositionTable[zobristHash] = { score, depth -1 };
             }
         }
         else
         {
-            score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+            if (afterMove->isCheck(isMaximizingPlayer))
+            {
+                score = minimax(afterMove, !isMaximizingPlayer, depth, alpha, beta);
+            }
+            else
+            {
+                score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+            }
         }
         if (isMaximizingPlayer)
         {

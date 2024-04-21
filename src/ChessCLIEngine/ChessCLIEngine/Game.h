@@ -11,7 +11,7 @@
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 4
+#define SEARCH_DEPTH 3
 
 class BitBoard;
 

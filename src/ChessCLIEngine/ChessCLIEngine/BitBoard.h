@@ -95,6 +95,7 @@ public:
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
 
+	u64 getOccupancy(const bool color) const;
 private:
 
 	/* Move flags:
@@ -116,6 +117,8 @@ private:
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
 	u64 m_hash;
+	int m_whiteMoves;
+	int m_blackMoves;
 	static const u64 bishopMagic[NUMBER_OF_SQUARES];
 	static const u64 rookMagic[NUMBER_OF_SQUARES];
 	static const int bishopRelevantBits[64];
@@ -123,7 +126,7 @@ private:
 	static u64 zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES];
 
 	inline std::shared_ptr<BitBoard> createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const;
-	inline std::deque<Move> getLegalMoves(const bool color);
+	inline void getLegalMoves(const bool color);
 	inline bool isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool color);
 	inline bool isMoveInMoveList(int startSquare, int endSquare, bool color) const;
 	bool dynamicCheck(bool color);
@@ -138,9 +141,8 @@ private:
 	int getPieceType(int square, bool color) const;
 	int getPieceType(u64 square, bool color) const;
 	static inline int bitCount(u64 board);
-	int getProximityCount(int square, bool color) const;
 	inline u64 getSideOccupancy(const bool color) const; 
-	inline u64 getAttackSqrs(const bool color) const;
+	inline u64 getAttackSqrs(const bool color);
 	constexpr inline u64 getPromotionMask(bool color) const;
 	u64 setOccupancy(int index, int maskBitCount, u64 attackMask)const ;
 
@@ -168,7 +170,9 @@ private:
 
 	//======= Positional Evaluation =======//
 	int getEndgameWeight(int combinedMaterialValue) const;
-	int evaluatePawns(bool color) const;
+	int evaluatePawns(const bool color) const;
+	int evaluateKnights(const bool color) const;
+	int evaluateKing(const bool color) const;
 };
 
 #endif

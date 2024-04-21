@@ -192,12 +192,21 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
     initAtkDictionary();
     initSliderAttacks(true);
     initSliderAttacks(false);
+    this->m_whiteMoves = 0;
+    this->m_blackMoves = 0;
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
-    this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
-    this->m_moveList = getLegalMoves(COLOR);
+    if (COLOR)
+    {
+        this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    }
+    else
+    {
+        this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
+    }
+    //this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    getLegalMoves(COLOR);
     this->m_hash = getInitialZobristHash();
 }
 
@@ -218,9 +227,15 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
-    this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
-    this->m_moveList = getLegalMoves(COLOR);
+    if (COLOR)
+    {
+        this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    }
+    else
+    {
+        this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
+    }
+    getLegalMoves(COLOR);
     this->m_hash = this->getInitialZobristHash();
 }
 
@@ -231,45 +246,27 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * output: Evaluation number (double)
 */
 int BitBoard::evaluate() const
-{
+{    
     constexpr int PIECE_WEIGHTS[] = { 100, 300, 300, 500, 900 };
     int evaluation = 0;
     bool color = COLOR;
     int whiteMaterialCount = 0;
     int blackMaterialCount = 0;
-    int8_t whiteKingSquare = getLsbIndex(this->m_pieces[WHITE][king]);
-    int8_t blackKingSquare = getLsbIndex(this->m_pieces[BLACK][king]);
-    constexpr int KING_CORNER_WEIGHTS[] = { 5, 5, 5, 5, 5, 5,5, 5,
-                                            5, 3, 3 ,3 ,3, 3, 3, 5,
-                                            5, 3, 1, 1, 1, 1, 3, 5,
-                                            5, 3, 1, 0, 0, 1, 3, 5,
-                                            5, 3, 1, 0, 0, 1, 3, 5,
-                                            5, 3, 1, 1, 1, 1, 3, 5,
-                                            5, 3, 3, 3 ,3 ,3, 3, 5,
-                                            5, 5, 5, 5, 5, 5, 5, 5 };
-    //int whiteProximityCount = getProximityCount((whiteKingSquare), WHITE) * 10;
-    //int blackProximityCount = getProximityCount((blackKingSquare), BLACK) * 10;
 
     for (int i = 0; i < NUMBER_OF_PIECES - 1; i++)
     {
         whiteMaterialCount += (bitCount(this->m_pieces[WHITE][i]) * PIECE_WEIGHTS[i]);
         blackMaterialCount += (bitCount(this->m_pieces[BLACK][i]) * PIECE_WEIGHTS[i]);
     }
-    int endgameWeight = getEndgameWeight(whiteMaterialCount + blackMaterialCount);
-    int oppKingPositionValue = KING_CORNER_WEIGHTS[color ? blackKingSquare : whiteKingSquare] * endgameWeight;
-    if (!color)
-    {
-        oppKingPositionValue = -oppKingPositionValue;
-    }
+
     if (this->isCheck(!color))
     {
-        evaluation += color ?  45: -45;
+        evaluation += color ?  20: -20;
     }
-    evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
+    evaluation += this->m_whiteMoves - this->m_blackMoves;
     evaluation += whiteMaterialCount - blackMaterialCount;
-    //evaluation += blackProximityCount - whiteProximityCount;
     evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
-    evaluation += oppKingPositionValue;
+    evaluation += evaluateKnights(WHITE) - evaluateKnights(BLACK);
     
     return evaluation;
 }
@@ -522,12 +519,16 @@ inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES]
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
+inline void BitBoard::getLegalMoves(const bool color)
 {
     const u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     const u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
     const u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
-    std::deque<Move> moves;
+    int* pieceMoves = color ? &this->m_whiteMoves : &this->m_blackMoves;
+    u64* pieceAttackSquars = color ? &this->m_whiteAtkedSqrs : &this->m_blackAtkedSqrs;
+    *pieceMoves = 0;
+    *pieceAttackSquars = 0ULL;
+
     int mostImportantIndex = 0;
     int leastImportantIndex = 0;
     for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
@@ -561,6 +562,9 @@ inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
                     pattern ^= pattern & currOccupancy;
                     break;
             }
+            
+            *pieceAttackSquars |= pattern;
+            
             while (pattern)
             {
                 const int8_t index = getLsbIndex(pattern);
@@ -574,10 +578,10 @@ inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
                         continue;
                     }
 
-                    moves.push_back({ squareBoard, indexBoard, queen, false, false });
-                    moves.push_back({ squareBoard, indexBoard, rook, false, false });
-                    moves.push_back({ squareBoard, indexBoard, bishop, false, false });
-                    moves.push_back({ squareBoard, indexBoard, knight, false, false });
+                    this->m_moveList.push_back({ squareBoard, indexBoard, queen, false, false });
+                    this->m_moveList.push_back({ squareBoard, indexBoard, rook, false, false });
+                    this->m_moveList.push_back({ squareBoard, indexBoard, bishop, false, false });
+                    this->m_moveList.push_back({ squareBoard, indexBoard, knight, false, false });
                 }
                 else if (index != -1) 
                 {
@@ -589,23 +593,24 @@ inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
                     int8_t target = getPieceType(index, !color);
                     if (target > piece)
                     {
-                        moves.push_front({ squareBoard, indexBoard, NO_PROMOTION, false, false });
+                        this->m_moveList.push_front({ squareBoard, indexBoard, NO_PROMOTION, false, false });
                         mostImportantIndex++;
                     }
                     else if (target != NO_CAPTURE)
                     {
-                        moves.insert(moves.begin() + mostImportantIndex , { squareBoard, indexBoard, NO_PROMOTION, false, false });
+                        this->m_moveList.insert(this->m_moveList.begin() + mostImportantIndex , { squareBoard, indexBoard, NO_PROMOTION, false, false });
                     }
                     else if (index & oppositeAtk)
                     {
-                        moves.push_back({ squareBoard, indexBoard, NO_PROMOTION, false, false });
+                        this->m_moveList.push_back({ squareBoard, indexBoard, NO_PROMOTION, false, false });
                         leastImportantIndex++;
                     }
                     else
                     {
-                        moves.insert(moves.end() - leastImportantIndex, { squareBoard, indexBoard, NO_PROMOTION, false, false });
+                        this->m_moveList.insert(this->m_moveList.end() - leastImportantIndex, { squareBoard, indexBoard, NO_PROMOTION, false, false });
                     }
                 }
+                (*pieceMoves)++;
                 pattern &= pattern - 1;
             }
             board &= board - 1;
@@ -613,14 +618,13 @@ inline std::deque<Move> BitBoard::getLegalMoves(const bool color)
     }
     if (isCastlingPossible(false))
     {
-        moves.push_back({ 0, 0, NO_PROMOTION, true, false });
+        this->m_moveList.push_back({ 0, 0, NO_PROMOTION, true, false });
     }
     if (isCastlingPossible(true))
     {
-        moves.push_back({ 0, 0, NO_PROMOTION, true, true });
+        this->m_moveList.push_back({ 0, 0, NO_PROMOTION, true, true });
     }
 
-    return moves;
 }
 
 
@@ -651,8 +655,11 @@ inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool c
             this->m_enPassantSquare = color ? to + 8 : to - 8;
         }
     }
-    this->m_whiteOccupancy ^= color ? (fromBB | toBB) : target != NO_CAPTURE ? toBB : 0ULL;
-    this->m_blackOccupancy ^= !color ? (fromBB | toBB) : target != NO_CAPTURE ? toBB : 0ULL;
+    this->m_whiteOccupancy = getSideOccupancy(WHITE);
+    this->m_blackOccupancy = getSideOccupancy(BLACK);
+
+    //this->m_whiteOccupancy ^= color ? (fromBB | toBB) : target != NO_CAPTURE ? toBB : 0ULL;
+    //this->m_blackOccupancy ^= !color ? (fromBB | toBB) : target != NO_CAPTURE ? toBB : 0ULL;
     
     // using dynamic check for now. Needs further profiling
     //bool legal = !(this->m_pieces[color][king] & this->getAttackSqrs(!color));
@@ -1101,11 +1108,14 @@ inline u64 BitBoard::getSideOccupancy(const bool color) const
 * input: side (white|black) (bool)
 * output: bitboard of all attacked squares (u64)
 */
-inline u64 BitBoard::getAttackSqrs(const bool color) const
+inline u64 BitBoard::getAttackSqrs(const bool color)
 {
     u64 attack = 0ULL;
     u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
     u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    int* pieceMoves = color ? &this->m_whiteMoves : &this->m_blackMoves;
+    *pieceMoves = 0;
+
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 pieceBoard = this->m_pieces[color][piece];
@@ -1136,6 +1146,9 @@ inline u64 BitBoard::getAttackSqrs(const bool color) const
                 pattern ^= pattern & currOccupancy;
                 break;
             }
+            
+            (*pieceMoves) += bitCount(pattern);
+
             attack |= pattern;
             pieceBoard &= pieceBoard - 1;
         }
@@ -1405,6 +1418,11 @@ uint8_t BitBoard::getEnPassant() const
     return this->m_enPassantSquare;
 }
 
+u64 BitBoard::getOccupancy(const bool color) const
+{
+    return color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+}
+
 
 /*
 * Method for checking if castling is possible
@@ -1461,25 +1479,6 @@ inline int BitBoard::bitCount(u64 board)
     board = (board & m2) + ((board >> 2) & m2);
     board = (board + (board >> 4)) & m4;
     return (board * h01) >> 56;
-}
-
-
-/*
-* Gets the proximity to the king of enemy pieces (based on 2 square distance radius)
-* input: square of king, color of king
-* output: number of enemy pieces in proximity
-*/
-int BitBoard::getProximityCount(int square, bool color) const
-{
-    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
-    u64 nextLayer = 0ULL;
-    u64 kingAttack = this->m_attackPatterns[color][king][square];
-    while (kingAttack)
-    {
-        nextLayer |= this->m_attackPatterns[color][king][getLsbIndex(kingAttack)];
-        kingAttack &= kingAttack - 1;
-    }
-    return bitCount(nextLayer & oppositeOccupancy);
 }
 
 
@@ -1666,66 +1665,134 @@ u64 BitBoard::calcQueenAtkPattern(int square)
 }
 
 
+/*
+* Calculates Endgame weight for evaluation
+* input: Combined Material value for both sides
+* output: Endgame weight
+*/
 int BitBoard::getEndgameWeight(int combinedMaterialValue) const
 {
     int weight = (1400 - combinedMaterialValue) / 100;
     return max(weight, 0);
 }
 
-int BitBoard::evaluatePawns(bool color) const
+
+/*
+* Evaluates the pawns in the position
+* input: color of pawns
+* output: evaluation
+*/
+int BitBoard::evaluatePawns(const bool color) const
 {
     int evaluation = 0;
     constexpr uint8_t PASSED_PAWN_VALUE = 30;
     constexpr int8_t ISOLATED_PAWN_PENALTY = -5;
+    constexpr int8_t DOUBLED_PAWN_PENALTY = -10;
     constexpr u64 A_FILE = 0x101010101010101;
     u64 pawns = this->m_pieces[color][pawn];
-    constexpr int8_t pawnWeightsWhite[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
-                                                             50, 50, 50, 50, 50, 50, 50, 50,
-                                                             20, 20, 20, 20, 20, 20, 20, 20,
-                                                             10, 10, 10, 10, 10, 10, 10, 10,
-                                                             05, 05, 05, 10, 10, 05, 05, 05,
-                                                             01, 01, -3, 01, 01, -3, 01, 01,
-                                                             02, 00, 00, 00, 00, 00, 00, 02,
-                                                             00, 00, 00, 00, 00, 00, 00, 00,};
-
-    constexpr int8_t pawnWeightsBlack[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
-                                                             02, 00, 00, 00, 00, 00, 00, 02,
-                                                             01, 01, -3, 01, 01, -3, 01, 01,
-                                                             05, 05, 05, 10, 10, 05, 05, 05,
-                                                             10, 10, 10, 10, 10, 10, 10, 10,
-                                                             20, 20, 20, 20, 20, 20, 20, 20,
-                                                             50, 50, 50, 50, 50, 50, 50, 50,
-                                                             00, 00, 00, 00, 00, 00, 00, 00, };
+    constexpr int8_t pawnWeights[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
+                                                        50, 50, 50, 50, 50, 50, 50, 50,
+                                                        20, 20, 20, 20, 20, 20, 20, 20,
+                                                        10, 10, 10, 10, 10, 10, 10, 10,
+                                                        05, 05, 05, 10, 10, 05, 05, 05,
+                                                        01, 01, -3, 01, 01, -3, 01, 01,
+                                                        02, 00, 00, 00, 00, 00, 00, 02,
+                                                        00, 00, 00, 00, 00, 00, 00, 00,};
     while (pawns)
     {
+        // TODO: this doesn't seem to work properly
         int8_t square = getLsbIndex(pawns);
-        evaluation += color ? pawnWeightsWhite[square] : pawnWeightsBlack[square];
+        evaluation += color ? pawnWeights[square] : pawnWeights[63 - square];
         u64 pawnBB = (1ULL << square);
+
+        // passed pawn detection
+        const int8_t pawnRank = color ? 8 - (square / 8) : (square / 8) + 1;
+        const int8_t pawnFile = (square % 8);
+        const u64 pawnFileBB = A_FILE << pawnFile;
+        u64 passedPawnMask = color ? ULLONG_MAX >> pawnRank * 8 : ULLONG_MAX << pawnRank * 8;
+        passedPawnMask &= (pawnFileBB) |
+            ((pawnFile != 7) ? (A_FILE << (pawnFile + 1)) : 0) |
+            ((pawnFile != 0) ? (A_FILE << (pawnFile - 1)) : 0);
+        if (!(passedPawnMask & this->m_pieces[!color][pawn]))
+        {
+            evaluation += PASSED_PAWN_VALUE;
+        }
         // isolated pawn detection
-        pawnBB = color ? (square % 8 == 0 ? 0 : (pawnBB << 7)) |
-            ((square + 1) % 8 == 0 ? 0 : (pawnBB << 9))
-                : (square % 8 == 0 ? 0 : (pawnBB >> 9)) |
-            ((square + 1) % 8 == 0 ? 0 : (pawnBB >> 7));
-        if (this->m_pieces[color][pawn] & pawnBB)
+        if (!((passedPawnMask ^ (A_FILE << pawnFile)) & this->m_pieces[color][pawn]))
         {
             evaluation += ISOLATED_PAWN_PENALTY;
         }
 
-        // passed pawn detection TODO: Finish
-        //int8_t pawnRank = (square / 8) + 1;
-        //int8_t pawnFile = (square % 8);
-        //u64 passedPawnMask = color ? ULLONG_MAX >> pawnRank : ULLONG_MAX << pawnRank;
-        //passedPawnMask &= (A_FILE << pawnFile) |
-        //    A_FILE << pawnFile != 7 ? (pawnFile + 1) : 0 |
-        //    A_FILE << pawnFile != 0 ? (pawnFile - 1) : 0;
-        //if (!(passedPawnMask & this->m_pieces[!color][pawn]))
-        //{
-        //    evaluation += PASSED_PAWN_VALUE;
-        //}
-        pawns &= pawns -1;
+        // doubled pawns detection
+        if ((pawnFileBB ^ pawnBB) & this->m_pieces[color][pawn])
+        {
+            evaluation += DOUBLED_PAWN_PENALTY;
+        }
+
+        pawns &= pawns - 1;
     }
     return evaluation;
 
+}
+
+int BitBoard::evaluateKing(const bool color) const
+{
+    u64 king = this->m_pieces[color][king];
+    int evaluation = 0;
+    constexpr int KING_MIDDLE_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
+        
+    
+    };
+
+
+    return evaluation;
+}
+
+
+/*
+* Evaluates the knights in the position
+* input: color of knights
+* output: evaluation
+*/
+int BitBoard::evaluateKnights(const bool color) const
+{
+    u64 knights = this->m_pieces[color][knight];
+    int evaluation = 0;
+    u64 currAtkPattern = color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs;
+    constexpr int8_t KNIGHT_CORNER_STUCK_PENALTY = -12;
+    constexpr int8_t KNIGHT_LOW_ATTACK_PENALTY = -5;
+    constexpr float PAWN_VALUE = 0.25;
+    constexpr int8_t PAWN_DEFENDS_VALUE = 3;
+    constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
+        -3, -1, -1, -1, -1, -1, -1, -3,
+        -1, +3, +3, +3, +3, +3, +3, -1,
+        -1, +3, +5, +5, +5, +5, +3, -1,
+        -1, +3, +5, +9, +9, +5, +3, -1,
+        -1, +3, +5, +9, +9, +5, +3, -1,
+        -1, +3, +5, +5 ,+5, +5, +3, +3,
+        -1, +3, +3, +3, +3, +3, +3, -1,
+        -3, -1, -1, -1, -1, -1, -1, -3,};
+    const int8_t PAWN_VALUES = bitCount(this->m_pieces[WHITE][pawn] | this->m_pieces[BLACK][pawn]) * PAWN_VALUE;
+
+    while(knights)
+    {
+        int8_t square = getLsbIndex(knights);
+        u64 squareBB = 1 << square;
+        int8_t knightAtk = bitCount(this->m_attackPatterns[color][knight][square] & currAtkPattern);
+        evaluation += KNIGHT_SQUARE_WEIGHTS[square] + PAWN_VALUES;
+
+        if ((square == a8 || square == a1 || square == h8 || square == h1) && knightAtk == 0)
+        {
+            evaluation += KNIGHT_CORNER_STUCK_PENALTY;
+        }
+        else if (knightAtk < 3)
+        {
+            evaluation += KNIGHT_LOW_ATTACK_PENALTY;
+        }
+
+        knights &= knights - 1;
+    }
+    return evaluation;
 }
 
 

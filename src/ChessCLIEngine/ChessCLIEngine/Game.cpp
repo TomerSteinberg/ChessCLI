@@ -208,7 +208,7 @@ void Game::next()
 */
 double Game::evaluate()
 {
-	return (double)(MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH+1)) / 1000;
+	return (double)(MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH)) / 1000;
 }
 
 
@@ -298,14 +298,14 @@ void Game::playBest()
 
 		const u64 zobristHash = nextPosition->getZobristHash();
 
-		if (MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second != -1 && MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].second >= (SEARCH_DEPTH))
+		if (MoveSearch::transpositionTable[zobristHash].second != -1 && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
 		{
-			score = MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE].first;
+			score = MoveSearch::transpositionTable[zobristHash].first;
 		}
 		else
 		{
 			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-			MoveSearch::transpositionTable[zobristHash % TRANSPOTION_TABLE_SIZE] = { score, SEARCH_DEPTH };
+			MoveSearch::transpositionTable[zobristHash] = { score, SEARCH_DEPTH };
 		}
 		if (color)
 		{
