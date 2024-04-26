@@ -8,10 +8,12 @@
 #include <memory>
 #include <deque>
 #include <algorithm>
+#include <mutex>
+
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 3
+#define SEARCH_DEPTH 4
 
 class BitBoard;
 
@@ -29,7 +31,8 @@ public:
 	void next();
 	double evaluate();
 	void analyze();
-	void playBest();
+	Move searchBest(int searchDepth);
+	void iterativeDeepening(int maxDepth);
 	int perft(int depth);
 	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);
 	std::string getFen() const;

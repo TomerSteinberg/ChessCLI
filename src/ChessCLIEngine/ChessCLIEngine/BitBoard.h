@@ -5,8 +5,9 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-#include <deque>
+#include <tuple>
 #include <random>
+#include <array>
 
 #include <assert.h>     /* assert */
 
@@ -14,6 +15,7 @@
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"
 
+#define A_FILE 0x101010101010101
 #define NO_CAPTURE -1
 #define NO_PROMOTION -1
 #define NUMBER_OF_PIECES 6
@@ -31,6 +33,7 @@
 #define PAWN_DOUBLE_JUMP_DIFFERENCE 16
 #define LOWER_CASE_ASCII_DIFFERENCE 32
 #define WHITE_ROOKS_OFFSET 56
+#define MOVE_ORDERING_CATEGORIES 5
 #define COLOR (this->m_moveFlags & WHITE)
 
 #define GET_BIT(board, square) ((board & (1ULL << square)) ? 1 : 0)
@@ -56,6 +59,9 @@ enum Squares{
 	a1, b1, c1, d1, e1, f1, g1, h1,
 };
 
+enum MoveListIndex {
+	killer, special, good, average, worst
+};
 
 enum Pieces {
 	pawn, knight, bishop, rook, queen, king
@@ -83,7 +89,7 @@ public:
 	std::shared_ptr<BitBoard> castleMove(const bool isLong) const;
 	std::string getFen() const;
 	u64 getZobristHash() const;
-	std::deque<Move> getMoveList();
+	std::array<std::array<Move, 128>, 5> getMoveList();
 
 	inline bool isCheck(bool color) const;
 	bool isMate(bool color) const;
@@ -95,6 +101,7 @@ public:
 	uint8_t getFlags() const;
 	uint8_t getEnPassant() const;
 
+	const int getMoveListLength() const;
 	u64 getOccupancy(const bool color) const;
 private:
 
@@ -111,7 +118,9 @@ private:
 	const BishopAttack m_bishopAttacks;
 	const RookAttack m_rookAttacks;
 	u64 m_pieces[SIDES][NUMBER_OF_PIECES];
-	std::deque<Move> m_moveList;
+	std::array<std::array<Move, 128>, MOVE_ORDERING_CATEGORIES> m_moveList;
+	std::array<int, MOVE_ORDERING_CATEGORIES> m_initMoveIndexes;
+
 	u64 m_whiteAtkedSqrs;
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
@@ -143,7 +152,8 @@ private:
 	static inline int bitCount(u64 board);
 	inline u64 getSideOccupancy(const bool color) const; 
 	inline u64 getAttackSqrs(const bool color);
-	constexpr inline u64 getPromotionMask(bool color) const;
+	constexpr inline u64 getPromotionMask(const bool color) const;
+	const inline u64 getPassedPawnMask(const bool color, int8_t square) const;
 	u64 setOccupancy(int index, int maskBitCount, u64 attackMask)const ;
 
 
@@ -172,7 +182,7 @@ private:
 	int getEndgameWeight(int combinedMaterialValue) const;
 	int evaluatePawns(const bool color) const;
 	int evaluateKnights(const bool color) const;
-	int evaluateKing(const bool color) const;
+	int evaluateKing(const bool color, int endGameWeight, int colorMaterialAdvantage) const;
 };
 
 #endif

@@ -1,6 +1,5 @@
 #include "Game.h"
 
-
 Game::Game(std::string fen)
 {
 	this->m_moves.push_back(std::make_shared<BitBoard>(fen));
@@ -111,10 +110,17 @@ std::vector<std::string> Game::getHistory() const
 std::vector<std::string> Game::getOptions() const
 {
 	std::vector<std::string> continuations;
-	std::deque<Move> options = this->m_currPosition->getMoveList();
-	for (auto it = options.begin(); it != options.end(); it++)
+	auto options = this->m_currPosition->getMoveList();
+	for (int i = 0; i < options.size(); i++)
 	{
-		continuations.push_back(notationFromMove(*it));
+		for (int j = 0; j < options[i].size(); j++)
+		{
+			if (options[i][j].from == options[i][j].to && !options[i][j].castle)
+			{
+				break;
+			}
+			continuations.push_back(notationFromMove(options[i][j]));
+		}
 	}
 	return continuations;
 }
@@ -219,35 +225,42 @@ double Game::evaluate()
 */
 void Game::analyze()
 {
-	std::deque<Move> moves = this->m_currPosition->getMoveList();
+	auto moves = this->m_currPosition->getMoveList();
 	std::deque<std::pair<Move, double>> bestScores;
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
 
-	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
+	for (int i = 0; i < moves.size(); i++)
 	{
-		std::shared_ptr<BitBoard> nextPosition;
-		int score = 0;
-		if (!it->castle)
+		for (int j = 0; j < moves[i].size(); j++)
 		{
-			nextPosition = this->m_currPosition->move(
-				BitBoard::getLsbIndex(it->from),
-				BitBoard::getLsbIndex(it->to),
-				it->promotion);
-		}
-		else
-		{
-			nextPosition = this->m_currPosition->castleMove(it->isLong);
-		}
+			if (moves[i][j].from == moves[i][j].to && !moves[i][j].castle)
+			{
+				break;
+			}
+			std::shared_ptr<BitBoard> nextPosition;
+			int score = 0;
+			if (!moves[i][j].castle)
+			{
+				nextPosition = this->m_currPosition->move(
+					BitBoard::getLsbIndex(moves[i][j].from),
+					BitBoard::getLsbIndex(moves[i][j].to),
+					moves[i][j].promotion);
+			}
+			else
+			{
+				nextPosition = this->m_currPosition->castleMove(moves[i][j].isLong);
+			}
 
-		score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-		bestScores.push_back({ *it, score });
+			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
+			bestScores.push_back({ moves[i][j], score });
+		}
 	}
 	std::sort(bestScores.begin(), bestScores.end(), [](auto& left, auto& right) {
 		return left.second < right.second;
 		});
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i <= bestScores.size(); i++)
 	{
 		const auto& move = color ? bestScores.back() : bestScores.front();
 
@@ -259,77 +272,106 @@ void Game::analyze()
 
 
 /*
-* Play the best computer continuation to the current position
-* input: None. TODO: add depth parameter
-* output: None
+* Finds the best computer continuation to the current position
+* input: Depth of search.
+* output: Best continuation
 */
-void Game::playBest()
+Move Game::searchBest(int searchDepth)
 {
-	std::deque<Move> moves = this->m_currPosition->getMoveList();
+	auto moves = this->m_currPosition->getMoveList();
 	if (moves.size() == 0)
 	{
-		return;
-	}
-	if (moves.size() == 1)
-	{
-		this->move(BitBoard::getLsbIndex(moves[0].from),
-			BitBoard::getLsbIndex(moves[0].to),
-			moves[0].promotion, notationFromMove(moves[0]));
-		return;
+		return { 0,0,NO_PROMOTION, false, false };
 	}
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
 	int bestScore = color ? MIN_INFINITY : MAX_INFINITY;
-	for (std::deque<Move>::iterator it = moves.begin(); it != moves.end(); it++)
+	for (int i = 0; i < moves.size(); i++)
 	{
-		std::shared_ptr<BitBoard> nextPosition;
-		int score = 0;
-		if (!it->castle)
+		for (int j = 0; j < moves[i].size(); j++)
 		{
-			nextPosition = this->m_currPosition->move(
-				BitBoard::getLsbIndex(it->from),
-				BitBoard::getLsbIndex(it->to),
-				it->promotion);
-		}
-		else
-		{
-			nextPosition = this->m_currPosition->castleMove(it->isLong);
-		}
+			if (moves[i][j].from == moves[i][j].to && !moves[i][j].castle)
+			{
+				break;
+			}
+			std::shared_ptr<BitBoard> nextPosition;
+			int score = 0;
+			if (!moves[i][j].castle)
+			{
+				nextPosition = this->m_currPosition->move(
+					BitBoard::getLsbIndex(moves[i][j].from),
+					BitBoard::getLsbIndex(moves[i][j].to),
+					moves[i][j].promotion);
+			}
+			else
+			{
+				nextPosition = this->m_currPosition->castleMove(moves[i][j].isLong);
+			}
 
-		const u64 zobristHash = nextPosition->getZobristHash();
+			const u64 zobristHash = nextPosition->getZobristHash();
 
-		if (MoveSearch::transpositionTable[zobristHash].second != -1 && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
-		{
-			score = MoveSearch::transpositionTable[zobristHash].first;
+			if (MoveSearch::transpositionTable[zobristHash].second != -1 && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
+			{
+				score = MoveSearch::transpositionTable[zobristHash].first;
+			}
+			else
+			{
+				score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), searchDepth);
+				MoveSearch::transpositionTable[zobristHash] = { score, searchDepth };
+			}
+			if (color)
+			{
+				bestScore = std::max(bestScore, score);
+				bestMove = score >= bestScore ? moves[i][j] : bestMove;
+			}
+			else
+			{
+				bestScore = std::min(bestScore, score);
+				bestMove = score <= bestScore ? moves[i][j] : bestMove;
+			}
 		}
-		else
+	}
+	return bestMove;
+}
+
+/*
+* Plays the best move using Iterative Deepening
+* input: maximum depth of search
+* output: None
+*/
+void Game::iterativeDeepening(int maxDepth)
+{
+	using std::chrono::high_resolution_clock;
+	using std::chrono::duration_cast;
+	using std::chrono::duration;
+	using std::chrono::milliseconds;
+
+	Move bestMove = { 0,0,NO_PROMOTION, false, false };
+	for (int depth = 1; depth <= maxDepth; depth++)
+	{
+		auto t1 = high_resolution_clock::now();
+		bestMove = searchBest(depth);
+		auto t2 = high_resolution_clock::now();
+		auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+		if (bestMove.from == bestMove.to)
 		{
-			score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), SEARCH_DEPTH);
-			MoveSearch::transpositionTable[zobristHash] = { score, SEARCH_DEPTH };
+			std::cout << "Unable to continue. The Game is over." << std::endl;
+			return;
 		}
-		if (color)
-		{
-			bestScore = std::max(bestScore, score);
-			bestMove = score >= bestScore ? *it : bestMove;
-		}
-		else
-		{
-			bestScore = std::min(bestScore, score);
-			bestMove = score <= bestScore ? *it : bestMove;
-		}
+		duration<double, std::milli> ms_double = t2 - t1;
+		std::cout << "Depth:\t" << depth << "\tTime:\t" << ms_int.count() << "ms\t" << "Nodes:\t" << MoveSearch::nodes << "\t" << notationFromMove(bestMove) << std::endl;
+		MoveSearch::nodes = 0;
 	}
 	if (bestMove.castle)
 	{
 		this->move(bestMove.isLong, notationFromMove(bestMove));
-		return;
 	}
-	if (!bestMove.castle && bestMove.from == bestMove.to)
+	else
 	{
-		return;
+		this->move(BitBoard::getLsbIndex(bestMove.from), BitBoard::getLsbIndex(bestMove.to),
+			bestMove.promotion, notationFromMove(bestMove));
 	}
-	this->move(BitBoard::getLsbIndex(bestMove.from),
-		BitBoard::getLsbIndex(bestMove.to),
-		bestMove.promotion, notationFromMove(bestMove));
 }
 
 

@@ -15,7 +15,7 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
     nodes++;
     if (position->isMate(isMaximizingPlayer))
     {
-        return isMaximizingPlayer ? MIN_INFINITY - depth : MAX_INFINITY + depth;
+        return isMaximizingPlayer ? (MIN_INFINITY - depth) : (MAX_INFINITY + depth);
     }
     if (position->isStale(isMaximizingPlayer))
     {
@@ -25,69 +25,77 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
     {
         return position->evaluate();
     }
-    const std::deque<Move> moves = position->getMoveList();
+    const auto moves = position->getMoveList();
     int bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
 
-    for (auto moveIterator = moves.begin(); moveIterator != moves.end(); moveIterator++)
+    for (int i = 0; i < moves.size(); i++)
     {
-        std::shared_ptr<BitBoard> afterMove;
-        if (!moveIterator->castle)
+        for (int j = 0; j < moves[i].size(); j++)
         {
-                afterMove = position->move(
-                BitBoard::getLsbIndex(moveIterator->from),
-                BitBoard::getLsbIndex(moveIterator->to),
-                moveIterator->promotion);
-        }
-        else
-        {
-            afterMove = position->castleMove(moveIterator->isLong);
-        }
-        int score = 0;
-
-        if ((depth - 1) != 0)
-        {
-            const u64 zobristHash = afterMove->getZobristHash();
-            if (transpositionTable[zobristHash].second != -1 && transpositionTable[zobristHash].second >= (depth - 1))
+            if (moves[i][j].from == moves[i][j].to && !moves[i][j].castle)
             {
-                score = transpositionTable[zobristHash].first;
+                break;
+            }
+
+            std::shared_ptr<BitBoard> afterMove;
+            if (!moves[i][j].castle)
+            {
+                afterMove = position->move(
+                    BitBoard::getLsbIndex(moves[i][j].from),
+                    BitBoard::getLsbIndex(moves[i][j].to),
+                    moves[i][j].promotion);
             }
             else
             {
-                if (afterMove->isCheck(isMaximizingPlayer))
+                afterMove = position->castleMove(moves[i][j].isLong);
+            }
+            int score = 0;
+            int promotionExtension = moves[i][j].promotion != NO_PROMOTION ? 2 : 0;
+            if ((depth - 1) != 0)
+            {
+                const u64 zobristHash = afterMove->getZobristHash();
+                if (transpositionTable[zobristHash].second != -1 && transpositionTable[zobristHash].second >= (depth - 1))
+                {
+                    score = transpositionTable[zobristHash].first;
+                }
+                else
+                {
+                    if (afterMove->isCheck(isMaximizingPlayer) || afterMove->isCheck(!isMaximizingPlayer))
+                    {
+                        score = minimax(afterMove, !isMaximizingPlayer, depth, alpha, beta);
+                    }
+                    else
+                    {
+                        score = minimax(afterMove, !isMaximizingPlayer, depth - 1 + promotionExtension, alpha, beta);
+                    }
+                    transpositionTable[zobristHash] = { score, depth - 1 };
+                }
+            }
+            else
+            {
+                if (afterMove->isCheck(isMaximizingPlayer) || afterMove->isCheck(!isMaximizingPlayer))
                 {
                     score = minimax(afterMove, !isMaximizingPlayer, depth, alpha, beta);
                 }
                 else
                 {
-                    score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+                    score = minimax(afterMove, !isMaximizingPlayer, depth - 1 + promotionExtension, alpha, beta);
                 }
-                transpositionTable[zobristHash] = { score, depth -1 };
             }
-        }
-        else
-        {
-            if (afterMove->isCheck(isMaximizingPlayer))
+            if (isMaximizingPlayer)
             {
-                score = minimax(afterMove, !isMaximizingPlayer, depth, alpha, beta);
+                bestScore = std::max(bestScore, score);
+                alpha = std::max(alpha, bestScore);
             }
             else
             {
-                score = minimax(afterMove, !isMaximizingPlayer, depth - 1, alpha, beta);
+                bestScore = std::min(bestScore, score);
+                beta = std::min(bestScore, beta);
             }
-        }
-        if (isMaximizingPlayer)
-        {
-            bestScore = std::max(bestScore, score);
-            alpha = std::max(alpha, bestScore);
-        }
-        else
-        {
-            bestScore = std::min(bestScore, score);
-            beta = std::min(bestScore, beta);
-        }
-        if (beta <= alpha)
-        {
-            break;
+            if (beta <= alpha)
+            {
+                break;
+            }
         }
     }
     return bestScore;
@@ -104,20 +112,28 @@ int MoveSearch::perft(std::shared_ptr<BitBoard> position, const unsigned int dep
         int32_t nodes = 0;
         if (depth == 0)
         {
-            return position->getMoveList().size();
+            return position->getMoveListLength();
         }
 
-        std::deque<Move> moves = position->getMoveList();
-        for (auto move = moves.begin(); move != moves.end(); move++)
+        auto moves = position->getMoveList();
+        for (int i = 0; i < moves.size(); i++)
         {
-            if (move->castle)
+            for (int j = 0; j < moves[i].size(); j++)
             {
-                nodes += perft(position->castleMove(move->isLong), depth - 1);
-            }
-            else
-            {
-                nodes += perft(position->move(BitBoard::getLsbIndex(move->from), BitBoard::getLsbIndex(move->to), move->promotion), depth - 1);
+                if (moves[i][j].from == moves[i][j].to && !moves[i][j].castle)
+                {
+                    break;
+                }
+                if (moves[i][j].castle)
+                {
+                    nodes += perft(position->castleMove(moves[i][j].isLong), depth - 1);
+                }
+                else
+                {
+                    nodes += perft(position->move(BitBoard::getLsbIndex(moves[i][j].from), BitBoard::getLsbIndex(moves[i][j].to), moves[i][j].promotion), depth - 1);
+                }
             }
         }
+           
         return nodes;
 }
