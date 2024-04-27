@@ -13,7 +13,7 @@
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 4
+#define SEARCH_DEPTH 8
 
 class BitBoard;
 
@@ -31,7 +31,7 @@ public:
 	void next();
 	double evaluate();
 	void analyze();
-	Move searchBest(int searchDepth);
+	Move searchBest(int searchDepth, std::array<Move, 128> priorityMoves);
 	void iterativeDeepening(int maxDepth);
 	int perft(int depth);
 	std::pair<uint8_t, uint8_t> dump(u64 pieces[SIDES][NUMBER_OF_PIECES]);

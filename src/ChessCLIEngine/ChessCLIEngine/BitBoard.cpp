@@ -271,7 +271,7 @@ int BitBoard::evaluate() const
     evaluation += whiteMaterialCount - blackMaterialCount;
     evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
     evaluation += evaluateKnights(WHITE) - evaluateKnights(BLACK);
-    evaluation += evaluateKing(WHITE, endGameWeight, abs(whiteMaterialCount - blackMaterialCount)) - evaluateKing(BLACK, endGameWeight, abs(whiteMaterialCount - blackMaterialCount));
+    evaluation += evaluateKing(WHITE, endGameWeight, whiteMaterialCount - blackMaterialCount) - evaluateKing(BLACK, endGameWeight,whiteMaterialCount - blackMaterialCount);
     
     return evaluation;
 }
@@ -573,7 +573,7 @@ inline void BitBoard::getLegalMoves(const bool color)
             }
             
             (*pieceAttackSquars) |= pattern;
-            (*pieceMoves)++;
+            (*pieceMoves) += bitCount(pattern);
 
             while (pattern)
             {
@@ -1094,7 +1094,7 @@ inline bool BitBoard::isCheck(bool color) const
 */
 bool BitBoard::isMate(bool color) const
 {
-    return this->isCheck(color) && !m_moveList.size();
+    return this->isCheck(color) && this->getMoveListLength() == 0;
 }
 
 
@@ -1105,7 +1105,7 @@ bool BitBoard::isMate(bool color) const
 */
 bool BitBoard::isStale(bool color) const
 {
-    return !this->isCheck(color) && !m_moveList.size();
+    return !this->isCheck(color) && this->getMoveListLength() == 0;
 }
 
 /*
@@ -1728,7 +1728,7 @@ int BitBoard::evaluatePawns(const bool color) const
 {
     int evaluation = 0;
     constexpr uint8_t PASSED_PAWN_VALUE = 40;
-    constexpr int8_t ISOLATED_PAWN_PENALTY = -15;
+    constexpr int8_t ISOLATED_PAWN_PENALTY = -30;
     constexpr int8_t DOUBLED_PAWN_PENALTY = -10;
     constexpr int8_t UNDEFENDED_PAWN_PENALTY = -20;
     u64 pawns = this->m_pieces[color][pawn];
@@ -1782,14 +1782,14 @@ int BitBoard::evaluatePawns(const bool color) const
 int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMaterialAdvantage) const
 {
     constexpr int KING_MIDDLE_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
-        -30, -30, -30, -30, -30, -30, -30, -30,
+        -60, -60, -60, -60, -60, -60, -60, -60,
+        -40, -40, -40, -40, -40, -40, -40, -40,
+        -30, -30, -30 ,-30, -30, -30, -30 ,-30,
         -20, -20, -20, -20, -20, -20, -20, -20,
-        -15, -15, -15 ,-15, -15, -15, -15 ,-15,
         -10, -10, -10, -10, -10, -10, -10, -10,
-        -07, -07, -07, -07, -07, -07, -07, -07,
-        -03, -03, -04, -05, -05, -04, -03, -03,
-        -01, -01, -01, -02, -02, -01, -01, -01,
-        +05, +07, +05, +00, +00, +05, +07, +05
+        -07, -07, -04, -05, -05, -04, -07, -07,
+        -02, -02, -02, -00, -00, -02, -02, -02,
+        +07, +10, +07, +00, +00, +07, +10, +07
     };
     constexpr int KING_END_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
         -10, -9, -8, -7, -7, -8, -9, -10,
@@ -1814,18 +1814,15 @@ int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMateria
 
     uint8_t kingDistance = max(abs(kingFile - oppKingFile), abs(kingRank - oppKingRank));
     int evaluation = -bitCount(this->removeQueenBlockedAtk(kingSquare, this->m_whiteOccupancy | this->m_blackOccupancy) & (color ? ~this->m_whiteOccupancy : ~this->m_blackOccupancy));
-    evaluation = endGameWeight > 3 ? -evaluation : evaluation;
-    if (colorMaterialAdvantage > 0)
+        
+    if ((colorMaterialAdvantage > 0 && color) || (colorMaterialAdvantage < 0 && !color))
     {
-        evaluation += endGameWeight > 5 ? -kingDistance : kingDistance;
-    }
-    else if (colorMaterialAdvantage < 0)
-    {
-        evaluation += kingDistance;
+        evaluation = endGameWeight > 3 ? -evaluation : evaluation;
+        evaluation += endGameWeight > 5 ? -kingDistance : 0;
     }
 
     evaluation += (color ? KING_MIDDLE_GAME_SQUARE_WEIGHT[kingSquare] : KING_MIDDLE_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (1 / (max(endGameWeight, 15) + 1));
-    evaluation += (color ? KING_END_GAME_SQUARE_WEIGHT[kingSquare] : KING_END_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (min(endGameWeight, 7) / 2);
+    evaluation += (color ? KING_END_GAME_SQUARE_WEIGHT[kingSquare] : KING_END_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (min(max(endGameWeight, 0), 1));
 
     return evaluation;
 }

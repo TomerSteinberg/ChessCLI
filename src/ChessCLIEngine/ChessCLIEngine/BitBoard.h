@@ -70,7 +70,7 @@ enum Pieces {
 struct Move {
 	u64 from;
 	u64 to;
-	int promotion;
+	int8_t promotion;
 	bool castle;
 	bool isLong;
 };

@@ -26,7 +26,7 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
         return position->evaluate();
     }
     const auto moves = position->getMoveList();
-    int bestScore = isMaximizingPlayer ? MIN_INFINITY : MAX_INFINITY;
+    int bestScore = isMaximizingPlayer ? ALPHA_START : BETA_START;
 
     for (int i = 0; i < moves.size(); i++)
     {
@@ -50,7 +50,7 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
                 afterMove = position->castleMove(moves[i][j].isLong);
             }
             int score = 0;
-            int promotionExtension = moves[i][j].promotion != NO_PROMOTION ? 2 : 0;
+            int promotionExtension = moves[i][j].promotion != NO_PROMOTION ? 1 : 0;
             if ((depth - 1) != 0)
             {
                 const u64 zobristHash = afterMove->getZobristHash();
@@ -68,7 +68,7 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
                     {
                         score = minimax(afterMove, !isMaximizingPlayer, depth - 1 + promotionExtension, alpha, beta);
                     }
-                    transpositionTable[zobristHash] = { score, depth - 1 };
+                    transpositionTable[zobristHash] = { score, depth + promotionExtension - 1 };
                 }
             }
             else

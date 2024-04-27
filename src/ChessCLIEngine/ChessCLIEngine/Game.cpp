@@ -214,7 +214,7 @@ void Game::next()
 */
 double Game::evaluate()
 {
-	return (double)(MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH)) / 1000;
+	return (double)(MoveSearch::minimax(m_currPosition, (m_currPosition->getFlags() & 0b1), SEARCH_DEPTH + 1)) / 1000;
 }
 
 
@@ -226,7 +226,7 @@ double Game::evaluate()
 void Game::analyze()
 {
 	auto moves = this->m_currPosition->getMoveList();
-	std::deque<std::pair<Move, double>> bestScores;
+	std::deque<std::pair<Move, int>> bestScores;
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
 
@@ -265,7 +265,7 @@ void Game::analyze()
 		const auto& move = color ? bestScores.back() : bestScores.front();
 
 		std::cout << i + 1 << ".\t" << notationFromMove(move.first) << "\t"
-			<< move.second / 1000 << std::endl;
+			<< ((float)move.second) / 1000 << std::endl;
 		color ? bestScores.pop_back() : bestScores.pop_front();
 	}
 }
@@ -276,16 +276,17 @@ void Game::analyze()
 * input: Depth of search.
 * output: Best continuation
 */
-Move Game::searchBest(int searchDepth)
+Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 {
-	auto moves = this->m_currPosition->getMoveList();
-	if (moves.size() == 0)
+	auto baseMoves = this->m_currPosition->getMoveList();
+	std::array<std::array<Move, 128>, MOVE_ORDERING_CATEGORIES + 1> moves = { priorityMoves, baseMoves[killer], baseMoves[special], baseMoves[good], baseMoves[average], baseMoves[worst] };
+	if (this->m_currPosition->getMoveListLength() == 0)
 	{
 		return { 0,0,NO_PROMOTION, false, false };
 	}
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
-	int bestScore = color ? MIN_INFINITY : MAX_INFINITY;
+	int bestScore = color ? ALPHA_START : BETA_START;
 	for (int i = 0; i < moves.size(); i++)
 	{
 		for (int j = 0; j < moves[i].size(); j++)
@@ -316,7 +317,7 @@ Move Game::searchBest(int searchDepth)
 			}
 			else
 			{
-				score = MoveSearch::minimax(nextPosition, (nextPosition->getFlags() & 0b1), searchDepth);
+				score = MoveSearch::minimax(nextPosition, !color, searchDepth);
 				MoveSearch::transpositionTable[zobristHash] = { score, searchDepth };
 			}
 			if (color)
@@ -346,21 +347,24 @@ void Game::iterativeDeepening(int maxDepth)
 	using std::chrono::duration;
 	using std::chrono::milliseconds;
 
+	std::array<Move, 128> priorityMoves = { {0, 0, NO_PROMOTION, false, false} };
+
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
-	for (int depth = 1; depth <= maxDepth; depth++)
+	for (uint8_t depth = 1; depth <= maxDepth; depth++)
 	{
 		auto t1 = high_resolution_clock::now();
-		bestMove = searchBest(depth);
+		bestMove = searchBest(depth, priorityMoves);
 		auto t2 = high_resolution_clock::now();
 		auto ms_int = duration_cast<milliseconds>(t2 - t1);
 
-		if (bestMove.from == bestMove.to)
+		priorityMoves[depth - 1] = bestMove;
+		if (bestMove.from == bestMove.to && !bestMove.castle)
 		{
 			std::cout << "Unable to continue. The Game is over." << std::endl;
 			return;
 		}
 		duration<double, std::milli> ms_double = t2 - t1;
-		std::cout << "Depth:\t" << depth << "\tTime:\t" << ms_int.count() << "ms\t" << "Nodes:\t" << MoveSearch::nodes << "\t" << notationFromMove(bestMove) << std::endl;
+		std::cout << "Depth:\t" << (int)depth << "\tTime:\t" << ms_int.count() << "ms\t" << "Nodes:\t" << MoveSearch::nodes << "\t" << notationFromMove(bestMove) << std::endl;
 		MoveSearch::nodes = 0;
 	}
 	if (bestMove.castle)
