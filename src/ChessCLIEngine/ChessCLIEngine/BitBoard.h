@@ -125,6 +125,8 @@ private:
 	u64 m_blackAtkedSqrs;
 	u64 m_whiteOccupancy;
 	u64 m_blackOccupancy;
+	u64 m_whiteAttackInclusive;
+	u64 m_blackAttackInclusive;
 	u64 m_hash;
 	int m_whiteMoves;
 	int m_blackMoves;

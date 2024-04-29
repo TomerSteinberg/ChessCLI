@@ -268,6 +268,7 @@ void Game::analyze()
 			<< ((float)move.second) / 1000 << std::endl;
 		color ? bestScores.pop_back() : bestScores.pop_front();
 	}
+	MoveSearch::nodes = 0;
 }
 
 
@@ -287,6 +288,7 @@ Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
 	int bestScore = color ? ALPHA_START : BETA_START;
+
 	for (int i = 0; i < moves.size(); i++)
 	{
 		for (int j = 0; j < moves[i].size(); j++)
