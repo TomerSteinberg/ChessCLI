@@ -271,6 +271,7 @@ int BitBoard::evaluate() const
     evaluation += whiteMaterialCount - blackMaterialCount;
     evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
     evaluation += evaluateKnights(WHITE) - evaluateKnights(BLACK);
+    evaluation += evaluateBishops(WHITE) - evaluateBishops(BLACK);
     evaluation += evaluateKing(WHITE, endGameWeight, whiteMaterialCount - blackMaterialCount) - evaluateKing(BLACK, endGameWeight,whiteMaterialCount - blackMaterialCount);
     
     return evaluation;
@@ -988,7 +989,7 @@ inline void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool col
 
 
 /*
-* Method more making a castle move
+* Method for making a castle move
 * input: is Long castle (bool)
 * output: bitboard of the next position
 */
@@ -1821,23 +1822,28 @@ int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMateria
     constexpr int KING_END_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
         -10, -9, -8, -7, -7, -8, -9, -10,
         -9, -4, -3, -2, -2, -3, -4, -9,
-        -8, -3, +3, +4, +4, +3, -3, -8,
+        -8, -3, +7, +4, +4, +7, -3, -8,
         -7, -2, +4, +6, +6, +4, -2, -7,
         -7, -2, +4, +6, +6, +4, -2, -7,
-        -8, -3, +3, +4, +4, +3, -3, -8,
+        -8, -3, +7, +4, +4, +7, -3, -8,
         -9, -4, -3, -2, -2, -3, -4, -9,
         -10, -9, -8, -7, -7, -8, -9, -10,
     };
+    constexpr int OPEN_KING_FILE_PENALTY = -30;
+    constexpr int UNCOVERED_SEMI_OPEN_FILE_PENALTY = -30;
+
     u64 kingBB = this->m_pieces[color][king];
     u64 oppositeKing = this->m_pieces[!color][king];
 
-    int8_t kingSquare = getLsbIndex(kingBB);
-    int8_t oppKingSquare = getLsbIndex(oppositeKing);
+    const int8_t kingSquare = getLsbIndex(kingBB);
+    const int8_t oppKingSquare = getLsbIndex(oppositeKing);
+    u64 kingFiles = this->getPassedPawnMask(color, kingSquare);
 
-    int8_t kingFile = kingSquare % 8;
-    int8_t kingRank = kingSquare / 8;
-    int8_t oppKingFile = oppKingSquare % 8;
-    int8_t oppKingRank = oppKingSquare / 8;
+    
+    const int8_t kingFile = kingSquare % 8;
+    const int8_t kingRank = kingSquare / 8;
+    const int8_t oppKingFile = oppKingSquare % 8;
+    const int8_t oppKingRank = oppKingSquare / 8;
 
     uint8_t kingDistance = max(abs(kingFile - oppKingFile), abs(kingRank - oppKingRank));
     int evaluation = -bitCount(this->removeQueenBlockedAtk(kingSquare, this->m_whiteOccupancy | this->m_blackOccupancy) & (color ? ~this->m_whiteOccupancy : ~this->m_blackOccupancy));
@@ -1846,6 +1852,10 @@ int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMateria
     {
         evaluation = endGameWeight > 3 ? -evaluation : evaluation;
         evaluation += endGameWeight > 5 ? -kingDistance : 0;
+    }
+    if (endGameWeight < 3 && !(kingFiles & (this->m_pieces[color][pawn])))
+    {
+        evaluation += OPEN_KING_FILE_PENALTY;
     }
 
     evaluation += (color ? KING_MIDDLE_GAME_SQUARE_WEIGHT[kingSquare] : KING_MIDDLE_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (1 / (max(endGameWeight, 15) + 1));
@@ -1865,24 +1875,29 @@ int BitBoard::evaluateKnights(const bool color) const
     u64 knights = this->m_pieces[color][knight];
     int evaluation = 0;
     u64 currAtkPattern = color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs;
-    constexpr int8_t KNIGHT_CORNER_STUCK_PENALTY = -12;
+    constexpr int8_t KNIGHT_CORNER_STUCK_PENALTY = -70;
     constexpr int8_t KNIGHT_LOW_ATTACK_PENALTY = -5;
+    constexpr int8_t PAWN_DEFENDS_VALUE = 15;
     constexpr float PAWN_VALUE = 0.25;
-    constexpr int8_t PAWN_DEFENDS_VALUE = 3;
+    constexpr int8_t NO_PAWN_THREAT_VALUE = 30;
+    constexpr int8_t HANGING_MINOR_PIECE_PENALTY = -30;
+    constexpr int8_t OUTPOST_VALUE = 15;
+    const u64 opponentBoardSide = color ? 4294967295ULL : 18446744069414584320ULL;
     constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
-        -3, -1, -1, -1, -1, -1, -1, -3,
-        -1, +3, +3, +3, +3, +3, +3, -1,
-        -1, +3, +5, +5, +5, +5, +3, -1,
-        -1, +3, +5, +9, +9, +5, +3, -1,
-        -1, +3, +5, +9, +9, +5, +3, -1,
-        -1, +3, +5, +5 ,+5, +5, +3, +3,
-        -1, +3, +3, +3, +3, +3, +3, -1,
-        -3, -1, -1, -1, -1, -1, -1, -3,};
+        -7, -3, -3, -3, -3, -3, -3, -7,
+        -3, +7, +7, +7, +7, +7, +7, -3,
+        -3, +7, 10, 10, 10, 10, +7, -3,
+        -3, +7, 10, 12, 12, 10, +7, -3,
+        -3, +7, 10, 12, 12, 10, +7, -3,
+        -3, +7, 10, 10 ,10, 10, +7, -3,
+        -3, +7, +7, +7, +7, +7, +7, -3,
+        -7, -3, -3, -3, -3, -3, -3, -7,};
     const int8_t PAWN_VALUES = bitCount(this->m_pieces[WHITE][pawn] | this->m_pieces[BLACK][pawn]) * PAWN_VALUE;
 
     while(knights)
     {
         int8_t square = getLsbIndex(knights);
+        const u64 pawnsAheadMask = getPassedPawnMask(color, square);
         u64 squareBB = 1 << square;
         int8_t knightAtk = bitCount(this->m_attackPatterns[color][knight][square] & currAtkPattern);
         evaluation += KNIGHT_SQUARE_WEIGHTS[square] + PAWN_VALUES;
@@ -1891,14 +1906,35 @@ int BitBoard::evaluateKnights(const bool color) const
         {
             evaluation += KNIGHT_CORNER_STUCK_PENALTY;
         }
-        else if (knightAtk < 3)
+        else if (knightAtk <= 3)
         {
-            evaluation += KNIGHT_LOW_ATTACK_PENALTY;
+            evaluation += KNIGHT_LOW_ATTACK_PENALTY * (8 - knightAtk);
+        }
+        if (this->m_attackPatterns[!color][pawn][square] & this->m_pieces[color][pawn])
+        {
+            if (squareBB & opponentBoardSide)
+            {
+                evaluation += OUTPOST_VALUE;
+            }
+            evaluation += PAWN_DEFENDS_VALUE;
+        }
+        else if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
+        {
+            evaluation += HANGING_MINOR_PIECE_PENALTY;
+        }
+        if (!(pawnsAheadMask & this->m_pieces[!color][pawn]))
+        {
+            evaluation += NO_PAWN_THREAT_VALUE;
         }
 
         knights &= knights - 1;
     }
     return evaluation;
+}
+
+int BitBoard::evaluateBishops(const bool color) const
+{
+    return 0;
 }
 
 

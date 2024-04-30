@@ -310,8 +310,12 @@ Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 			{
 				nextPosition = this->m_currPosition->castleMove(moves[i][j].isLong);
 			}
-
+			int searchExtension = 0;
 			const u64 zobristHash = nextPosition->getZobristHash();
+			if (this->m_currPosition->isCheck(color) || nextPosition->isCheck(!color) || moves[i][j].promotion != NO_PROMOTION)
+			{
+				searchExtension += 2;
+			}
 
 			if (MoveSearch::transpositionTable[zobristHash].second != -1 && MoveSearch::transpositionTable[zobristHash].second >= (SEARCH_DEPTH))
 			{
@@ -319,8 +323,8 @@ Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 			}
 			else
 			{
-				score = MoveSearch::minimax(nextPosition, !color, searchDepth);
-				MoveSearch::transpositionTable[zobristHash] = { score, searchDepth };
+				score = MoveSearch::minimax(nextPosition, !color, searchDepth + searchExtension);
+				MoveSearch::transpositionTable[zobristHash] = { score, searchDepth + searchExtension };
 			}
 			if (color)
 			{
