@@ -185,6 +185,8 @@ private:
 	int evaluatePawns(const bool color) const;
 	int evaluateKnights(const bool color) const;
 	int evaluateBishops(const bool color) const;
+	int evaluateRooks(const bool color) const;
+	int evaluateQueens(const bool color) const;
 	int evaluateKing(const bool color, int endGameWeight, int colorMaterialAdvantage) const;
 };
 

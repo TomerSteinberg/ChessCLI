@@ -265,13 +265,15 @@ int BitBoard::evaluate() const
     endGameWeight = getEndgameWeight(whiteMaterialCount + blackMaterialCount);
     if (this->isCheck(!color))
     {
-        evaluation += color ?  20: -20;
+        evaluation += color ?  20 : -20;
     }
     evaluation += this->m_whiteMoves - this->m_blackMoves;
     evaluation += whiteMaterialCount - blackMaterialCount;
     evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
     evaluation += evaluateKnights(WHITE) - evaluateKnights(BLACK);
     evaluation += evaluateBishops(WHITE) - evaluateBishops(BLACK);
+    evaluation += evaluateRooks(WHITE) - evaluateRooks(BLACK);
+    evaluation += evaluateQueens(WHITE) - evaluateQueens(BLACK);
     evaluation += evaluateKing(WHITE, endGameWeight, whiteMaterialCount - blackMaterialCount) - evaluateKing(BLACK, endGameWeight,whiteMaterialCount - blackMaterialCount);
     
     return evaluation;
@@ -1932,7 +1934,86 @@ int BitBoard::evaluateKnights(const bool color) const
     return evaluation;
 }
 
+
+/*
+* Evaluates the Bishops in the position
+* input: color of bishops
+* output: evaluation
+*/
 int BitBoard::evaluateBishops(const bool color) const
+{
+    u64 bishops = this->m_pieces[color][bishop];
+    int evaluation = 0;
+    u64 combinedOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
+    constexpr int BISHOP_PAIR_VALUE = 20;
+    constexpr int8_t HANGING_MINOR_PIECE_PENALTY = -30;
+    constexpr int8_t BAD_BISHOP_PENALTY = -50;
+    constexpr int8_t COLOR_WEAKNESS_PENALTY = -40;
+    constexpr u64 DARK_SQUARES = 6172840429334713770ULL;
+    constexpr u64 LIGHT_SQUARES = 12273903644374837845ULL;
+
+    int bishopCount = bitCount(this->m_pieces[color][bishop]);
+
+
+    if (bishopCount == 2 && (this->m_pieces[color][knight] == 0ULL))
+    {
+        evaluation += BISHOP_PAIR_VALUE;
+    }
+    // Checking if the bishop opposite color to the pawn structure was captured, allowing the enemy bishop
+    // to penetrate without being challenged.
+    else if(bitCount(this->m_pieces[color][pawn] & DARK_SQUARES) >= 5 && !(bishops & LIGHT_SQUARES) &&
+        (this->m_pieces[!color][bishop] & LIGHT_SQUARES))
+    {
+        evaluation += COLOR_WEAKNESS_PENALTY;
+    }
+    else if (bitCount(this->m_pieces[color][pawn] & LIGHT_SQUARES) >= 5 && !(bishops & DARK_SQUARES) &&
+        (this->m_pieces[!color][bishop] & DARK_SQUARES))
+    {
+        evaluation += COLOR_WEAKNESS_PENALTY;
+    }
+
+    while (bishops)
+    {
+        int8_t square = getLsbIndex(bishops);
+        u64 squareBB = (1ULL << square);
+        u64 bishopAtk = getBishopAtk(square, combinedOccupancy);
+
+        evaluation += (bitCount(this->m_attackPatterns[color][bishop][square]) - (13 - bitCount(bishopAtk & (~this->m_whiteOccupancy)))) * 3;
+
+        if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
+        {
+            evaluation += HANGING_MINOR_PIECE_PENALTY;
+        }
+        
+        // TODO: Add bad bishop evaluation. This might requires a 64 square bad bishop table
+        // detailing pawn structure on each square. See https://www.chessprogramming.org/Bad_Bishop
+
+        // TODO: Consider adding a King distance evaluation as part of king tropism.
+        // See https://www.chessprogramming.org/King_Safety
+
+        bishops &= bishops - 1;
+    }
+    return evaluation;
+}
+
+
+/*
+* Evaluates the Rooks in the position
+* input: color of rooks
+* output: evaluation
+*/
+int BitBoard::evaluateRooks(const bool color) const
+{
+    return 0;
+}
+
+
+/*
+* Evaluates the Queens in the position
+* input: color of queens
+* output: evaluation
+*/
+int BitBoard::evaluateQueens(const bool color) const
 {
     return 0;
 }
