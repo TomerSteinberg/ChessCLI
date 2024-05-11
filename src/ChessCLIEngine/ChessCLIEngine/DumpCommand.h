@@ -12,6 +12,10 @@
 #include <regex>
 
 #define FLAGS_REGEX "^((-b)|(-l)|(-h))$"
+
+#ifdef COMMAND_NAME
+#undef COMMAND_NAME
+#endif
 #define COMMAND_NAME "dump"
 
 

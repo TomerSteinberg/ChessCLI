@@ -13,7 +13,7 @@ void HistoryCommand::execute(Context& ctx)
 		throw InvalidCommandException(COMMAND_NAME);
 	}
 	std::vector<std::string> history = ctx.getCurrGame()->getHistory();
-	for (int i = 0; i < history.size(); i++)
+	for (size_t	i = 0; i < history.size(); i++)
 	{
 		std::cout << std::to_string(i + 1) + ".\t";
 		std::cout << history[i] + "\t";

@@ -5,8 +5,169 @@
 
 u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES] = { 0 };
 
+const u64 BitBoard::rookMagic[64] = {
+    0x8a80104000800020ULL,
+    0x140002000100040ULL,
+    0x2801880a0017001ULL,
+    0x100081001000420ULL,
+    0x200020010080420ULL,
+    0x3001c0002010008ULL,
+    0x8480008002000100ULL,
+    0x2080088004402900ULL,
+    0x800098204000ULL,
+    0x2024401000200040ULL,
+    0x100802000801000ULL,
+    0x120800800801000ULL,
+    0x208808088000400ULL,
+    0x2802200800400ULL,
+    0x2200800100020080ULL,
+    0x801000060821100ULL,
+    0x80044006422000ULL,
+    0x100808020004000ULL,
+    0x12108a0010204200ULL,
+    0x140848010000802ULL,
+    0x481828014002800ULL,
+    0x8094004002004100ULL,
+    0x4010040010010802ULL,
+    0x20008806104ULL,
+    0x100400080208000ULL,
+    0x2040002120081000ULL,
+    0x21200680100081ULL,
+    0x20100080080080ULL,
+    0x2000a00200410ULL,
+    0x20080800400ULL,
+    0x80088400100102ULL,
+    0x80004600042881ULL,
+    0x4040008040800020ULL,
+    0x440003000200801ULL,
+    0x4200011004500ULL,
+    0x188020010100100ULL,
+    0x14800401802800ULL,
+    0x2080040080800200ULL,
+    0x124080204001001ULL,
+    0x200046502000484ULL,
+    0x480400080088020ULL,
+    0x1000422010034000ULL,
+    0x30200100110040ULL,
+    0x100021010009ULL,
+    0x2002080100110004ULL,
+    0x202008004008002ULL,
+    0x20020004010100ULL,
+    0x2048440040820001ULL,
+    0x101002200408200ULL,
+    0x40802000401080ULL,
+    0x4008142004410100ULL,
+    0x2060820c0120200ULL,
+    0x1001004080100ULL,
+    0x20c020080040080ULL,
+    0x2935610830022400ULL,
+    0x44440041009200ULL,
+    0x280001040802101ULL,
+    0x2100190040002085ULL,
+    0x80c0084100102001ULL,
+    0x4024081001000421ULL,
+    0x20030a0244872ULL,
+    0x12001008414402ULL,
+    0x2006104900a0804ULL,
+    0x1004081002402ULL,
+};
 
-BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES]))
+
+const u64 BitBoard::bishopMagic[64] = {
+    0x40040844404084ULL,
+    0x2004208a004208ULL,
+    0x10190041080202ULL,
+    0x108060845042010ULL,
+    0x581104180800210ULL,
+    0x2112080446200010ULL,
+    0x1080820820060210ULL,
+    0x3c0808410220200ULL,
+    0x4050404440404ULL,
+    0x21001420088ULL,
+    0x24d0080801082102ULL,
+    0x1020a0a020400ULL,
+    0x40308200402ULL,
+    0x4011002100800ULL,
+    0x401484104104005ULL,
+    0x801010402020200ULL,
+    0x400210c3880100ULL,
+    0x404022024108200ULL,
+    0x810018200204102ULL,
+    0x4002801a02003ULL,
+    0x85040820080400ULL,
+    0x810102c808880400ULL,
+    0xe900410884800ULL,
+    0x8002020480840102ULL,
+    0x220200865090201ULL,
+    0x2010100a02021202ULL,
+    0x152048408022401ULL,
+    0x20080002081110ULL,
+    0x4001001021004000ULL,
+    0x800040400a011002ULL,
+    0xe4004081011002ULL,
+    0x1c004001012080ULL,
+    0x8004200962a00220ULL,
+    0x8422100208500202ULL,
+    0x2000402200300c08ULL,
+    0x8646020080080080ULL,
+    0x80020a0200100808ULL,
+    0x2010004880111000ULL,
+    0x623000a080011400ULL,
+    0x42008c0340209202ULL,
+    0x209188240001000ULL,
+    0x400408a884001800ULL,
+    0x110400a6080400ULL,
+    0x1840060a44020800ULL,
+    0x90080104000041ULL,
+    0x201011000808101ULL,
+    0x1a2208080504f080ULL,
+    0x8012020600211212ULL,
+    0x500861011240000ULL,
+    0x180806108200800ULL,
+    0x4000020e01040044ULL,
+    0x300000261044000aULL,
+    0x802241102020002ULL,
+    0x20906061210001ULL,
+    0x5a84841004010310ULL,
+    0x4010801011c04ULL,
+    0xa010109502200ULL,
+    0x4a02012000ULL,
+    0x500201010098b028ULL,
+    0x8040002811040900ULL,
+    0x28000010020204ULL,
+    0x6000020202d0240ULL,
+    0x8918844842082200ULL,
+    0x4010011029020020ULL,
+};
+
+
+const int BitBoard::rookRelevantBits[64] = {
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12
+};
+
+
+const int BitBoard::bishopRelevantBits[64] = {
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6
+};
+
+
+BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std::shared_ptr<std::shared_ptr<u64[NUMBER_OF_SQUARES]>[NUMBER_OF_PIECES]>[SIDES])),
+    m_bishopAttacks(BishopAttack(new std::shared_ptr<u64[512]>[NUMBER_OF_SQUARES])),
+    m_rookAttacks(RookAttack(new std::shared_ptr<u64[4096]>[NUMBER_OF_SQUARES]))
 {
     this->m_enPassantSquare = NO_ENPASSANT;
     this->m_moveFlags = 0b0;
@@ -21,23 +182,42 @@ BitBoard::BitBoard(std::string fen) : m_attackPatterns(AttackDictionary(new std:
             this->m_pieces[color][piece] = 0ULL; // reseting pieces
         }
     }
+    for (int square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        this->m_bishopAttacks[square] = std::shared_ptr<u64[512]>(new u64[512]);
+        this->m_rookAttacks[square] = std::shared_ptr<u64[4096]>(new u64[4096]);
+    }
+    this->m_moveList.fill({ {0, 0, NO_PROMOTION, false, false} });
 
     initZobristKeys();
     parseFen(fen);
     initAtkDictionary();
+    initSliderAttacks(true);
+    initSliderAttacks(false);
+    this->m_whiteMoves = 0;
+    this->m_blackMoves = 0;
 
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
-    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
-    this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
-    this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    if (COLOR)
+    {
+        this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    }
+    else
+    {
+        this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
+    }
+
+    getLegalMoves(COLOR);
+    this->m_hash = getInitialZobristHash();
 }
 
 
 // Using shallow copy for attack dictionary to avoid unnecessary computation 
-BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant) :
-    m_attackPatterns(attackPatterns), m_enPassantSquare(enPassant) ,m_moveFlags(flags)
+BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& attackPatterns, uint8_t flags, uint8_t enPassant,
+    const BishopAttack& bishopAttacks, const RookAttack& rookAttacks) :
+    m_attackPatterns(attackPatterns), m_enPassantSquare(enPassant) ,m_moveFlags(flags),
+    m_bishopAttacks(bishopAttacks), m_rookAttacks(rookAttacks)
 {
     for (int color = 0; color < SIDES; color++)
     {
@@ -47,12 +227,19 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
         }
     }
 
+    this->m_moveList.fill({ {0, 0, NO_PROMOTION, false, false} });
     this->m_whiteOccupancy = getSideOccupancy(WHITE);
     this->m_blackOccupancy = getSideOccupancy(BLACK);
-    this->m_whiteMoveList = getPseudoLegalMoves(WHITE);
-    this->m_blackMoveList = getPseudoLegalMoves(BLACK);
-    this->m_whiteAtkedSqrs = this->getAttackSqrs(WHITE);
-    this->m_blackAtkedSqrs = this->getAttackSqrs(BLACK);
+    if (COLOR)
+    {
+        this->m_blackAtkedSqrs = getAttackSqrs(BLACK);
+    }
+    else
+    {
+        this->m_whiteAtkedSqrs = getAttackSqrs(WHITE);
+    }
+    getLegalMoves(COLOR);
+    this->m_hash = this->getInitialZobristHash();
 }
 
 
@@ -61,26 +248,38 @@ BitBoard::BitBoard(u64 pieces[SIDES][NUMBER_OF_PIECES], const AttackDictionary& 
 * input: None
 * output: Evaluation number (double)
 */
-float BitBoard::evaluate() const
-{
-    const int PIECE_VALUES[] = { 100, 300, 300, 500, 900 };
-    float evaluation = 0;
+int BitBoard::evaluate() const
+{    
+    constexpr int PIECE_WEIGHTS[] = { 100, 300, 300, 500, 900 };
+    int evaluation = 0;
     bool color = COLOR;
-    int whiteProximityCount = getProximityCount(getLsbIndex(this->m_pieces[WHITE][king]), WHITE) * 10;
-    int blackProximityCount = getProximityCount(getLsbIndex(this->m_pieces[BLACK][king]), BLACK) * 10;
+    int whiteMaterialCount = 0;
+    int blackMaterialCount = 0;
+    int endGameWeight = 0;
+    int materialDifference = 0;
+    int materialCombined = 0;
 
     for (int i = 0; i < NUMBER_OF_PIECES - 1; i++)
     {
-        evaluation += (bitCount(this->m_pieces[WHITE][i]) * PIECE_VALUES[i]) 
-                      - (bitCount(this->m_pieces[BLACK][i]) * PIECE_VALUES[i]);
+        whiteMaterialCount += (bitCount(this->m_pieces[WHITE][i]) * PIECE_WEIGHTS[i]);
+        blackMaterialCount += (bitCount(this->m_pieces[BLACK][i]) * PIECE_WEIGHTS[i]);
     }
+    materialCombined = whiteMaterialCount + blackMaterialCount;
+    materialDifference = whiteMaterialCount - blackMaterialCount;
+    endGameWeight = getEndgameWeight(materialCombined);
     if (this->isCheck(!color))
     {
-        evaluation += 70;
+        evaluation += color ?  20 : -20;
     }
-    evaluation += bitCount(this->m_whiteAtkedSqrs) - bitCount(this->m_blackAtkedSqrs);
-
-    evaluation += blackProximityCount - whiteProximityCount;
+    evaluation += this->m_whiteMoves - this->m_blackMoves;
+    evaluation += materialDifference;
+    evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
+    evaluation += evaluateKnights(WHITE, materialCombined) - evaluateKnights(BLACK, materialCombined);
+    evaluation += evaluateBishops(WHITE, materialCombined) - evaluateBishops(BLACK, materialCombined);
+    evaluation += evaluateRooks(WHITE) - evaluateRooks(BLACK);
+    evaluation += evaluateQueens(WHITE, materialCombined) - evaluateQueens(BLACK, materialCombined);
+    evaluation += evaluateKing(WHITE, endGameWeight, materialDifference) - evaluateKing(BLACK, endGameWeight, materialDifference);
+    
     return evaluation;
 }
 
@@ -91,18 +290,19 @@ float BitBoard::evaluate() const
 * input: start and end square of move, promotion piece
 * output: bitboard after move was played
 */
-std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int promotionPiece) const
+std::shared_ptr<BitBoard> BitBoard::move(const int startSquare, int endSquare, const int promotionPiece) const
 {
     if (startSquare == endSquare) { throw IllegalMoveException(); }
 
-    int target = NO_CAPTURE;
-    int piece = 0;
     const bool color = COLOR;
+    bool isAttackingEnPassant = false;
+    int target = NO_CAPTURE;
+    uint8_t piece = 0;
     u64 startPos = 0ULL, endPos = 0ULL;
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
-    uint8_t nextFlags = this->m_moveFlags, nextEnPasssant = NO_ENPASSANT;
     const u64 promotionMask = this->getPromotionMask(color);
-    bool isAttackingEnPassant = false;
+    uint8_t nextFlags = this->m_moveFlags, nextEnPasssant = NO_ENPASSANT;
+
 
     if( promotionPiece >= king || (promotionPiece < knight && promotionPiece != NO_PROMOTION))
     { throw IllegalMoveException("Invalid Promotion: You can only promote to Knight, Bishop, Rook or Queen."); }
@@ -110,26 +310,38 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     this->getPiecesCopy(nextPosition);
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
-    u64 currColorBoard = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
+    const u64 currColorBoard = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    const u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
 
     if (!(startPos & currColorBoard)) { throw MissingPieceException(startSquare, color); }
     if (endPos & currColorBoard) { throw IllegalMoveException("You can't capture your own pieces"); }
 
     piece = getPieceType(startSquare, color);
-    if(!isMovePseudoLegal(startSquare, endSquare, color))
+    if(!isMoveInMoveList(startSquare, endSquare, color))
     {   throw IllegalMoveException(); }
 
     if (piece == king) { nextFlags &= color ? 0b1111001 : 0b1100111; } // taking ability to castle
     else if (piece == rook) 
     {
         // taking ability to castle
-        if (color) { nextFlags &= startSquare % 8 == 0 ? 0b1111011 : 0b1111101; }
-        else { nextFlags &= startSquare % 8 == 0 ? 0b1101111 : 0b1110111; }
+        if (color)
+        {
+            if(startSquare == a1)
+            {   nextFlags &= 0b1111011; }
+            else if(startSquare == h1)
+            {   nextFlags &= 0b1111101; }
+        }
+        else
+        {
+            if (startSquare == a8)
+            {   nextFlags &= 0b1101111; }
+            else if (startSquare == h8)
+            {   nextFlags &= 0b1110111; }
+        }
     }
     else if (piece == pawn)
     {
-        u64 enPassantBoard = this->getEnPassantPattern(startSquare, color);
+        const u64 enPassantBoard = this->getEnPassantPattern(startSquare, color);
         if (endPos & enPassantBoard) { isAttackingEnPassant = true; target = pawn; }
         if (abs(startSquare - endSquare) == PAWN_DOUBLE_JUMP_DIFFERENCE)
         { nextEnPasssant = color ? endSquare + 8 : endSquare - 8; }
@@ -149,11 +361,17 @@ std::shared_ptr<BitBoard> BitBoard::move(int startSquare, int endSquare, int pro
     expressMove(nextPosition, color, piece, target, startSquare, endSquare, promotionPiece);
     if (target != NO_CAPTURE) 
     {
-        if (target == rook && endPos & CORNERS) // removing rook castling after getting captured
+        // removing rook castling after getting captured
+        if (target == rook &&
+            ((color == BLACK && (endPos & BOTTOM_CORNERS)) 
+            || (color == WHITE && (endPos & TOP_CORNERS)))) 
         { nextFlags ^= (2 << (color * 2) << (endPos & LEFT_CORNERS ? 1 : 0)); }
 
         if (isAttackingEnPassant)  // removing en Passant pawn based on color
-        { endSquare = color ? endSquare + 8 : endSquare - 8; }
+        { 
+            endSquare = color ? endSquare + 8 : endSquare - 8;
+            POP_BIT(nextPosition[!color][pawn], endSquare);
+        }
     } 
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
@@ -227,39 +445,15 @@ std::string BitBoard::getFen() const
 }
 
 
-/*
-* Calculates Zobrist Hash of position
-* input: None
-* output: Zobrist Hash
-*/
 u64 BitBoard::getZobristHash() const
 {
-    u64 hash = 0ULL;
-    uint8_t flags = this->m_moveFlags;
-    flags >> 1;
-
-    for (auto it = this->m_whiteMoveList.begin(); it != this->m_whiteMoveList.end(); it++)
-    {
-        hash ^= BitBoard::zobristKeys[WHITE][getPieceType(it->from, WHITE)][getLsbIndex(it->from)];
-    }
-    for (auto it = this->m_blackMoveList.begin(); it != this->m_blackMoveList.end(); it++)
-    {
-        hash ^= BitBoard::zobristKeys[BLACK][getPieceType(it->from, BLACK)][getLsbIndex(it->from)];
-    }
-    if (this->m_enPassantSquare != NO_ENPASSANT)
-    {
-        hash ^= BitBoard::zobristKeys[WHITE][pawn][this->m_enPassantSquare * 2];
-    }
-    hash ^= BitBoard::zobristKeys[WHITE][pawn][(COLOR)+129];
-    hash ^= BitBoard::zobristKeys[WHITE][pawn][131 + flags];
-
-    return hash;
+    return this->m_hash;
 }
 
 
-std::deque<Move> BitBoard::getMoveList()
+std::array<std::array<Move, 128>, 5> BitBoard::getMoveList()
 {
-    return COLOR ? this->m_whiteMoveList : this->m_blackMoveList;
+    return this->m_moveList;
 }
 
 
@@ -311,15 +505,21 @@ void BitBoard::printBoard(bool isUnicode) const
 * input: next position board (u64[][]), flags for the position (uint8_t), next enPassant square (uint8_t)
 * output: shared ptr of next position (shared_ptr<BitBoard>)
 */
-std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
+inline std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER_OF_PIECES], uint8_t nextFlags, uint8_t nextEnPassant) const
 {
-    bool color = COLOR;
+    const bool color = COLOR;
     nextFlags ^= 0b1; // changing color turn
     // creating the instance of the next position
-    std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant);
+    std::shared_ptr<BitBoard> afterMove = std::make_shared<BitBoard>(nextPos, this->m_attackPatterns, nextFlags, nextEnPassant, this->m_bishopAttacks, this->m_rookAttacks);
 
-    if (this->isCheck(color) && afterMove->isCheck(color)) { throw IllegalMoveException("You're in check"); }
-    if (afterMove->isCheck(color)) { throw IllegalMoveException("You can't move into check"); }
+    if (afterMove->isCheck(color)) 
+    {
+        if (this->isCheck(color))
+        {
+            throw IllegalMoveException("You're in check"); 
+        }
+        throw IllegalMoveException("You can't move into check");
+    }
 
     return afterMove;
 }
@@ -331,56 +531,111 @@ std::shared_ptr<BitBoard> BitBoard::createNextPosition(u64 nextPos[SIDES][NUMBER
 * output: vector of pairs that each contain the piece bitboard
 * and the corresponding attack pattern bitboard
 */
-std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
+inline void BitBoard::getLegalMoves(const bool color)
 {
-    u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    std::deque<Move> moves;
-    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+    const u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    const u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    const u64 combinedOccupancy = currOccupancy | oppositeOccupancy;
+    const u64 oppositeAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
+    int* pieceMoves = color ? &this->m_whiteMoves : &this->m_blackMoves;
+    u64* pieceAttackSquars = color ? &this->m_whiteAtkedSqrs : &this->m_blackAtkedSqrs;
+    u64* pieceAttackInclusive = color ? &this->m_whiteAttackInclusive : &this->m_blackAttackInclusive;
+    *pieceMoves = 0;
+    *pieceAttackSquars = 0ULL;
+
+    int specialMoveIndex = 0;
+    int killerMoveIndex = 0;
+    int goodMoveIndex = 0;
+    int averageMoveIndex = 0;
+    int worstMoveIndex = 0;
+
+    for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         u64 board = this->m_pieces[color][piece];
         while (board)
         {
             int square = getLsbIndex(board);
+            u64 squareBoard = (1ULL << square);
             u64 pattern = this->m_attackPatterns[color][piece][square];
             switch (piece)
             {
                 case pawn:
+                    (*pieceAttackInclusive) |= (pattern & combinedOccupancy);
                     pattern = this->removePawnIllegalAtk(pattern, color) |
                         this->getPawnMovementPattern(square, color) |
                         this->getEnPassantPattern(square, color);
                     break;
                 case rook:
-                    pattern = this->removeRookBlockedAtk(square, pattern, color);
+                    pattern = getRookAtk(square, combinedOccupancy);
+                    (*pieceAttackInclusive) |= pattern;
+                    pattern &= (~currOccupancy);
                     break;
                 case bishop:
-                    pattern = this->removeBishopBlockedAtk(square, pattern, color);
+                    pattern = getBishopAtk(square, combinedOccupancy);
+                    (*pieceAttackInclusive) |= pattern;
+                    pattern &= (~currOccupancy);
                     break;
                 case queen:
-                    pattern = this->removeQueenBlockedAtk(square, pattern, color);
+                    pattern = this->removeQueenBlockedAtk(square, combinedOccupancy);
+                    (*pieceAttackInclusive) |= pattern;
+                    pattern &= (~currOccupancy);
                     break;
                 case knight: case king:
+                    (*pieceAttackInclusive) |= pattern;
                     pattern ^= pattern & currOccupancy;
                     break;
             }
+            
+            (*pieceAttackSquars) |= pattern;
+            (*pieceMoves) += bitCount(pattern);
+
             while (pattern)
             {
-                int index = getLsbIndex(pattern);
-                if ((1ULL << square) & this->m_pieces[color][pawn] && 
-                    (1ULL << index) & getPromotionMask(color) && index != -1)
+                const int8_t index = getLsbIndex(pattern);
+                const u64 indexBoard = (1ULL << index);
+                if (index != -1 && squareBoard & this->m_pieces[color][pawn] && 
+                    indexBoard & getPromotionMask(color))
                 {
-                    moves.push_back({ (1ULL << square), (1ULL << index), queen, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), rook, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), bishop, false, false });
-                    moves.push_back({ (1ULL << square), (1ULL << index), knight, false, false });
-                }
-                else if (index != -1) {
-                    if (getPieceType(index, !color) != NO_CAPTURE)
+                    if (!isMoveLegal(square, index, squareBoard, indexBoard, color))
                     {
-                        moves.push_front({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        pattern &= pattern - 1;
+                        continue;
+                    }
+
+                    this->m_moveList[special][specialMoveIndex++] = { squareBoard, indexBoard, queen, false, false };
+                    this->m_moveList[special][specialMoveIndex++] = { squareBoard, indexBoard, rook, false, false };
+                    this->m_moveList[special][specialMoveIndex++] = { squareBoard, indexBoard, bishop, false, false };
+                    this->m_moveList[special][specialMoveIndex++] = { squareBoard, indexBoard, knight, false, false };
+                    
+                }
+                else if (index != -1) 
+                {
+                    if (!isMoveLegal(square, index, squareBoard, indexBoard, color))
+                    {
+                        pattern &= pattern - 1;
+                        continue;
+                    }
+                    int8_t target = getPieceType(index, !color);
+                    Move move = { squareBoard, indexBoard, NO_PROMOTION, false, false };
+                    if (indexBoard & this->m_pieces[!color][king])
+                    {
+                        this->m_moveList[killer][killerMoveIndex++] = move;
+                    }
+                    if (target > piece)
+                    {
+                        this->m_moveList[good][goodMoveIndex++] = move;
+                    }
+                    else if (target != NO_CAPTURE)
+                    {
+                        this->m_moveList[good][goodMoveIndex++] = move;
+                    }
+                    else if (index & oppositeAtk)
+                    {
+                        this->m_moveList[average][averageMoveIndex++] = move;
                     }
                     else
                     {
-                        moves.push_back({ (1ULL << square), (1ULL << index), NO_PROMOTION, false, false });
+                        this->m_moveList[worst][worstMoveIndex++] = move;
                     }
                 }
                 pattern &= pattern - 1;
@@ -390,14 +645,66 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
     }
     if (isCastlingPossible(false))
     {
-        moves.push_back({ 0, 0, NO_PROMOTION, true, false });
+        this->m_moveList[special][specialMoveIndex++] = { 0, 0, NO_PROMOTION, true, false };
     }
     if (isCastlingPossible(true))
     {
-        moves.push_back({ 0, 0, NO_PROMOTION, true, true });
+        this->m_moveList[special][specialMoveIndex++] = { 0, 0, NO_PROMOTION, true, true };
+    }
+    this->m_initMoveIndexes = { killerMoveIndex, specialMoveIndex, goodMoveIndex, averageMoveIndex, worstMoveIndex };
+
+}
+
+
+/*
+* Checks if a move is legal by playing it seeing if the king is in check and unplaying it 
+* input: move indexes and their bitboards. color of side
+* output: true if the move is fully legal and false otherwise
+*/
+inline bool BitBoard::isMoveLegal(int from, int to, u64 fromBB, u64 toBB, bool color)
+{
+    int8_t target = getPieceType(to, !color);
+    int8_t moving = getPieceType(from, color);
+    u64 prevW = this->m_whiteOccupancy;
+    u64 prevB = this->m_blackOccupancy;
+    uint8_t prevEnPassant = this->m_enPassantSquare;
+    bool attackingEnPassant = false;
+
+    expressMove(this->m_pieces, color, moving, target, from, to, NO_PROMOTION);
+    if (moving == pawn)
+    {
+        if (to == this->m_enPassantSquare)
+        {
+            attackingEnPassant = true;
+            POP_BIT(this->m_pieces[!color][pawn], (color ? this->m_enPassantSquare + 8 : this->m_enPassantSquare - 8));
+        }
+        if (abs(from - to) == PAWN_DOUBLE_JUMP_DIFFERENCE)
+        {
+            this->m_enPassantSquare = color ? to + 8 : to - 8;
+        }
+    }
+    this->m_whiteOccupancy = getSideOccupancy(WHITE);
+    this->m_blackOccupancy = getSideOccupancy(BLACK);
+    
+    // using dynamic check for now. Needs further profiling
+    //bool legal = !(this->m_pieces[color][king] & this->getAttackSqrs(!color));
+    bool legal = !(this->dynamicCheck(color));
+
+    expressMove(this->m_pieces, color, moving, NO_CAPTURE, to, from, NO_PROMOTION);
+    this->m_whiteOccupancy = prevW;
+    this->m_blackOccupancy = prevB;
+    this->m_enPassantSquare = prevEnPassant;
+
+    if (target != NO_CAPTURE)
+    {
+        SET_BIT(this->m_pieces[!color][target], to);
+    }
+    if (attackingEnPassant)
+    {
+        SET_BIT(this->m_pieces[!color][pawn], (color ? this->m_enPassantSquare + 8 : this->m_enPassantSquare - 8));
     }
 
-    return moves;
+    return legal;
 }
 
 
@@ -406,21 +713,78 @@ std::deque<Move> BitBoard::getPseudoLegalMoves(bool color) const
 * input: start and end square of move (int,int)
 * output: true if move is found, false otherwise (bool)
 */
-bool BitBoard::isMovePseudoLegal(int startSquare, int endSquare, bool color) const
+inline bool BitBoard::isMoveInMoveList(int startSquare, int endSquare, bool color) const
 {
     int piece = getPieceType(startSquare, color);
     u64 startPos = 0ULL;
     u64 endPos = 0ULL;
-    auto moveList = color ? this->m_whiteMoveList : this->m_blackMoveList;
 
     SET_BIT(startPos, startSquare);
     SET_BIT(endPos, endSquare);
 
-    for(auto it = moveList.begin(); it != moveList.end(); it++)
+    for(int i = 0; i < this->m_moveList.size(); i++)
     {
-        if (it->from == startPos && it->to == endPos)
+        for (int j = 0; j < this->m_moveList[i].size(); j++)
         {
-            return true;
+            if (this->m_moveList[i][j].from == this->m_moveList[i][j].to && !this->m_moveList[i][j].castle)
+            {
+                break;
+            }
+            if (this->m_moveList[i][j].from == startPos && this->m_moveList[i][j].to == endPos)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+/*
+* Checks if Check is on the board dynamically without an attack bitBoard
+* input: color of king
+* output: if there's check (bool)
+*/
+bool BitBoard::dynamicCheck(bool color)
+{
+    u64 attack = 0ULL;
+    u64 currOccupancy = !color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    u64 oppositeOccupancy = !color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    for (int piece = NUMBER_OF_PIECES - 1; piece >= 0; piece--)
+    {
+        u64 pieceBoard = this->m_pieces[!color][piece];
+        while (pieceBoard)
+        {
+            int square = getLsbIndex(pieceBoard);
+            u64 pattern = this->m_attackPatterns[!color][piece][square];
+            switch (piece)
+            {
+            case pawn:
+                pattern = this->removePawnIllegalAtk(pattern, !color) |
+                    this->getEnPassantPattern(square, !color);
+                if (!(pattern & oppositeOccupancy)) { pattern = 0ULL; }
+                break;
+            case rook:
+                pattern = getRookAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case bishop:
+                pattern = getBishopAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case queen:
+                pattern = this->removeQueenBlockedAtk(square, currOccupancy | oppositeOccupancy);
+                pattern &= (~currOccupancy);
+                break;
+            case knight: case king:
+                pattern ^= pattern & currOccupancy;
+                break;
+            }
+            if (this->m_pieces[color][king] & pattern)
+            {
+                return true;
+            }
+            pieceBoard &= pieceBoard - 1;
         }
     }
     return false;
@@ -447,7 +811,7 @@ void BitBoard::parseFen(std::string fen)
         {'q', 16}
     };
 
-    for (int i = 0, square = 0; i < fenParts[0].length(); i++)
+    for (size_t i = 0, square = 0; i < fenParts[0].length(); i++)
     {
         if (fenParts[0][i] == '/')
         {
@@ -456,7 +820,7 @@ void BitBoard::parseFen(std::string fen)
         }
         if (std::isdigit(fenParts[0][i]))
         {
-            square += (int)fenParts[0][i] - 48;
+            square += (size_t)fenParts[0][i] - 48;
             continue;
         }
 
@@ -467,7 +831,7 @@ void BitBoard::parseFen(std::string fen)
     }
 
     this->m_moveFlags |= fenParts[1] == "w" ? 0b1 : 0b0; // Who's starting
-    for (int i = 0; i < fenParts[2].length(); i++)
+    for (size_t i = 0; i < fenParts[2].length(); i++)
     {
         this->m_moveFlags |= charToCastle[fenParts[2][i]];
     }
@@ -481,6 +845,40 @@ void BitBoard::parseFen(std::string fen)
     {
         this->m_enPassantSquare = NO_ENPASSANT;
     }
+}
+
+
+/*
+* Calculates the initial Zobrist Hash of position
+* input: None
+* output: Zobrist Hash
+*/
+inline u64 BitBoard::getInitialZobristHash() const
+{
+    u64 hash = 0ULL;
+    uint8_t flags = this->m_moveFlags;
+    flags >>= 1;
+
+    for (uint8_t color = 0; color < SIDES; color++)
+    {
+        for (uint8_t i = 0; i < NUMBER_OF_PIECES; i++)
+        {
+            u64 piece = this->m_pieces[color][i];
+            while (piece)
+            {
+                hash ^= this->zobristKeys[color][i][getLsbIndex(piece)];
+                piece &= piece - 1;
+            }
+        }
+    }
+    if (this->m_enPassantSquare != NO_ENPASSANT)
+    {
+        hash ^= BitBoard::zobristKeys[COLOR][pawn][this->m_enPassantSquare * 2];
+    }
+    hash ^= BitBoard::zobristKeys[WHITE][pawn][(COLOR)+129];
+    hash ^= BitBoard::zobristKeys[WHITE][pawn][131 + flags];
+
+    return hash;
 }
 
 
@@ -530,13 +928,49 @@ void BitBoard::initZobristKeys()
     std::random_device randomDevice;
     std::mt19937_64 rng(randomDevice());
     std::uniform_int_distribution<u64> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2, 62)));
-    for (int side = 0; side < SIDES; side++)
+    for (uint8_t side = 0; side < SIDES; side++)
     {
-        for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+        for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
         {
-            for(int square = 0; square < ZOBRIST_SQUARES; square++)
+            for(uint8_t square = 0; square < ZOBRIST_SQUARES; square++)
             {
                 BitBoard::zobristKeys[side][piece][square] = dist(rng);
+            }
+        }
+    }
+}
+
+
+/*
+* Inits slider attack magic bitboards
+* input: is Bishop piece (false means rook)
+* output: None
+*/
+void BitBoard::initSliderAttacks(bool isBishop)
+{
+    for (uint8_t square = 0; square < NUMBER_OF_SQUARES; square++)
+    {
+        u64 bishopAtk = this->m_attackPatterns[WHITE][bishop][square];
+        u64 rookAtk = this->m_attackPatterns[WHITE][rook][square];
+
+        u64 mask = isBishop ? bishopAtk : rookAtk;
+        int bits = bitCount(mask);
+
+        int occupancyVariations = 1 << bits;
+
+        for (int count = 0; count < occupancyVariations; count++)
+        {
+            if (isBishop)
+            {
+                u64 occupancy = setOccupancy(count, bits, mask);
+                u64 magicIndex = occupancy * bishopMagic[square] >> (64 - bishopRelevantBits[square]);
+                this->m_bishopAttacks[square][magicIndex] = removeBishopBlockedAtk(square, occupancy);
+            }
+            else
+            {
+                u64 occupancy = setOccupancy(count, bits, mask);
+                u64 magicIndex = occupancy * rookMagic[square] >> (64 - rookRelevantBits[square]);
+                this->m_rookAttacks[square][magicIndex] = removeRookBlockedAtk(square, occupancy);
             }
         }
     }
@@ -548,7 +982,7 @@ void BitBoard::initZobristKeys()
 * input: board, color of current turn, piece, target, start Square, end Square, piece promotion
 * output: None
 */
-void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
+inline void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int piece, int target, int startSquare, int endSquare, int promotionPiece) const
 {
     SET_BIT(nextPos[color][promotionPiece == NO_PROMOTION ? piece : promotionPiece], endSquare);
     POP_BIT(nextPos[color][piece], startSquare);
@@ -561,16 +995,16 @@ void BitBoard::expressMove(u64 nextPos[SIDES][NUMBER_OF_PIECES], bool color, int
 
 
 /*
-* Method more making a castle move
+* Method for making a castle move
 * input: is Long castle (bool)
 * output: bitboard of the next position
 */
-std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
+std::shared_ptr<BitBoard> BitBoard::castleMove(const bool isLongCastle) const
 {
     u64 nextPosition[SIDES][NUMBER_OF_PIECES] = { 0ULL };
     uint8_t nextFlags = this->m_moveFlags;
     uint8_t nextEnPasssant = NO_ENPASSANT;
-    bool color = COLOR;
+    const bool color = COLOR;
 
     this->getPiecesCopy(nextPosition);
     u64 rookSquare = 0ULL; 
@@ -580,14 +1014,15 @@ std::shared_ptr<BitBoard> BitBoard::castleMove(bool isLongCastle) const
     {  throw IllegalMoveException();}
 
     // making castle move on bitboard
+    nextPosition[color][rook] &= rookSquare;
     nextPosition[color][king] = isLongCastle ?
         nextPosition[color][king] >> 2 : nextPosition[color][king] << 2;
     nextPosition[color][rook] = isLongCastle ?
         nextPosition[color][rook] << 3 : nextPosition[color][rook] >> 2;
-    nextPosition[color][rook] &= NO_SECOND_SEVENTH_RANK_MASK;
     nextPosition[color][rook] |= rookSquare ^ this->m_pieces[color][rook];
 
     nextFlags &= color ? 0b1111001 : 0b1100111;
+
     return createNextPosition(nextPosition, nextFlags, nextEnPasssant);
 }
 
@@ -602,7 +1037,7 @@ int BitBoard::getPieceType(int square, bool color) const
     u64 board = 0ULL;
     SET_BIT(board, square);
 
-    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
+    for (uint8_t piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
         if (board & this->m_pieces[color][piece])
         {
@@ -612,6 +1047,12 @@ int BitBoard::getPieceType(int square, bool color) const
     return -1;
 }
 
+
+/*
+* Gets a piece type on a square given a color
+* input: square and color
+* output: piece type (pieces enum)
+*/
 int BitBoard::getPieceType(u64 square, bool color) const
 {
     for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
@@ -623,7 +1064,7 @@ int BitBoard::getPieceType(u64 square, bool color) const
     }
     return -1;
 }
-
+ 
 
 /*
 * Method for getting the index of the least significant bit (LSB) in a given
@@ -631,13 +1072,19 @@ int BitBoard::getPieceType(u64 square, bool color) const
 * input: bitboard (u64)
 * output: index of LSB in given board
 */
-int BitBoard::getLsbIndex(u64 board)
+inline int8_t BitBoard::getLsbIndex(u64 board)
 {
-    if (!board)
-    {
-        return -1;
-    }
-    return bitCount((board & -board) - 1);
+    static const int8_t lookup67[68] = {
+   64,  0,  1, 39,  2, 15, 40, 23,
+    3, 12, 16, 59, 41, 19, 24, 54,
+    4, -1, 13, 10, 17, 62, 60, 28,
+   42, 30, 20, 51, 25, 44, 55, 47,
+    5, 32, -1, 38, 14, 22, 11, 58,
+   18, 53, 63,  9, 61, 27, 29, 50,
+   43, 46, 31, 37, 21, 57, 52,  8,
+   26, 49, 45, 36, 56,  7, 48, 35,
+    6, 34, 33, -1 };
+    return lookup67[(board & -(long long)board) % 67];
 }
 
 
@@ -646,7 +1093,7 @@ int BitBoard::getLsbIndex(u64 board)
 * input: color of king to check
 * output: true if the king is in check, false otherwise.
 */
-bool BitBoard::isCheck(bool color) const
+inline bool BitBoard::isCheck(bool color) const
 {
     return this->m_pieces[color][king] & (!color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs);
 }
@@ -658,32 +1105,7 @@ bool BitBoard::isCheck(bool color) const
 */
 bool BitBoard::isMate(bool color) const
 {
-    if (!this->isCheck(color))
-    {
-        return false;
-    }
-    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
-    for (int i = 0; i < moves.size(); i++)
-    {
-        try 
-        {
-            Move option = moves[i];
-            if (option.castle)
-            {
-                this->castleMove(option.isLong);
-            }
-            else
-            {
-                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
-            }
-            return false;
-        }
-        catch (...)
-        {
-            continue;
-        }
-    }
-    return true;
+    return this->isCheck(color) && this->getMoveListLength() == 0;
 }
 
 
@@ -694,41 +1116,15 @@ bool BitBoard::isMate(bool color) const
 */
 bool BitBoard::isStale(bool color) const
 {
-    if (this->isCheck(color) || color != (COLOR))
-    {
-        return false;
-    }
-    auto moves = color ? this->m_whiteMoveList : this->m_blackMoveList;
-    for (int i = 0; i < moves.size(); i++)
-    {
-        try
-        {
-            Move option = moves[i];
-            if (option.castle)
-            {
-                this->castleMove(option.isLong);
-            }
-            else
-            {
-                this->move(getLsbIndex(option.from), getLsbIndex(option.to), option.promotion);
-            }
-            return false;
-        }
-        catch (std::exception& e)
-        {
-            continue;
-        }
-    }
-    return true;
+    return !this->isCheck(color) && this->getMoveListLength() == 0;
 }
-
 
 /*
 * Method to get the  occupancy board with the location of all pieces of a specific color
 * input: color of pieces
 * output: a occupancy bitboard that contains all pieces of given color (u64)
 */
-u64 BitBoard::getSideOccupancy(const bool color) const
+inline u64 BitBoard::getSideOccupancy(const bool color) const
 {
     u64 unifiedBoard = 0ULL;
     for (int i = 0; i < NUMBER_OF_PIECES; i++)
@@ -744,15 +1140,58 @@ u64 BitBoard::getSideOccupancy(const bool color) const
 * input: side (white|black) (bool)
 * output: bitboard of all attacked squares (u64)
 */
-u64 BitBoard::getAttackSqrs(const bool color) const
+inline u64 BitBoard::getAttackSqrs(const bool color)
 {
     u64 attack = 0ULL;
-    std::deque<Move> pseudoLegal = color ?
-        this->m_whiteMoveList :
-        this->m_blackMoveList;
-    for (auto it = pseudoLegal.begin(); it != pseudoLegal.end(); it++)
+    const u64 currOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+    const u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    const u64 combinedOccupancy = currOccupancy | oppositeOccupancy;
+    u64* pieceAttackInclusive = color ? &this->m_whiteAttackInclusive : &this->m_blackAttackInclusive;
+    
+    int* pieceMoves = color ? &this->m_whiteMoves : &this->m_blackMoves;
+    *pieceMoves = 0;
+
+    for (int piece = 0; piece < NUMBER_OF_PIECES; piece++)
     {
-        attack |= it->to;
+        u64 pieceBoard = this->m_pieces[color][piece];
+        while (pieceBoard)
+        {
+            int square = getLsbIndex(pieceBoard);
+            u64 pattern = this->m_attackPatterns[color][piece][square];
+            switch (piece)
+            {
+            case pawn:
+                (*pieceAttackInclusive) |= (pattern & combinedOccupancy);
+                pattern = this->removePawnIllegalAtk(pattern, color) |
+                    this->getEnPassantPattern(square, color);
+                if (!(pattern & oppositeOccupancy)) { pattern = 0ULL; }
+                break;
+            case rook:
+                pattern = getRookAtk(square, combinedOccupancy);
+                (*pieceAttackInclusive) |= pattern;
+                pattern &= (~currOccupancy);
+                break;
+            case bishop:
+                pattern = getBishopAtk(square, combinedOccupancy);
+                (*pieceAttackInclusive) |= pattern;
+                pattern &= (~currOccupancy);
+                break;
+            case queen:
+                pattern = this->removeQueenBlockedAtk(square, combinedOccupancy);
+                (*pieceAttackInclusive) |= pattern;
+                pattern &= (~currOccupancy);
+                break;
+            case knight: case king:
+                (*pieceAttackInclusive) |= pattern;
+                pattern ^= pattern & currOccupancy;
+                break;
+            }
+            
+            (*pieceMoves) += bitCount(pattern);
+
+            attack |= pattern;
+            pieceBoard &= pieceBoard - 1;
+        }
     }
     return attack;
 }
@@ -764,9 +1203,69 @@ u64 BitBoard::getAttackSqrs(const bool color) const
 * input: None
 * output: Promotion rank mask (u64)
 */
-u64 BitBoard::getPromotionMask(bool color) const
+constexpr inline u64 BitBoard::getPromotionMask(const bool color) const
 {
     return color ? 255ULL : 18374686479671623680ULL;
+}
+
+inline const u64 BitBoard::getPassedPawnMask(const bool color, int8_t square) const
+{
+    const int8_t pawnRank = color ? 8 - (square / 8) : (square / 8) + 1;
+    const int8_t pawnFile = (square % 8);
+    const u64 pawnFileBB = A_FILE << pawnFile;
+    u64 passedPawnMask = color ? ULLONG_MAX >> pawnRank * 8 : ULLONG_MAX << pawnRank * 8;
+    passedPawnMask &= (pawnFileBB) |
+        ((pawnFile != 7) ? (A_FILE << (pawnFile + 1)) : 0) |
+        ((pawnFile != 0) ? (A_FILE << (pawnFile - 1)) : 0);
+    return passedPawnMask;
+}
+
+
+/*
+* Sets the occupancy based on an attack mask an index and a bitcount of mask
+* input: index, mask bit count and mask board
+* output: occupancy
+*/
+u64 BitBoard::setOccupancy(int index, int maskBitCount, u64 attackMask) const
+{
+    u64 occupancy = 0ULL;
+
+    for (int count = 0; count < maskBitCount; count++)
+    {
+        int square = getLsbIndex(attackMask);
+        POP_BIT(attackMask, square);
+        if (index & (1 << count))
+            occupancy |= (1ULL << square);
+    }
+    return occupancy;
+}
+
+
+/*
+* Gets a bishop attack from the magic bitboard
+* input: square and occupancy of board
+* output: pre caluclated bishop attack
+*/
+inline u64 BitBoard::getBishopAtk(int square, u64 occupancy) const
+{
+    occupancy &= this->m_attackPatterns[WHITE][bishop][square];
+    occupancy *= bishopMagic[square];
+    occupancy >>= (64 - (u64)bishopRelevantBits[square]);
+    return m_bishopAttacks[square][occupancy];
+}
+
+
+/*
+* Gets a rook attack from the magic bitboard
+* input: square and occupancy of board
+* output: pre caluclated rook attack
+*/
+inline u64 BitBoard::getRookAtk(int square, u64 occupancy) const
+{
+    occupancy &= this->m_attackPatterns[WHITE][rook][square];
+    occupancy *= rookMagic[square];
+    occupancy >>= (64 - (u64)rookRelevantBits[square]);
+    return m_rookAttacks[square][occupancy];
 }
 
 
@@ -775,64 +1274,39 @@ u64 BitBoard::getPromotionMask(bool color) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk, bool color) const
+u64 BitBoard::removeBishopBlockedAtk(int square, u64 occupancy) const
 {
-    int f = 0, r = 0;
-    int rank = square / 8;
-    int file = square % 8;
-    bool isBlocked = false;
-    u64 currColorOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 oppositeColorOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 attack = 0ULL;
 
-    // bishop moving shl 9
-    for (r = rank + 1, f = file + 1, isBlocked = false; r <= 7 && f <= 7; r++, f++)
+    int f, r;
+    int targetRank = square / 8;
+    int targetFile = square % 8;
+
+    // generate attacks
+    for (r = targetRank + 1, f = targetFile + 1; r <= 7 && f <= 7; r++, f++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shr 9
-    for (r = rank + -1, f = file - 1, isBlocked = false; r >= 0 && f >= 0; r--, f--)
+    for (r = targetRank + 1, f = targetFile - 1; r <= 7 && f >= 0; r++, f--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shr 7
-    for (r = rank - 1, f = file + 1, isBlocked = false; r >= 0 && f <= 7; r--, f++)
+    for (r = targetRank - 1, f = targetFile + 1; r >= 0 && f <= 7; r--, f++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
 
-    // bishop moving shl 7
-    for (r = rank + 1, f = file - 1, isBlocked = false; r <= 7 && f >= 0; r++, f--)
+    for (r = targetRank - 1, f = targetFile - 1; r >= 0 && f >= 0; r--, f--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (r * 8 + f));
+        if (occupancy & (1ULL << (r * 8 + f))) { break; }
     }
-
-    return atk;
+    return attack;
 }
 
 
@@ -841,64 +1315,40 @@ u64 BitBoard::removeBishopBlockedAtk(int square, u64 atk, bool color) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeRookBlockedAtk(int square, u64 atk, bool color) const
+u64 BitBoard::removeRookBlockedAtk(int square, u64 occupancy) const
 {
-    int f = 0, r = 0;
-    int rank = square / 8;
-    int file = square % 8;
-    bool isBlocked = false;
-    u64 currColorOccupancy = color ? this->m_whiteOccupancy : this->m_blackOccupancy;
-    u64 oppositeColorOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
+    u64 attack = 0ULL;
 
-    // rook shl 8
-    for (r = rank + 1, isBlocked = false; r <= 7; r++)
+    int file, rank;
+
+    int targetRank = square / 8;
+    int targetFile = square % 8;
+
+    for (rank = targetRank + 1; rank <= 7; rank++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + file)) & currColorOccupancy); }
-        if(isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + file));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + file)) & oppositeColorOccupancy;
+        attack |= (1ULL << (rank * 8 + targetFile));
+        if (occupancy & (1ULL << (rank * 8 + targetFile))) { break; }
     }
 
-    // rook shr 8
-    for (r = rank - 1, isBlocked = false; r >= 0; r--)
+    for (rank = targetRank - 1; rank >= 0; rank--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((r * 8) + file)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((r * 8) + file));
-            continue;
-        }
-        isBlocked = (1ULL << ((r * 8) + file)) & oppositeColorOccupancy;
+        attack |= (1ULL << (rank * 8 + targetFile));
+        if (occupancy & (1ULL << (rank * 8 + targetFile))) { break; }
     }
 
-    // rook shl 1
-    for (f = file + 1, isBlocked = false; f <= 7; f++)
+    for (file = targetFile + 1; file <= 7; file++)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((rank * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((rank * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((rank * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (targetRank * 8 + file));
+        if (occupancy & (1ULL << (targetRank * 8 + file))) { break; }
     }
 
-    // rook shr 1
-    for (f = file - 1, isBlocked = false; f >= 0; f--)
+    for (file = targetFile - 1; file >= 0; file--)
     {
-        if (!isBlocked) { isBlocked = ((1ULL << ((rank * 8) + f)) & currColorOccupancy); }
-        if (isBlocked)
-        {
-            atk ^= (1ULL << ((rank * 8) + f));
-            continue;
-        }
-        isBlocked = (1ULL << ((rank * 8) + f)) & oppositeColorOccupancy;
+        attack |= (1ULL << (targetRank * 8 + file));
+        if (occupancy & (1ULL << (targetRank * 8 + file))) { break; }
     }
 
-    return atk;
+    return attack;
 }
 
 
@@ -907,11 +1357,11 @@ u64 BitBoard::removeRookBlockedAtk(int square, u64 atk, bool color) const
 * input: piece square and attack pattern
 * output: attack pattern without blocked squares
 */
-u64 BitBoard::removeQueenBlockedAtk(int square, u64 atk, bool color) const
+inline u64 BitBoard::removeQueenBlockedAtk(int square, u64 occupancy) const
 {
-    u64 diagonal = atk & this->m_attackPatterns[WHITE][bishop][square];
-    u64 lateral = atk & this->m_attackPatterns[WHITE][rook][square];
-    return this->removeBishopBlockedAtk(square, diagonal, color) | this->removeRookBlockedAtk(square, lateral, color);
+    u64 diagonal = getBishopAtk(square, occupancy);
+    u64 lateral = getRookAtk(square, occupancy);
+    return (lateral | diagonal);
 }
 
 
@@ -959,6 +1409,8 @@ u64 BitBoard::getPawnMovementPattern(int square, bool color) const
 */
 u64 BitBoard::getEnPassantPattern(int square, bool color) const
 {
+    constexpr u64 hFileMask = 9259542123273814144ULL;
+    constexpr u64 aFileMask = 72340172838076673ULL;
     u64 board = 0ULL;
     u64 enPassantBoard = 0ULL;
     SET_BIT(board, square);
@@ -967,6 +1419,12 @@ u64 BitBoard::getEnPassantPattern(int square, bool color) const
         return enPassantBoard;
     }
     SET_BIT(enPassantBoard, this->m_enPassantSquare);
+
+    if ((enPassantBoard & aFileMask && board & hFileMask)
+        || (enPassantBoard & hFileMask && board & aFileMask))
+    {
+        return 0ULL;
+    }
     if (color)
     {
         if (((board >> 9) | (board >> 7)) & enPassantBoard)
@@ -990,7 +1448,7 @@ u64 BitBoard::getEnPassantPattern(int square, bool color) const
 * input: array of bitboards to copy into
 * output: None
 */
-void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
+inline void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
 {
     for (int i = 0; i < SIDES; i++)
     {
@@ -1001,15 +1459,32 @@ void BitBoard::getPiecesCopy(u64 pieces[SIDES][NUMBER_OF_PIECES]) const
     }
 }
 
+
 uint8_t BitBoard::getFlags() const
 {
     return this->m_moveFlags;
 }
 
+
 uint8_t BitBoard::getEnPassant() const
 {
     return this->m_enPassantSquare;
 }
+
+const int BitBoard::getMoveListLength() const
+{
+    return this->m_initMoveIndexes[killer] +
+        this->m_initMoveIndexes[special] +
+        this->m_initMoveIndexes[good] +
+        this->m_initMoveIndexes[average] + 
+        this->m_initMoveIndexes[worst];
+}
+
+u64 BitBoard::getOccupancy(const bool color) const
+{
+    return color ? this->m_whiteOccupancy : this->m_blackOccupancy;
+}
+
 
 /*
 * Method for checking if castling is possible
@@ -1018,8 +1493,17 @@ uint8_t BitBoard::getEnPassant() const
 */
 bool BitBoard::isCastlingPossible(bool isLongCastle) const
 {
+    constexpr u64 notBFileMask = 18302628885633695741ULL;
     u64 fullOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
-    bool color = this->m_moveFlags & 0b1;
+    bool color = COLOR;
+    const u64 pawnIlegalCastleMask = color ?
+        isLongCastle ? 17451448556060672 : 69805794224242688
+        : isLongCastle ? 7680 : 63488;
+    u64 oppAtk = color ? this->m_blackAtkedSqrs : this->m_whiteAtkedSqrs;
+    if (this->isCheck(color))
+    {
+        return false;
+    }
 
     // mask for empty squares between king and rook
     u64 emptyMask = (isLongCastle ? 14ULL : 96ULL) << (56 * color);
@@ -1029,7 +1513,11 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
 
     if ((this->m_moveFlags & (0b1 << (1 + (!color * 2) + isLongCastle))) == 0)
     {   return false; }
+    if (this->m_pieces[!color][pawn] & pawnIlegalCastleMask)
+    {   return false; }
     if (emptyMask & fullOccupancy)
+    {   return false; }
+    if ((emptyMask & notBFileMask) & oppAtk)
     {   return false; }
     if (!(kingSquare & this->m_pieces[color][king]) || !(rookSquare & this->m_pieces[color][rook]))
     {   return false; }
@@ -1045,32 +1533,14 @@ bool BitBoard::isCastlingPossible(bool isLongCastle) const
 */
 inline int BitBoard::bitCount(u64 board)
 {
-    int count = 0;
-    while (board)
-    {
-        board &= board - 1;
-        count++;
-    }
-    return count;
-}
-
-
-/*
-* Gets the proximity to the king of enemy pieces (based on 2 square distance radius)
-* input: square of king, color of king
-* output: number of enemy pieces in proximity
-*/
-int BitBoard::getProximityCount(int square, bool color) const
-{
-    u64 oppositeOccupancy = color ? this->m_blackOccupancy : this->m_whiteOccupancy;
-    u64 nextLayer = 0ULL;
-    u64 kingAttack = this->m_attackPatterns[color][king][square];
-    while (bitCount(kingAttack) != 0)
-    {
-        nextLayer |= this->m_attackPatterns[color][king][getLsbIndex(kingAttack)];
-        kingAttack &= kingAttack - 1;
-    }
-    return bitCount(nextLayer & oppositeOccupancy);
+    constexpr uint64_t m1 = 0x5555555555555555; 
+    constexpr uint64_t m2 = 0x3333333333333333; 
+    constexpr uint64_t m4 = 0x0f0f0f0f0f0f0f0f; 
+    constexpr uint64_t h01 = 0x0101010101010101;
+    board -= (board >> 1) & m1;
+    board = (board & m2) + ((board >> 2) & m2);
+    board = (board + (board >> 4)) & m4;
+    return (board * h01) >> 56;
 }
 
 
@@ -1192,19 +1662,19 @@ u64 BitBoard::calcBishopAtkPattern(int square)
     int file = square % 8;
 
     // bishop moving shl 9
-    for(r = rank + 1, f = file + 1; r <= 7 && f <= 7; r++, f++)
+    for(r = rank + 1, f = file + 1; r <= 6 && f <= 6; r++, f++)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shr 9
-    for(r = rank + -1, f = file - 1; r >= 0 && f >= 0; r--, f--)
+    for(r = rank + -1, f = file - 1; r >= 1 && f >= 1; r--, f--)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shr 7
-    for(r = rank - 1, f = file + 1; r >= 0 && f <= 7; r--, f++)
+    for(r = rank - 1, f = file + 1; r >= 1 && f <= 6; r--, f++)
     { attack |= (1ULL << ((r * 8) + f)); }
 
     // bishop moving shl 7
-    for(r = rank + 1, f = file - 1; r <= 7 && f >= 0; r++, f--)
+    for(r = rank + 1, f = file - 1; r <= 6 && f >= 1; r++, f--)
     { attack |= (1ULL << ((r * 8) + f)); }
     
     return attack;
@@ -1227,19 +1697,19 @@ u64 BitBoard::calcRookAtkPattern(int square)
     int file = square % 8;
 
     // rook shl 8
-    for (r = rank + 1; r <= 7; r++)
+    for (r = rank + 1; r <= 6; r++)
     { attack |= (1ULL << ((r * 8) + file)); }
 
     // rook shr 8
-    for (r = rank -1; r >= 0; r--)
+    for (r = rank -1; r >= 1; r--)
     { attack |= (1ULL << ((r * 8) + file)); }
 
     // rook shl 1
-    for (f = file + 1; f <= 7; f++)
+    for (f = file + 1; f <= 6; f++)
     { attack |= (1ULL << ((rank * 8) + f)); }
 
     // rook shr 1
-    for (f = file - 1;f >= 0; f--)
+    for (f = file - 1;f >= 1; f--)
     { attack |= (1ULL << ((rank * 8) + f)); }
 
     return attack;
@@ -1257,7 +1727,371 @@ u64 BitBoard::calcQueenAtkPattern(int square)
 }
 
 
-int BitBoard::evaluatePawns(bool color) const
+/*
+* Calculates Endgame weight for evaluation
+* input: Combined Material value for both sides
+* output: Endgame weight
+*/
+int BitBoard::getEndgameWeight(int combinedMaterialValue) const
+{
+    int weight = (2500 - combinedMaterialValue) / 100;
+    return max(weight, 0);
+}
+
+
+int BitBoard::evaluateSquareControl(const bool color) const
+{
+    return 0;
+
+}
+
+
+/*
+* Evaluates the pawns in the position
+* input: color of pawns
+* output: evaluation
+*/
+int BitBoard::evaluatePawns(const bool color) const
+{
+    int evaluation = 0;
+    const u64 currAttackInclusive = color ? this->m_whiteAttackInclusive : this->m_blackAttackInclusive;
+    constexpr uint8_t PASSED_PAWN_VALUE = 40;
+    constexpr int8_t ISOLATED_PAWN_PENALTY = -30;
+    constexpr int8_t DOUBLED_PAWN_PENALTY = -10;
+    constexpr int8_t UNDEFENDED_PAWN_PENALTY = -20;
+    constexpr int8_t HANGING_PAWN_PENALTY = -30;
+    constexpr int8_t DEFENDING_PAWN_VALUE = 10;
+    u64 pawns = this->m_pieces[color][pawn];
+    constexpr int8_t pawnWeights[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
+                                                        70, 70, 70, 70, 70, 70, 70, 70,
+                                                        40, 40, 40, 40, 40, 40, 40, 40,
+                                                        20, 20, 20, 20, 10, 20, 20, 20,
+                                                        07, 07, 07, 15, 15, 07, 07, 07,
+                                                        02, 02, -3, 03, 03, -3, 02, 02,
+                                                        02, 00, 00, 00, 00, 00, 00, 02,
+                                                        00, 00, 00, 00, 00, 00, 00, 00,};
+    while (pawns)
+    {
+        int8_t square = getLsbIndex(pawns);
+        int squareWeight = color ? pawnWeights[square] : pawnWeights[63 - square];
+        evaluation += squareWeight;
+        u64 pawnBB = (1ULL << square);
+
+        const int8_t pawnRank = color ? 8 - (square / 8) : (square / 8) + 1;
+        const int8_t pawnFile = (square % 8);
+        const u64 pawnFileBB = A_FILE << pawnFile;
+        u64 passedPawnMask = getPassedPawnMask(color, square);
+        u64 oppPassedPawnMask = getPassedPawnMask(!color, square) ^ (A_FILE << pawnFile);
+
+        // Passed pawn detection
+        if (!(passedPawnMask & this->m_pieces[!color][pawn]))
+        {
+            evaluation += PASSED_PAWN_VALUE;
+        }
+        // Isolated pawn detection
+        if (!((passedPawnMask ^ (A_FILE << pawnFile)) & this->m_pieces[color][pawn]))
+        {
+            evaluation += ISOLATED_PAWN_PENALTY;
+        }
+        // Doubled pawns detection
+        if ((pawnFileBB ^ pawnBB) & this->m_pieces[color][pawn])
+        {
+            evaluation += DOUBLED_PAWN_PENALTY;
+        }
+        // Penalty for Pawns undefened by other pawn (that are not the weak link)
+        if (!(this->m_attackPatterns[!color][pawn][square] & this->m_pieces[color][pawn]) && (oppPassedPawnMask & this->m_pieces[color][pawn]))
+        {
+            evaluation += UNDEFENDED_PAWN_PENALTY;
+        }
+        else if (!(currAttackInclusive & pawnBB))
+        {
+            evaluation += HANGING_PAWN_PENALTY - squareWeight;
+        }
+        evaluation += bitCount(this->m_pieces[color][pawn] & this->m_attackPatterns[color][pawn][square]) * DEFENDING_PAWN_VALUE;
+
+        pawns &= pawns - 1;
+    }
+    return evaluation;
+
+}
+
+
+/*
+* Evaluates the king in the position
+* input: color of king
+* output: evaluation
+*/
+int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMaterialAdvantage) const
+{
+    constexpr int KING_MIDDLE_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
+        -60, -60, -60, -60, -60, -60, -60, -60,
+        -40, -40, -40, -40, -40, -40, -40, -40,
+        -30, -30, -30, -30, -30, -30, -30 ,-30,
+        -30, -30, -30, -30, -30, -30, -30, -30,
+        -20, -20, -20, -20, -20, -20, -20, -20,
+        -17, -17, -04, -15, -15, -14, -17, -17,
+        -02, +00, -03, -03, -03, -03, +00, -02,
+        +07, +17, +14, -03, -03, +07, +17, +07
+    };
+    constexpr int KING_END_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
+        -10, -9, -8, -7, -7, -8, -9, -10,
+        -9, -4, -3, -2, -2, -3, -4, -9,
+        -8, -3, +7, +4, +4, +7, -3, -8,
+        -7, -2, +4, +6, +6, +4, -2, -7,
+        -7, -2, +4, +6, +6, +4, -2, -7,
+        -8, -3, +7, +4, +4, +7, -3, -8,
+        -9, -4, -3, -2, -2, -3, -4, -9,
+        -10, -9, -8, -7, -7, -8, -9, -10,
+    };
+    constexpr int OPEN_KING_FILE_PENALTY = -30;
+    constexpr int UNCOVERED_SEMI_OPEN_FILE_PENALTY = -30;
+
+    u64 kingBB = this->m_pieces[color][king];
+    u64 oppositeKing = this->m_pieces[!color][king];
+
+    const int8_t kingSquare = getLsbIndex(kingBB);
+    const int8_t oppKingSquare = getLsbIndex(oppositeKing);
+    u64 kingFiles = this->getPassedPawnMask(color, kingSquare);
+
+    
+    const int8_t kingFile = kingSquare % 8;
+    const int8_t kingRank = kingSquare / 8;
+    const int8_t oppKingFile = oppKingSquare % 8;
+    const int8_t oppKingRank = oppKingSquare / 8;
+
+    uint8_t kingDistance = max(abs(kingFile - oppKingFile), abs(kingRank - oppKingRank));
+    int evaluation = -bitCount(this->removeQueenBlockedAtk(kingSquare, this->m_whiteOccupancy | this->m_blackOccupancy) & (color ? ~this->m_whiteOccupancy : ~this->m_blackOccupancy));
+        
+    if ((colorMaterialAdvantage > 0 && color) || (colorMaterialAdvantage < 0 && !color))
+    {
+        evaluation = endGameWeight > 3 ? -evaluation : evaluation;
+        evaluation += endGameWeight > 5 ? -kingDistance : 0;
+    }
+    if (endGameWeight < 3 && !(kingFiles & (this->m_pieces[color][pawn])))
+    {
+        evaluation += OPEN_KING_FILE_PENALTY;
+    }
+
+    evaluation += (color ? KING_MIDDLE_GAME_SQUARE_WEIGHT[kingSquare] : KING_MIDDLE_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (1 / (max(endGameWeight, 15) + 1));
+    evaluation += (color ? KING_END_GAME_SQUARE_WEIGHT[kingSquare] : KING_END_GAME_SQUARE_WEIGHT[63 - kingSquare]) * (min(max(endGameWeight, 0), 1));
+
+    return evaluation;
+}
+
+
+/*
+* Evaluates the knights in the position
+* input: color of knights
+* output: evaluation
+*/
+int BitBoard::evaluateKnights(const bool color, int combinedMaterial) const
+{
+    u64 knights = this->m_pieces[color][knight];
+    int evaluation = 0;
+    u64 currAtkPattern = color ? this->m_whiteAtkedSqrs : this->m_blackAtkedSqrs;
+    constexpr int8_t KNIGHT_CORNER_STUCK_PENALTY = -70;
+    constexpr int8_t KNIGHT_LOW_ATTACK_PENALTY = -5;
+    constexpr int8_t PAWN_DEFENDS_VALUE = 15;
+    constexpr float PAWN_VALUE = 0.25;
+    constexpr int8_t NO_PAWN_THREAT_VALUE = 30;
+    constexpr int8_t HANGING_MINOR_PIECE_PENALTY = -30;
+    constexpr u64 UNDEVELOPED_KNIGHT_PENALTY = -15;
+    constexpr u64 KNIGHT_BEGINNING_SQUARES = 4755801206503243842ULL;
+    constexpr int8_t OUTPOST_VALUE = 15;
+    const u64 opponentBoardSide = color ? 4294967295ULL : 18446744069414584320ULL;
+    constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
+        -7, -3, -3, -3, -3, -3, -3, -7,
+        -3, +7, +7, +7, +7, +7, +7, -3,
+        -3, +7, 10, 10, 10, 10, +7, -3,
+        -3, +7, 10, 12, 12, 10, +7, -3,
+        -3, +7, 10, 12, 12, 10, +7, -3,
+        -3, +7, 10, 10 ,10, 10, +7, -3,
+        -3, +7, +7, +7, +7, +7, +7, -3,
+        -7, -3, -3, -3, -3, -3, -3, -7,};
+    const int8_t PAWN_VALUES = bitCount(this->m_pieces[WHITE][pawn] | this->m_pieces[BLACK][pawn]) * PAWN_VALUE;
+
+    while(knights)
+    {
+        int8_t square = getLsbIndex(knights);
+        const u64 pawnsAheadMask = getPassedPawnMask(color, square);
+        u64 squareBB = 1 << square;
+        int8_t knightAtk = bitCount(this->m_attackPatterns[color][knight][square] & currAtkPattern);
+        evaluation += KNIGHT_SQUARE_WEIGHTS[square] + PAWN_VALUES;
+
+        if ((square == a8 || square == a1 || square == h8 || square == h1) && knightAtk == 0)
+        {
+            evaluation += KNIGHT_CORNER_STUCK_PENALTY;
+        }
+        else if (knightAtk <= 3)
+        {
+            evaluation += KNIGHT_LOW_ATTACK_PENALTY * (8 - knightAtk);
+        }
+        if (this->m_attackPatterns[!color][pawn][square] & this->m_pieces[color][pawn])
+        {
+            if (squareBB & opponentBoardSide)
+            {
+                evaluation += OUTPOST_VALUE;
+            }
+            evaluation += PAWN_DEFENDS_VALUE;
+        }
+        else if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
+        {
+            evaluation += HANGING_MINOR_PIECE_PENALTY;
+        }
+        if (!(pawnsAheadMask & this->m_pieces[!color][pawn]))
+        {
+            evaluation += NO_PAWN_THREAT_VALUE;
+        }
+        if (combinedMaterial >= 7500 && (squareBB & KNIGHT_BEGINNING_SQUARES))
+        {
+            evaluation += UNDEVELOPED_KNIGHT_PENALTY;
+        }
+
+        knights &= knights - 1;
+    }
+    return evaluation;
+}
+
+
+/*
+* Evaluates the Bishops in the position
+* input: color of bishops
+* output: evaluation
+*/
+int BitBoard::evaluateBishops(const bool color, int combinedMaterial) const
+{
+    u64 bishops = this->m_pieces[color][bishop];
+    int evaluation = 0;
+    u64 combinedOccupancy = this->m_whiteOccupancy | this->m_blackOccupancy;
+    constexpr int BISHOP_PAIR_VALUE = 20;
+    constexpr int8_t HANGING_MINOR_PIECE_PENALTY = -30;
+    constexpr int8_t BAD_BISHOP_PENALTY = -50;
+    constexpr int8_t COLOR_WEAKNESS_PENALTY = -40;
+    constexpr u64 DARK_SQUARES = 6172840429334713770ULL;
+    constexpr u64 LIGHT_SQUARES = 12273903644374837845ULL;
+    constexpr u64 BISHOP_BEGINNING_SQUARES = 2594073385365405732ULL;
+    constexpr u64 UNDEVELOPED_BISHOP_PENALTY = -20;
+
+    int bishopCount = bitCount(this->m_pieces[color][bishop]);
+
+
+    if (bishopCount == 2 && (this->m_pieces[color][knight] == 0ULL))
+    {
+        evaluation += BISHOP_PAIR_VALUE;
+    }
+    // Checking if the bishop opposite color to the pawn structure was captured, allowing the enemy bishop
+    // to penetrate without being challenged.
+    else if(bitCount(this->m_pieces[color][pawn] & DARK_SQUARES) >= 5 && !(bishops & LIGHT_SQUARES) &&
+        (this->m_pieces[!color][bishop] & LIGHT_SQUARES))
+    {
+        evaluation += COLOR_WEAKNESS_PENALTY;
+    }
+    else if (bitCount(this->m_pieces[color][pawn] & LIGHT_SQUARES) >= 5 && !(bishops & DARK_SQUARES) &&
+        (this->m_pieces[!color][bishop] & DARK_SQUARES))
+    {
+        evaluation += COLOR_WEAKNESS_PENALTY;
+    }
+
+    while (bishops)
+    {
+        int8_t square = getLsbIndex(bishops);
+        u64 squareBB = (1ULL << square);
+        u64 bishopAtk = getBishopAtk(square, combinedOccupancy);
+        evaluation += (bitCount(this->m_attackPatterns[color][bishop][square]) - (13 - bitCount(bishopAtk & (~this->m_whiteOccupancy)))) * 3;
+
+        if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
+        {
+            evaluation += HANGING_MINOR_PIECE_PENALTY;
+        }
+
+        if (combinedMaterial >= 7500 && (squareBB & BISHOP_BEGINNING_SQUARES))
+        {
+            evaluation += UNDEVELOPED_BISHOP_PENALTY;
+        }
+
+
+        bishops &= bishops - 1;
+    }
+    return evaluation;
+}
+
+
+/*
+* Evaluates the Rooks in the position
+* input: color of rooks
+* output: evaluation
+*/
+int BitBoard::evaluateRooks(const bool color) const
+{
+    int evaluation = 0;
+    u64 rooks = this->m_pieces[color][rook];
+    constexpr int CONNECTED_ROOKS_VALUE = 40;
+    constexpr int SEVENTH_RANK_ROOK_VALUE = 30;
+    constexpr int LAST_RANK_ROOK_VALUE = 20;
+    constexpr int OPEN_FILE_ROOK_VALUE = 40;
+    constexpr int SEMI_OPEN_FILE_ROOK_VALUE = 20;
+    constexpr int X_RAY_KING_VALUE = 15;
+    constexpr int X_RAY_QUEEN_VALUE = 8;
+    constexpr float PAWN_VALUE = 0.25;
+    const int pawnValues = bitCount(this->m_pieces[color][pawn] | this->m_pieces[!color][pawn]) * PAWN_VALUE;
+    evaluation -= pawnValues;
+    const u64 lastRankMask = color ? 255ULL : 18374686479671623680ULL;
+    const u64 seventhRankMask = color ? 65280ULL : 71776119061217280ULL;
+
+    if (bitCount(rooks) > 1)
+    {
+        if ((getRookAtk(getLsbIndex(rooks & (rooks - 1)), this->m_whiteOccupancy | this->m_blackOccupancy)) 
+            & (1ULL << getLsbIndex(rooks)))
+        {
+            evaluation += CONNECTED_ROOKS_VALUE;
+        }
+    }
+
+    while (rooks)
+    {
+        int8_t square = getLsbIndex(rooks);
+        u64 squareBB = 1ULL << square;
+        int rookFile = square % 8;
+        u64 rookFileBB = A_FILE << rookFile;
+
+        if (this->m_attackPatterns[color][rook][square] & this->m_pieces[!color][queen])
+        {
+            evaluation += X_RAY_QUEEN_VALUE;
+        }
+        if (this->m_attackPatterns[color][rook][square] & this->m_pieces[!color][king])
+        {
+            evaluation += X_RAY_KING_VALUE;
+        }
+        if (squareBB & lastRankMask)
+        {
+            evaluation += LAST_RANK_ROOK_VALUE;
+        }
+        if (squareBB & seventhRankMask)
+        {
+            evaluation += SEVENTH_RANK_ROOK_VALUE;
+        }
+        if (!(rookFileBB & (this->m_pieces[color][pawn] | this->m_pieces[!color][pawn])))
+        {
+            evaluation += OPEN_FILE_ROOK_VALUE;
+        }
+        else if (!(rookFileBB & (this->m_pieces[color][pawn])))
+        {
+            evaluation += SEMI_OPEN_FILE_ROOK_VALUE;
+        }
+
+        rooks &= rooks - 1;
+    }
+    return evaluation;
+
+}
+
+
+/*
+* Evaluates the Queens in the position
+* input: color of queens
+* output: evaluation
+*/
+int BitBoard::evaluateQueens(const bool color, int combinedMaterial) const
 {
     return 0;
 }

@@ -39,5 +39,4 @@ void MoveCommand::execute(Context& ctx)
 	}
 
 	ctx.getCurrGame()->move(startSquare, endSquare, promotionPiece, this->m_args[0]);
-	std::cout << "Played " + this->m_args[0] << std::endl;
 }	

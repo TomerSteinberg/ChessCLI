@@ -12,5 +12,6 @@ void ContinueCommand::execute(Context& ctx)
 	{
 		throw InvalidCommandException(COMMAND_NAME);
 	}
-	ctx.getCurrGame()->playBest();
+    
+	ctx.getCurrGame()->iterativeDeepening(SEARCH_DEPTH);
 }

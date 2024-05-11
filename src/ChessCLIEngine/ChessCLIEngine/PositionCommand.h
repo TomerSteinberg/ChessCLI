@@ -9,6 +9,10 @@
 #include <regex>
 
 #define INTEGER_REGEX "[0-9]+$"
+
+#ifdef COMMAND_NAME
+#undef COMMAND_NAME
+#endif
 #define COMMAND_NAME "position"
 
 

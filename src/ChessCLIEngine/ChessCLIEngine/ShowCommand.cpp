@@ -4,7 +4,9 @@ ShowCommand::ShowCommand(std::vector<std::string> args) : ICommand(args)
 {
 }
 
+
 unsigned int ShowCommand::maxArg = 1;
+
 
 void ShowCommand::execute(Context& ctx)
 {

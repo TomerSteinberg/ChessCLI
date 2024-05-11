@@ -4,6 +4,9 @@
 #include "InvalidArgumentException.h"
 #include "InvalidCommandException.h"
 
+#ifdef COMMAND_NAME
+#undef COMMAND_NAME
+#endif
 #define COMMAND_NAME "show"
 
 

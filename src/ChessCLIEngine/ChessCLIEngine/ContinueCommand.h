@@ -1,6 +1,7 @@
 #ifndef CONTINUE_COMMAND_H
 #define CONTINUE_COMMAND_H
 
+#include <chrono>
 #include <vector>
 #include <iostream>	
 #include "ICommand.h"
@@ -8,6 +9,9 @@
 #include "InvalidCommandException.h"
 #include "InvalidArgumentException.h"
 
+#ifdef COMMAND_NAME
+#undef COMMAND_NAME
+#endif
 #define COMMAND_NAME "continue"
 
 class ContinueCommand : public ICommand
