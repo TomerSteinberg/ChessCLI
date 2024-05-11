@@ -256,25 +256,29 @@ int BitBoard::evaluate() const
     int whiteMaterialCount = 0;
     int blackMaterialCount = 0;
     int endGameWeight = 0;
+    int materialDifference = 0;
+    int materialCombined = 0;
 
     for (int i = 0; i < NUMBER_OF_PIECES - 1; i++)
     {
         whiteMaterialCount += (bitCount(this->m_pieces[WHITE][i]) * PIECE_WEIGHTS[i]);
         blackMaterialCount += (bitCount(this->m_pieces[BLACK][i]) * PIECE_WEIGHTS[i]);
     }
-    endGameWeight = getEndgameWeight(whiteMaterialCount + blackMaterialCount);
+    materialCombined = whiteMaterialCount + blackMaterialCount;
+    materialDifference = whiteMaterialCount - blackMaterialCount;
+    endGameWeight = getEndgameWeight(materialCombined);
     if (this->isCheck(!color))
     {
         evaluation += color ?  20 : -20;
     }
     evaluation += this->m_whiteMoves - this->m_blackMoves;
-    evaluation += whiteMaterialCount - blackMaterialCount;
+    evaluation += materialDifference;
     evaluation += evaluatePawns(WHITE) - evaluatePawns(BLACK);
-    evaluation += evaluateKnights(WHITE) - evaluateKnights(BLACK);
-    evaluation += evaluateBishops(WHITE) - evaluateBishops(BLACK);
+    evaluation += evaluateKnights(WHITE, materialCombined) - evaluateKnights(BLACK, materialCombined);
+    evaluation += evaluateBishops(WHITE, materialCombined) - evaluateBishops(BLACK, materialCombined);
     evaluation += evaluateRooks(WHITE) - evaluateRooks(BLACK);
-    evaluation += evaluateQueens(WHITE) - evaluateQueens(BLACK);
-    evaluation += evaluateKing(WHITE, endGameWeight, whiteMaterialCount - blackMaterialCount) - evaluateKing(BLACK, endGameWeight,whiteMaterialCount - blackMaterialCount);
+    evaluation += evaluateQueens(WHITE, materialCombined) - evaluateQueens(BLACK, materialCombined);
+    evaluation += evaluateKing(WHITE, endGameWeight, materialDifference) - evaluateKing(BLACK, endGameWeight, materialDifference);
     
     return evaluation;
 }
@@ -1216,6 +1220,7 @@ inline const u64 BitBoard::getPassedPawnMask(const bool color, int8_t square) co
     return passedPawnMask;
 }
 
+
 /*
 * Sets the occupancy based on an attack mask an index and a bitcount of mask
 * input: index, mask bit count and mask board
@@ -1734,6 +1739,13 @@ int BitBoard::getEndgameWeight(int combinedMaterialValue) const
 }
 
 
+int BitBoard::evaluateSquareControl(const bool color) const
+{
+    return 0;
+
+}
+
+
 /*
 * Evaluates the pawns in the position
 * input: color of pawns
@@ -1814,12 +1826,12 @@ int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMateria
     constexpr int KING_MIDDLE_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
         -60, -60, -60, -60, -60, -60, -60, -60,
         -40, -40, -40, -40, -40, -40, -40, -40,
-        -30, -30, -30 ,-30, -30, -30, -30 ,-30,
+        -30, -30, -30, -30, -30, -30, -30 ,-30,
+        -30, -30, -30, -30, -30, -30, -30, -30,
         -20, -20, -20, -20, -20, -20, -20, -20,
-        -10, -10, -10, -10, -10, -10, -10, -10,
-        -07, -07, -04, -05, -05, -04, -07, -07,
-        -02, -02, -02, -00, -00, -02, -02, -02,
-        +07, +10, +07, +00, +00, +07, +10, +07
+        -17, -17, -04, -15, -15, -14, -17, -17,
+        -02, +00, -03, -03, -03, -03, +00, -02,
+        +07, +17, +14, -03, -03, +07, +17, +07
     };
     constexpr int KING_END_GAME_SQUARE_WEIGHT[NUMBER_OF_SQUARES] = {
         -10, -9, -8, -7, -7, -8, -9, -10,
@@ -1872,7 +1884,7 @@ int BitBoard::evaluateKing(const bool color, int endGameWeight, int colorMateria
 * input: color of knights
 * output: evaluation
 */
-int BitBoard::evaluateKnights(const bool color) const
+int BitBoard::evaluateKnights(const bool color, int combinedMaterial) const
 {
     u64 knights = this->m_pieces[color][knight];
     int evaluation = 0;
@@ -1883,6 +1895,8 @@ int BitBoard::evaluateKnights(const bool color) const
     constexpr float PAWN_VALUE = 0.25;
     constexpr int8_t NO_PAWN_THREAT_VALUE = 30;
     constexpr int8_t HANGING_MINOR_PIECE_PENALTY = -30;
+    constexpr u64 UNDEVELOPED_KNIGHT_PENALTY = -15;
+    constexpr u64 KNIGHT_BEGINNING_SQUARES = 4755801206503243842ULL;
     constexpr int8_t OUTPOST_VALUE = 15;
     const u64 opponentBoardSide = color ? 4294967295ULL : 18446744069414584320ULL;
     constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
@@ -1928,6 +1942,10 @@ int BitBoard::evaluateKnights(const bool color) const
         {
             evaluation += NO_PAWN_THREAT_VALUE;
         }
+        if (combinedMaterial >= 7500 && (squareBB & KNIGHT_BEGINNING_SQUARES))
+        {
+            evaluation += UNDEVELOPED_KNIGHT_PENALTY;
+        }
 
         knights &= knights - 1;
     }
@@ -1940,7 +1958,7 @@ int BitBoard::evaluateKnights(const bool color) const
 * input: color of bishops
 * output: evaluation
 */
-int BitBoard::evaluateBishops(const bool color) const
+int BitBoard::evaluateBishops(const bool color, int combinedMaterial) const
 {
     u64 bishops = this->m_pieces[color][bishop];
     int evaluation = 0;
@@ -1951,6 +1969,8 @@ int BitBoard::evaluateBishops(const bool color) const
     constexpr int8_t COLOR_WEAKNESS_PENALTY = -40;
     constexpr u64 DARK_SQUARES = 6172840429334713770ULL;
     constexpr u64 LIGHT_SQUARES = 12273903644374837845ULL;
+    constexpr u64 BISHOP_BEGINNING_SQUARES = 2594073385365405732ULL;
+    constexpr u64 UNDEVELOPED_BISHOP_PENALTY = -20;
 
     int bishopCount = bitCount(this->m_pieces[color][bishop]);
 
@@ -1977,19 +1997,18 @@ int BitBoard::evaluateBishops(const bool color) const
         int8_t square = getLsbIndex(bishops);
         u64 squareBB = (1ULL << square);
         u64 bishopAtk = getBishopAtk(square, combinedOccupancy);
-
         evaluation += (bitCount(this->m_attackPatterns[color][bishop][square]) - (13 - bitCount(bishopAtk & (~this->m_whiteOccupancy)))) * 3;
 
         if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
         {
             evaluation += HANGING_MINOR_PIECE_PENALTY;
         }
-        
-        // TODO: Add bad bishop evaluation. This might requires a 64 square bad bishop table
-        // detailing pawn structure on each square. See https://www.chessprogramming.org/Bad_Bishop
 
-        // TODO: Consider adding a King distance evaluation as part of king tropism.
-        // See https://www.chessprogramming.org/King_Safety
+        if (combinedMaterial >= 7500 && (squareBB & BISHOP_BEGINNING_SQUARES))
+        {
+            evaluation += UNDEVELOPED_BISHOP_PENALTY;
+        }
+
 
         bishops &= bishops - 1;
     }
@@ -2004,7 +2023,66 @@ int BitBoard::evaluateBishops(const bool color) const
 */
 int BitBoard::evaluateRooks(const bool color) const
 {
-    return 0;
+    int evaluation = 0;
+    u64 rooks = this->m_pieces[color][rook];
+    constexpr int CONNECTED_ROOKS_VALUE = 40;
+    constexpr int SEVENTH_RANK_ROOK_VALUE = 30;
+    constexpr int LAST_RANK_ROOK_VALUE = 20;
+    constexpr int OPEN_FILE_ROOK_VALUE = 40;
+    constexpr int SEMI_OPEN_FILE_ROOK_VALUE = 20;
+    constexpr int X_RAY_KING_VALUE = 15;
+    constexpr int X_RAY_QUEEN_VALUE = 8;
+    constexpr float PAWN_VALUE = 0.25;
+    const int pawnValues = bitCount(this->m_pieces[color][pawn] | this->m_pieces[!color][pawn]) * PAWN_VALUE;
+    evaluation -= pawnValues;
+    const u64 lastRankMask = color ? 255ULL : 18374686479671623680ULL;
+    const u64 seventhRankMask = color ? 65280ULL : 71776119061217280ULL;
+
+    if (bitCount(rooks) > 1)
+    {
+        if ((getRookAtk(getLsbIndex(rooks & (rooks - 1)), this->m_whiteOccupancy | this->m_blackOccupancy)) 
+            & (1ULL << getLsbIndex(rooks)))
+        {
+            evaluation += CONNECTED_ROOKS_VALUE;
+        }
+    }
+
+    while (rooks)
+    {
+        int8_t square = getLsbIndex(rooks);
+        u64 squareBB = 1ULL << square;
+        int rookFile = square % 8;
+        u64 rookFileBB = A_FILE << rookFile;
+
+        if (this->m_attackPatterns[color][rook][square] & this->m_pieces[!color][queen])
+        {
+            evaluation += X_RAY_QUEEN_VALUE;
+        }
+        if (this->m_attackPatterns[color][rook][square] & this->m_pieces[!color][king])
+        {
+            evaluation += X_RAY_KING_VALUE;
+        }
+        if (squareBB & lastRankMask)
+        {
+            evaluation += LAST_RANK_ROOK_VALUE;
+        }
+        if (squareBB & seventhRankMask)
+        {
+            evaluation += SEVENTH_RANK_ROOK_VALUE;
+        }
+        if (!(rookFileBB & (this->m_pieces[color][pawn] | this->m_pieces[!color][pawn])))
+        {
+            evaluation += OPEN_FILE_ROOK_VALUE;
+        }
+        else if (!(rookFileBB & (this->m_pieces[color][pawn])))
+        {
+            evaluation += SEMI_OPEN_FILE_ROOK_VALUE;
+        }
+
+        rooks &= rooks - 1;
+    }
+    return evaluation;
+
 }
 
 
@@ -2013,7 +2091,7 @@ int BitBoard::evaluateRooks(const bool color) const
 * input: color of queens
 * output: evaluation
 */
-int BitBoard::evaluateQueens(const bool color) const
+int BitBoard::evaluateQueens(const bool color, int combinedMaterial) const
 {
     return 0;
 }

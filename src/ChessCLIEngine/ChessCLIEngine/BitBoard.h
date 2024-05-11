@@ -182,11 +182,12 @@ private:
 
 	//======= Positional Evaluation =======//
 	int getEndgameWeight(int combinedMaterialValue) const;
+	int evaluateSquareControl(const bool color) const;
 	int evaluatePawns(const bool color) const;
-	int evaluateKnights(const bool color) const;
-	int evaluateBishops(const bool color) const;
+	int evaluateKnights(const bool color, int combinedMaterial) const;
+	int evaluateBishops(const bool color, int combinedMaterial) const;
 	int evaluateRooks(const bool color) const;
-	int evaluateQueens(const bool color) const;
+	int evaluateQueens(const bool color, int combinedMaterial) const;
 	int evaluateKing(const bool color, int endGameWeight, int colorMaterialAdvantage) const;
 };
 
