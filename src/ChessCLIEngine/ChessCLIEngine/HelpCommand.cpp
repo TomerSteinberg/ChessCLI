@@ -33,5 +33,6 @@ void HelpCommand::execute(Context& ctx)
 		<< "analyze  [FEN|None]\tEvaluate Options\n"
 		<< "continue  [-r]\t\tPlay computer move\n"
 		<< "perft  [depth] [-r]\tRun Perft test\n"
+		<< "serve [port] [addr] ..\tListens for network commands\n"
 		<< "quit\t\t\tClose application\n\n";
 }

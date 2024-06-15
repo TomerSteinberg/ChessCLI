@@ -1,6 +1,5 @@
 ﻿#include "BitBoard.h"
 #include "Parser.h"
-#include <Windows.h>
 
 
 u64 BitBoard::zobristKeys[SIDES][NUMBER_OF_PIECES][ZOBRIST_SQUARES] = { 0 };

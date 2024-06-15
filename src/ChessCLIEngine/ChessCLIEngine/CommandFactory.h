@@ -26,6 +26,7 @@
 #include "ContinueCommand.h"
 #include "AnalyzeCommand.h"
 #include "PerftCommand.h"
+#include "ServeCommand.h"
 
 class ICommand;
 

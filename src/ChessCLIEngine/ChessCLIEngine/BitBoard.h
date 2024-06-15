@@ -2,15 +2,14 @@
 #define BITBOARD_H
 
 #include <iostream>
+#include <WinSock2.h>
+#include <Windows.h>
 #include <vector>
 #include <memory>
 #include <unordered_map>
 #include <tuple>
 #include <random>
 #include <array>
-
-#include <assert.h>     /* assert */
-
 
 #include "MissingPieceException.h"
 #include "IllegalMoveException.h"

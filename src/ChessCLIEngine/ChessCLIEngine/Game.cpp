@@ -328,12 +328,12 @@ Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 			}
 			if (color)
 			{
-				bestScore = std::max(bestScore, score);
+				bestScore = max(bestScore, score);
 				bestMove = score >= bestScore ? moves[i][j] : bestMove;
 			}
 			else
 			{
-				bestScore = std::min(bestScore, score);
+				bestScore = min(bestScore, score);
 				bestMove = score <= bestScore ? moves[i][j] : bestMove;
 			}
 		}

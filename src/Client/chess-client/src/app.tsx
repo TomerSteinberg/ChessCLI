@@ -1,19 +1,16 @@
-import { Chessboard } from "react-chessboard";
-import "./app.css";
+import styles from "./app.module.css";
+import { Board } from "./components/board/board";
+import { GameClock } from "./components/game-clock/game-clock";
+import { MoveHistory } from "./components/move-history/move-history";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className={"container"}>
-      <Chessboard
-        boardWidth={700}
-        boardOrientation={"white"}
-        id="board"
-        customLightSquareStyle={{ backgroundColor: "#ececd0" }}
-        customDarkSquareStyle={{ backgroundColor: "#729551" }}
-      ></Chessboard>
-      <button>hello</button>
+    <div className={styles.container}>
+      <GameClock />
+      <Board />
+      <MoveHistory />
     </div>
   );
-}
+};
 
 export default App;

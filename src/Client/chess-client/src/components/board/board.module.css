@@ -1,0 +1,6 @@
+.boardContainer {
+  width: min-content;
+  height: min-content;
+  position: relative;
+  box-sizing: border-box;
+}

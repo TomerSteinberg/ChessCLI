@@ -15,7 +15,7 @@ module.exports = {
       { allowConstantExport: true },
     ],
 
-    test: /\module.css$/i,
+    test: /\*.module.css$/i,
     use: [
       { loader: "style-loader" },
       { loader: "css-loader", options: { url: false } },
