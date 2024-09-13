@@ -25,7 +25,7 @@ class PerftCommand : public ICommand
 public:
 	PerftCommand(std::vector<std::string> args);
 
-	void execute(Context& ctx);
+	Result execute(Context& ctx);
 	static unsigned int maxArg;
 };
 

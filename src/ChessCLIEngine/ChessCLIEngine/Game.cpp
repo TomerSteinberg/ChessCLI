@@ -353,6 +353,7 @@ void Game::iterativeDeepening(int maxDepth)
 	using std::chrono::duration;
 	using std::chrono::milliseconds;
 
+	std::string outputString;
 	std::array<Move, 128> priorityMoves = { {0, 0, NO_PROMOTION, false, false} };
 
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };

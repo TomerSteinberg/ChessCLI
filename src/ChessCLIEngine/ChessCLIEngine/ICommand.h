@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Context.h"
+#include "Result.h"
 #include <vector>
 #include <string>
 
@@ -12,7 +13,7 @@ class ICommand
 public:
 	ICommand(std::vector<std::string> args);
 
-	virtual void execute(Context& ctx)=0;
+	virtual Result execute(Context& ctx)=0;
 protected:
 	std::vector<std::string> m_args;
 

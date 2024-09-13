@@ -90,6 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,6 +107,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,6 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,6 +142,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
       <AdditionalOptions>/arch:AVX2 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,6 +176,7 @@
     <ClCompile Include="PerftCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
+    <ClCompile Include="Result.cpp" />
     <ClCompile Include="ServeCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
     <ClCompile Include="TruncateCommand.cpp" />
@@ -199,6 +204,7 @@
     <ClInclude Include="IllegalMoveException.h" />
     <ClInclude Include="InvalidArgumentException.h" />
     <ClInclude Include="InvalidCommandException.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
@@ -209,6 +215,7 @@
     <ClInclude Include="PerftCommand.h" />
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="ServeCommand.h" />
     <ClInclude Include="ShowCommand.h" />
     <ClInclude Include="TruncateCommand.h" />

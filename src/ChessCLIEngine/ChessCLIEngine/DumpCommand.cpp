@@ -7,13 +7,14 @@ DumpCommand::DumpCommand(std::vector<std::string> args) : ICommand(args)
 unsigned int DumpCommand::maxArg = 2;
 
 
-void DumpCommand::execute(Context& ctx)
+Result DumpCommand::execute(Context& ctx)
 {
 	if(!ctx.getCurrGame())
 	{	throw InvalidCommandException(COMMAND_NAME); }
 	if(!this->matchRegexVector())
 	{	throw InvalidArgumentException(); }
 
+	std::string resultString = "";
 	bool bin = std::find(this->m_args.begin(), this->m_args.end(), "-b") != this->m_args.end();
 	bool hex = std::find(this->m_args.begin(), this->m_args.end(), "-h") != this->m_args.end();
 	bool label = std::find(this->m_args.begin(), this->m_args.end(), "-l") != this->m_args.end();
@@ -60,6 +61,7 @@ void DumpCommand::execute(Context& ctx)
 	}
 
 	std::cout << std::dec;
+	return Result(false);
 }
 
 

@@ -12,7 +12,7 @@ PerftCommand::PerftCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int PerftCommand::maxArg = 2;
 
-void PerftCommand::execute(Context& ctx)
+Result PerftCommand::execute(Context& ctx)
 {
     if (!ctx.getCurrGame())
     {
@@ -73,4 +73,5 @@ void PerftCommand::execute(Context& ctx)
             std::cout << "nps: " << "-" << "\t" << std::endl;
         }
     }
+    return Result(false);
 }

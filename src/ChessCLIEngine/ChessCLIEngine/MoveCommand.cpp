@@ -6,7 +6,7 @@ MoveCommand::MoveCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int MoveCommand::maxArg = 1;
 
-void MoveCommand::execute(Context& ctx)
+Result MoveCommand::execute(Context& ctx)
 {
 	if(!ctx.getCurrGame())
 	{
@@ -19,7 +19,7 @@ void MoveCommand::execute(Context& ctx)
 		// castling
 		ctx.getCurrGame()->move(this->m_args[0] == "0-0-0", this->m_args[0]);
 		std::cout << "Played " + this->m_args[0] << std::endl;
-		return;
+		return Result(false);
 	}
 	if (!std::regex_match(this->m_args[0], std::regex(MOVE_REGEX)))
 	{
@@ -39,4 +39,5 @@ void MoveCommand::execute(Context& ctx)
 	}
 
 	ctx.getCurrGame()->move(startSquare, endSquare, promotionPiece, this->m_args[0]);
+	return Result(false);
 }	

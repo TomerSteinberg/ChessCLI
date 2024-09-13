@@ -14,7 +14,7 @@ class ShowCommand : public ICommand
 {
 public:
 	ShowCommand(std::vector<std::string> args);
-	void execute(Context& ctx);
+	Result execute(Context& ctx);
 
 	static unsigned int maxArg;
 };

@@ -19,7 +19,7 @@ class ExitCommand : public ICommand
 public:
 	ExitCommand(std::vector<std::string> args);
 
-	void execute(Context& ctx);
+	Result execute(Context& ctx);
 	static unsigned int maxArg;
 };
 

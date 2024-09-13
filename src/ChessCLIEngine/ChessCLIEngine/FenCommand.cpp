@@ -6,8 +6,9 @@ FenCommand::FenCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int FenCommand::maxArg = 1;
 
-void FenCommand::execute(Context& ctx)
+Result FenCommand::execute(Context& ctx)
 {
+	std::string resultString = "";
 	if(!ctx.getCurrGame())
 	{
 		throw InvalidCommandException(COMMAND_NAME);
@@ -19,11 +20,11 @@ void FenCommand::execute(Context& ctx)
 			std::vector<std::string> fenStrings = ctx.getCurrGame()->getAllFen();
 			for (size_t i = 0; i < fenStrings.size(); i++)
 			{
-				std::cout << fenStrings[i] << std::endl;
+				resultString += fenStrings[i] + "\n";
 			}
-			return;
+			return Result(false, true, resultString);
 		}
 		throw InvalidArgumentException();
 	}
-	std::cout << ctx.getCurrGame()->getFen() << std::endl;
+	return Result(false, true, ctx.getCurrGame()->getFen());
 }

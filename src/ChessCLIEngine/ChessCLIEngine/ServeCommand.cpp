@@ -6,7 +6,7 @@ ServeCommand::ServeCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int ServeCommand::maxArg = 3;
 
-void ServeCommand::execute(Context& ctx)
+Result ServeCommand::execute(Context& ctx)
 {
 	SOCKET serverSocket = createServerSocket();
 	bindServerSocket(serverSocket); 
@@ -24,6 +24,7 @@ void ServeCommand::execute(Context& ctx)
 		}
 	}
 	WSACleanup();
+	return Result(false);
 }
 
 
@@ -82,4 +83,25 @@ void ServeCommand::startListen(SOCKET serverSocket) const
 void ServeCommand::serveClient(SOCKET clientSocket)
 {
 	Context clientContext;
+	try
+	{
+
+		while (true)
+		{
+			char buffer[BUFFER_SIZE] = { 0 };
+			json respJson;
+
+			recv(clientSocket, buffer, BUFFER_SIZE, 0);
+			std::string command(buffer);
+			std::vector<std::unique_ptr<ICommand>> commands = Parser::parseCommand(command);
+			Result commandResult = Invoker::invoke(clientContext, commands, false);
+			Result::toJson(respJson, commandResult);
+			send(clientSocket, respJson.dump().c_str(), respJson.dump().length(), 0);
+		}
+	}
+	catch (...) 
+	{
+		closesocket(clientSocket);
+		std::cout << "Closed Connection with a Client Due to Unforeseen Error\n";
+	}
 }

@@ -12,7 +12,7 @@ unsigned int HelpCommand::maxArg = 0;
 * input: application state context
 * output: none
 */
-void HelpCommand::execute(Context& ctx) 
+Result HelpCommand::execute(Context& ctx)
 {
 	std::cout 
 		<< "help\t\t\tList of commands\n" 
@@ -35,4 +35,5 @@ void HelpCommand::execute(Context& ctx)
 		<< "perft  [depth] [-r]\tRun Perft test\n"
 		<< "serve [port] [addr] ..\tListens for network commands\n"
 		<< "quit\t\t\tClose application\n\n";
+	return Result(false);
 }

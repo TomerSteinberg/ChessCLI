@@ -6,8 +6,9 @@ OptionsCommand::OptionsCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int OptionsCommand::maxArg = 0;
 
-void OptionsCommand::execute(Context& ctx)
+Result OptionsCommand::execute(Context& ctx)
 {
+	std::string resultString = "";
 	if (!ctx.getCurrGame())
 	{
 		throw InvalidCommandException(COMMAND_NAME);
@@ -15,6 +16,7 @@ void OptionsCommand::execute(Context& ctx)
 	std::vector<std::string> continuations = ctx.getCurrGame()->getOptions();
 	for (auto it = continuations.begin(); it != continuations.end(); it++)
 	{
-		std::cout << *it << std::endl;
+		resultString += *it + "\n";
 	}
+	return Result(false, true, resultString);
 }

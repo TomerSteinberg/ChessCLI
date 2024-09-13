@@ -19,7 +19,7 @@ class ContinueCommand : public ICommand
 public:
 	ContinueCommand(std::vector<std::string> args);
 
-	void execute(Context& ctx);
+	Result execute(Context& ctx);
 	static unsigned int maxArg;
 };
 
