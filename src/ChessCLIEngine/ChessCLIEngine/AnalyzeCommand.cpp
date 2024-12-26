@@ -13,5 +13,5 @@ Result AnalyzeCommand::execute(Context& ctx)
 	{
 		throw InvalidCommandException(COMMAND_NAME);
 	}
-	ctx.getCurrGame()->analyze();
+	return Result(false, true, ctx.getCurrGame()->analyze());
 }

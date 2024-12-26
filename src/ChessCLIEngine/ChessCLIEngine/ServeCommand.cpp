@@ -1,30 +1,30 @@
 #include "ServeCommand.h"
 
-ServeCommand::ServeCommand(std::vector<std::string> args) : ICommand(args)
-{
-}
+
 
 unsigned int ServeCommand::maxArg = 3;
 
+ServeCommand::ServeCommand(std::vector<std::string> args) : ICommand(args)
+{
+	//m_server.init_asio();
+
+	//// Set message handler
+	//m_server.set_message_handler(std::bind(
+	//	&ServeCommand::on_message, this, std::placeholders::_1, std::placeholders::_2));
+
+	//// Set open handler
+	//m_server.set_open_handler(std::bind(
+	//	&ServeCommand::on_open, this, std::placeholders::_1));
+
+	//// Set close handler
+	//m_server.set_close_handler(std::bind(
+	//	&ServeCommand::on_close, this, std::placeholders::_1));
+}
+
 Result ServeCommand::execute(Context& ctx)
 {
-	SOCKET serverSocket = createServerSocket();
-	bindServerSocket(serverSocket); 
-	startListen(serverSocket);
-	std::cout << "Started Listening on port " << DEFAULT_PORT
-		<< " With Address " << DEFAULT_ADDRESS << std::endl;
-	bool running = true;
-	while (running)
-	{
-		SOCKET clientSocket = accept(serverSocket, NULL, NULL);
-		if (clientSocket != INVALID_SOCKET)
-		{
-			std::thread handleThread(serveClient, clientSocket);
-			handleThread.detach();
-		}
-	}
-	WSACleanup();
 	return Result(false);
+	//this->run(DEFAULT_PORT);
 }
 
 
@@ -82,6 +82,7 @@ void ServeCommand::startListen(SOCKET serverSocket) const
 
 void ServeCommand::serveClient(SOCKET clientSocket)
 {
+	const std::string initalGet = "GET / HTTP/1.1";
 	Context clientContext;
 	try
 	{
@@ -93,6 +94,13 @@ void ServeCommand::serveClient(SOCKET clientSocket)
 
 			recv(clientSocket, buffer, BUFFER_SIZE, 0);
 			std::string command(buffer);
+			if (command.find(initalGet) != std::string::npos)
+			{
+				const std::string resp = "HTTP/1.1 101 Switching Protocols\nConnection: Upgrade\nSec-WebSocket-Accept: EDJa7WCAQQzMCYNJM42Syuo9SqQ=\nUpgrade: websocket";
+				send(clientSocket, resp.c_str(), resp.length(), 0);
+				std::cout << resp << std::endl;
+				continue;
+			}
 			std::vector<std::unique_ptr<ICommand>> commands = Parser::parseCommand(command);
 			Result commandResult = Invoker::invoke(clientContext, commands, false);
 			Result::toJson(respJson, commandResult);

@@ -2,7 +2,7 @@
 
 Result Invoker::invoke(Context& ctx, std::vector<std::unique_ptr<ICommand>>& cmds, const bool logResult)
 {
-	Result commandResult = &Result(true, true, "Internal Error");
+	Result commandResult = Result(false, true, "No Data Was Sent");
 	if (cmds.size())
 	{
 		try 

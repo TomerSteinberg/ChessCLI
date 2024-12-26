@@ -9,7 +9,6 @@
 #include <deque>
 #include <algorithm>
 #include <mutex>
-
 #include "MoveSearch.h"
 
 
@@ -30,7 +29,7 @@ public:
 	void back();
 	void next();
 	double evaluate();
-	void analyze();
+	std::string analyze();
 	Move searchBest(int searchDepth, std::array<Move, 128> priorityMoves);
 	void iterativeDeepening(int maxDepth);
 	int perft(int depth);

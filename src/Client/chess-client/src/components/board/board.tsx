@@ -6,6 +6,7 @@ export const Board: React.FC = () => {
     <div className={styles.boardContainer}>
       <Chessboard
         boardWidth={700}
+        showBoardNotation
         boardOrientation={"white"}
         id="board"
         customLightSquareStyle={{ backgroundColor: "#ececd0" }}

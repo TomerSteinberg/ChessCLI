@@ -4,12 +4,12 @@ html,
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background-image: linear-gradient(
-    to right top,
-    #4d4489,
-    #474487,
-    #414485,
-    #3c4383,
-    #364381
-  );
+  background: #161a42;
+
+  
 }
+
+*{
+  font-family: 'Courier New', Courier, monospace;
+}
+

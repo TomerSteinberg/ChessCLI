@@ -1761,14 +1761,23 @@ int BitBoard::evaluatePawns(const bool color) const
     constexpr int8_t HANGING_PAWN_PENALTY = -30;
     constexpr int8_t DEFENDING_PAWN_VALUE = 10;
     u64 pawns = this->m_pieces[color][pawn];
-    constexpr int8_t pawnWeights[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
+  /*  constexpr int8_t pawnWeights[NUMBER_OF_SQUARES] = { 00, 00, 00, 00, 00, 00, 00, 00,
                                                         70, 70, 70, 70, 70, 70, 70, 70,
                                                         40, 40, 40, 40, 40, 40, 40, 40,
                                                         20, 20, 20, 20, 10, 20, 20, 20,
                                                         07, 07, 07, 15, 15, 07, 07, 07,
                                                         02, 02, -3, 03, 03, -3, 02, 02,
                                                         02, 00, 00, 00, 00, 00, 00, 02,
-                                                        00, 00, 00, 00, 00, 00, 00, 00,};
+                                                        00, 00, 00, 00, 00, 00, 00, 00,};*/
+    constexpr int8_t pawnWeights[NUMBER_OF_SQUARES] = { 0,  0,  0,  0,  0,  0,  0,  0,
+50, 50, 50, 50, 50, 50, 50, 50,
+10, 10, 20, 30, 30, 20, 10, 10,
+ 5,  5, 10, 25, 25, 10,  5,  5,
+ 0,  0,  0, 20, 20,  0,  0,  0,
+ 5, -5,-10,  0,  0,-10, -5,  5,
+ 5, 10, 10,-20,-20, 10, 10,  5,
+ 0,  0,  0,  0,  0,  0,  0,  0 };
+  
     while (pawns)
     {
         int8_t square = getLsbIndex(pawns);
@@ -1898,15 +1907,24 @@ int BitBoard::evaluateKnights(const bool color, int combinedMaterial) const
     constexpr u64 KNIGHT_BEGINNING_SQUARES = 4755801206503243842ULL;
     constexpr int8_t OUTPOST_VALUE = 15;
     const u64 opponentBoardSide = color ? 4294967295ULL : 18446744069414584320ULL;
+    //constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
+    //    -7, -3, -3, -3, -3, -3, -3, -7,
+    //    -3, +7, +7, +7, +7, +7, +7, -3,
+    //    -3, +7, 10, 10, 10, 10, +7, -3,
+    //    -3, +7, 10, 12, 12, 10, +7, -3,
+    //    -3, +7, 10, 12, 12, 10, +7, -3,
+    //    -3, +7, 10, 10 ,10, 10, +7, -3,
+    //    -3, +7, +7, +7, +7, +7, +7, -3,
+    //    -7, -3, -3, -3, -3, -3, -3, -7,};
     constexpr int8_t KNIGHT_SQUARE_WEIGHTS[NUMBER_OF_SQUARES] = {
-        -7, -3, -3, -3, -3, -3, -3, -7,
-        -3, +7, +7, +7, +7, +7, +7, -3,
-        -3, +7, 10, 10, 10, 10, +7, -3,
-        -3, +7, 10, 12, 12, 10, +7, -3,
-        -3, +7, 10, 12, 12, 10, +7, -3,
-        -3, +7, 10, 10 ,10, 10, +7, -3,
-        -3, +7, +7, +7, +7, +7, +7, -3,
-        -7, -3, -3, -3, -3, -3, -3, -7,};
+    -50,-40,-30,-30,-30,-30,-40,-50,
+-40,-20,  0,  0,  0,  0,-20,-40,
+-30,  0, 10, 15, 15, 10,  0,-30,
+-30,  5, 15, 20, 20, 15,  5,-30,
+-30,  0, 15, 20, 20, 15,  0,-30,
+-30,  5, 10, 15, 15, 10,  5,-30,
+-40,-20,  0,  5,  5,  0,-20,-40,
+-50,-40,-30,-30,-30,-30,-40,-50, };
     const int8_t PAWN_VALUES = bitCount(this->m_pieces[WHITE][pawn] | this->m_pieces[BLACK][pawn]) * PAWN_VALUE;
 
     while(knights)
@@ -1970,7 +1988,16 @@ int BitBoard::evaluateBishops(const bool color, int combinedMaterial) const
     constexpr u64 LIGHT_SQUARES = 12273903644374837845ULL;
     constexpr u64 BISHOP_BEGINNING_SQUARES = 2594073385365405732ULL;
     constexpr u64 UNDEVELOPED_BISHOP_PENALTY = -20;
-
+    constexpr int8_t bishopWeights[NUMBER_OF_SQUARES] = {
+        -20,-10,-10,-10,-10,-10,-10,-20,
+-10,  0,  0,  0,  0,  0,  0,-10,
+-10,  0,  5, 10, 10,  5,  0,-10,
+-10,  5,  5, 10, 10,  5,  5,-10,
+-10,  0, 10, 10, 10, 10,  0,-10,
+-10, 10, 10, 10, 10, 10, 10,-10,
+-10,  5,  0,  0,  0,  0,  5,-10,
+-20,-10,-10,-10,-10,-10,-10,-20,
+    };
     int bishopCount = bitCount(this->m_pieces[color][bishop]);
 
 
@@ -1996,6 +2023,7 @@ int BitBoard::evaluateBishops(const bool color, int combinedMaterial) const
         int8_t square = getLsbIndex(bishops);
         u64 squareBB = (1ULL << square);
         u64 bishopAtk = getBishopAtk(square, combinedOccupancy);
+        evaluation += bishopWeights[square];
         evaluation += (bitCount(this->m_attackPatterns[color][bishop][square]) - (13 - bitCount(bishopAtk & (~this->m_whiteOccupancy)))) * 3;
 
         if ((squareBB & this->m_blackAtkedSqrs) && (squareBB & this->m_whiteAttackInclusive))
@@ -2036,6 +2064,17 @@ int BitBoard::evaluateRooks(const bool color) const
     evaluation -= pawnValues;
     const u64 lastRankMask = color ? 255ULL : 18374686479671623680ULL;
     const u64 seventhRankMask = color ? 65280ULL : 71776119061217280ULL;
+    constexpr int rookWeights[NUMBER_OF_SQUARES] = {
+          0,  0,  0,  0,  0,  0,  0,  0,
+  5, 10, 10, 10, 10, 10, 10,  5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+ -5,  0,  0,  0,  0,  0,  0, -5,
+  0,  0,  0,  5,  5,  0,  0,  0
+    };
+
 
     if (bitCount(rooks) > 1)
     {
@@ -2052,6 +2091,7 @@ int BitBoard::evaluateRooks(const bool color) const
         u64 squareBB = 1ULL << square;
         int rookFile = square % 8;
         u64 rookFileBB = A_FILE << rookFile;
+        evaluation += rookWeights[square];
 
         if (this->m_attackPatterns[color][rook][square] & this->m_pieces[!color][queen])
         {
@@ -2092,7 +2132,27 @@ int BitBoard::evaluateRooks(const bool color) const
 */
 int BitBoard::evaluateQueens(const bool color, int combinedMaterial) const
 {
-    return 0;
+    constexpr int queenWeights[NUMBER_OF_SQUARES] = {
+        -20,-10,-10, -5, -5,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5,  5,  5,  5,  0,-10,
+         -5,  0,  5,  5,  5,  5,  0, -5,
+          0,  0,  5,  5,  5,  5,  0, -5,
+        -10,  5,  5,  5,  5,  5,  0,-10,
+        -10,  0,  5,  0,  0,  0,  0,-10,
+        -20,-10,-10, -5, -5,-10,-10,-20,
+    };
+	u64 queens = this->m_pieces[color][queen];
+	int evaluation = 0;
+
+    while (queens)
+    {
+        int8_t square = getLsbIndex(queens);
+        evaluation += queenWeights[square];
+		queens &= queens - 1;
+    }
+
+    return evaluation;
 }
 
 
