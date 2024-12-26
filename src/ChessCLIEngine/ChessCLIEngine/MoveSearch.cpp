@@ -69,13 +69,13 @@ int MoveSearch::minimax(const std::shared_ptr<BitBoard> position, const bool isM
             }
             if (isMaximizingPlayer)
             {
-                bestScore = std::max(bestScore, score);
-                alpha = std::max(alpha, bestScore);
+                bestScore = max(bestScore, score);
+                alpha = max(alpha, bestScore);
             }
             else
             {
-                bestScore = std::min(bestScore, score);
-                beta = std::min(bestScore, beta);
+                bestScore = min(bestScore, score);
+                beta = min(bestScore, beta);
             }
             if (beta <= alpha)
             {

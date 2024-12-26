@@ -8,7 +8,7 @@ ShowCommand::ShowCommand(std::vector<std::string> args) : ICommand(args)
 unsigned int ShowCommand::maxArg = 1;
 
 
-void ShowCommand::execute(Context& ctx)
+Result ShowCommand::execute(Context& ctx)
 {
 	if (this->m_args.size() > 0)
 	{
@@ -21,7 +21,7 @@ void ShowCommand::execute(Context& ctx)
 	{
 		this->m_args.size() == 0 ? ctx.getCurrGame()->showPosition() :
 			ctx.getCurrGame()->showPosition(true);
-		return;
+		return Result(false);
 	}
 	throw InvalidCommandException(COMMAND_NAME);
 }

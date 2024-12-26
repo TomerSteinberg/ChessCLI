@@ -19,7 +19,7 @@ class BackCommand : public ICommand
 public:
 	BackCommand(std::vector<std::string> args);
 
-	void execute(Context& ctx);
+	Result execute(Context& ctx);
 	static unsigned int maxArg;
 
 };

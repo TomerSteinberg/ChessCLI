@@ -223,12 +223,14 @@ double Game::evaluate()
 * input: None. TODO: add support for depth parameter
 * output: None
 */
-void Game::analyze()
+std::string Game::analyze()
 {
 	auto moves = this->m_currPosition->getMoveList();
 	std::deque<std::pair<Move, int>> bestScores;
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };
 	bool color = this->m_currPosition->getFlags() & 0b1;
+	std::string result = "";
+
 
 	for (int i = 0; i < moves.size(); i++)
 	{
@@ -264,11 +266,13 @@ void Game::analyze()
 	{
 		const auto& move = color ? bestScores.back() : bestScores.front();
 
-		std::cout << i + 1 << ".\t" << notationFromMove(move.first) << "\t"
-			<< ((float)move.second) / 1000 << std::endl;
+		result += std::to_string(i + 1) + ".\t" + notationFromMove(move.first) + "\t" + std::to_string(((float)move.second) / 1000) + "\n";
+		/*std::cout << i + 1 << ".\t" << notationFromMove(move.first) << "\t"
+			<< ((float)move.second) / 1000 << std::endl;*/
 		color ? bestScores.pop_back() : bestScores.pop_front();
 	}
 	MoveSearch::nodes = 0;
+	return result;
 }
 
 
@@ -328,12 +332,12 @@ Move Game::searchBest(int searchDepth, std::array<Move, 128> priorityMoves)
 			}
 			if (color)
 			{
-				bestScore = std::max(bestScore, score);
+				bestScore = max(bestScore, score);
 				bestMove = score >= bestScore ? moves[i][j] : bestMove;
 			}
 			else
 			{
-				bestScore = std::min(bestScore, score);
+				bestScore = min(bestScore, score);
 				bestMove = score <= bestScore ? moves[i][j] : bestMove;
 			}
 		}
@@ -353,6 +357,7 @@ void Game::iterativeDeepening(int maxDepth)
 	using std::chrono::duration;
 	using std::chrono::milliseconds;
 
+	std::string outputString;
 	std::array<Move, 128> priorityMoves = { {0, 0, NO_PROMOTION, false, false} };
 
 	Move bestMove = { 0,0,NO_PROMOTION, false, false };

@@ -6,11 +6,11 @@ EvaluateCommand::EvaluateCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int EvaluateCommand::maxArg = 0;
 
-void EvaluateCommand::execute(Context& ctx)
+Result EvaluateCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
 		throw InvalidCommandException(COMMAND_NAME);
 	}
-	std::cout << ctx.getCurrGame()->evaluate() << std::endl;
+	return Result(false, true, std::to_string(ctx.getCurrGame()->evaluate()));
 }

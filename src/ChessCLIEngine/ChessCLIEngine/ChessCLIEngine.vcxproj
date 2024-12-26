@@ -29,26 +29,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -81,6 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -90,6 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,6 +108,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,6 +125,7 @@
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,6 +143,7 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
       <AdditionalOptions>/arch:AVX2 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>nlohmann </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,6 +177,7 @@
     <ClCompile Include="PerftCommand.cpp" />
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
+    <ClCompile Include="Result.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
     <ClCompile Include="TruncateCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
@@ -198,6 +204,7 @@
     <ClInclude Include="IllegalMoveException.h" />
     <ClInclude Include="InvalidArgumentException.h" />
     <ClInclude Include="InvalidCommandException.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="MissingPieceException.h" />
     <ClInclude Include="ExceededMaxArgumentsException.h" />
     <ClInclude Include="Game.h" />
@@ -208,6 +215,7 @@
     <ClInclude Include="PerftCommand.h" />
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="ShowCommand.h" />
     <ClInclude Include="TruncateCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />

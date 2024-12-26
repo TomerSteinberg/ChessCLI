@@ -20,7 +20,7 @@ std::unordered_map<std::string, CommandCreatorFunction> CommandCreator = {
 	{"evaluate", CREATE_COMMAND_OBJECT_LAMBDA(EvaluateCommand)},
 	{"continue", CREATE_COMMAND_OBJECT_LAMBDA(ContinueCommand)},
 	{"analyze", CREATE_COMMAND_OBJECT_LAMBDA(AnalyzeCommand)},
-	{"perft", CREATE_COMMAND_OBJECT_LAMBDA(PerftCommand)}
+	{"perft", CREATE_COMMAND_OBJECT_LAMBDA(PerftCommand)},
 };
 
 

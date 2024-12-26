@@ -6,7 +6,7 @@ ContinueCommand::ContinueCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int ContinueCommand::maxArg = 0;
 
-void ContinueCommand::execute(Context& ctx)
+Result ContinueCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
@@ -14,4 +14,5 @@ void ContinueCommand::execute(Context& ctx)
 	}
     
 	ctx.getCurrGame()->iterativeDeepening(SEARCH_DEPTH);
+	return Result(false);
 }

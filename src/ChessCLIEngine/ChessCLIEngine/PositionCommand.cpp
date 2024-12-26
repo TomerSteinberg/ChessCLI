@@ -6,7 +6,7 @@ PositionCommand::PositionCommand(std::vector<std::string> args) : ICommand(args)
 
 unsigned int PositionCommand::maxArg = 1;
 
-void PositionCommand::execute(Context& ctx)
+Result PositionCommand::execute(Context& ctx)
 {
 	if (!ctx.getCurrGame())
 	{
@@ -24,4 +24,5 @@ void PositionCommand::execute(Context& ctx)
 	{
 		throw InvalidArgumentException("Specified position doesn't exist");
 	}
+	return Result(false);
 }

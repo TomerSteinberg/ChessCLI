@@ -6,7 +6,7 @@ CreateCommand::CreateCommand(std::vector<std::string> args) :ICommand(args)
 
 unsigned int CreateCommand::maxArg = 6;
 
-void CreateCommand::execute(Context& ctx)
+Result CreateCommand::execute(Context& ctx)
 {
 	if (this->m_args.size() > 0)
 	{
@@ -25,9 +25,10 @@ void CreateCommand::execute(Context& ctx)
 	if (this->m_args.size() != 0)
 	{
 		ctx.newGame(this->combineArgs());
-		return;
+		return Result(false);
 	}
 	ctx.newGame(DEFAULT_STARTING_FEN);
+	return Result(false);
 }
 
 std::string CreateCommand::combineArgs() const

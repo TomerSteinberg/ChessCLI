@@ -13,7 +13,8 @@ unsigned int QuitCommand::maxArg = 0;
 * input: Application state context
 * output: none
 */
-void QuitCommand::execute(Context& ctx)
+Result QuitCommand::execute(Context& ctx)
 {
 	_exit(0);
+	return Result(false);
 }

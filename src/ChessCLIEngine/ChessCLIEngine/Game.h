@@ -9,11 +9,10 @@
 #include <deque>
 #include <algorithm>
 #include <mutex>
-
 #include "MoveSearch.h"
 
 
-#define SEARCH_DEPTH 5
+#define SEARCH_DEPTH 4
 
 class BitBoard;
 
@@ -30,7 +29,7 @@ public:
 	void back();
 	void next();
 	double evaluate();
-	void analyze();
+	std::string analyze();
 	Move searchBest(int searchDepth, std::array<Move, 128> priorityMoves);
 	void iterativeDeepening(int maxDepth);
 	int perft(int depth);

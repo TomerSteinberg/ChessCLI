@@ -1,19 +1,25 @@
 #include "Invoker.h"
 
-void Invoker::invoke(Context& ctx, std::vector<std::unique_ptr<ICommand>>& cmds)
+Result Invoker::invoke(Context& ctx, std::vector<std::unique_ptr<ICommand>>& cmds, const bool logResult)
 {
+	Result commandResult = Result(false, true, "No Data Was Sent");
 	if (cmds.size())
 	{
 		try 
 		{
 			for (auto cmd = cmds.begin(); cmd != cmds.end(); cmd++)
 			{
-				cmd->get()->execute(ctx);
+				commandResult = cmd->get()->execute(ctx);
 			}
 		}
 		catch (std::exception& error)
 		{
-			std::cout << error.what() << std::endl;
+			commandResult = Result(true, true ,std::string(error.what())) ;
+		}
+		if (logResult && commandResult.isMessage)
+		{
+			std::cout << commandResult.message << std::endl;
 		}
 	}
+	return commandResult;
 }

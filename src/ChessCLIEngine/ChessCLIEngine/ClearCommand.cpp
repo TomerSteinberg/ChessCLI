@@ -14,7 +14,8 @@ unsigned int ClearCommand::maxArg = 0;
 * input: Application state context
 * output: none
 */
-void ClearCommand::execute(Context& ctx)
+Result ClearCommand::execute(Context& ctx)
 {
 	system(CLEAR_CONSOLE);
+	return Result(false);
 }

@@ -12,7 +12,7 @@ unsigned int HelpCommand::maxArg = 0;
 * input: application state context
 * output: none
 */
-void HelpCommand::execute(Context& ctx) 
+Result HelpCommand::execute(Context& ctx)
 {
 	std::cout 
 		<< "help\t\t\tList of commands\n" 
@@ -34,4 +34,5 @@ void HelpCommand::execute(Context& ctx)
 		<< "continue  [-r]\t\tPlay computer move\n"
 		<< "perft  [depth] [-r]\tRun Perft test\n"
 		<< "quit\t\t\tClose application\n\n";
+	return Result(false);
 }
