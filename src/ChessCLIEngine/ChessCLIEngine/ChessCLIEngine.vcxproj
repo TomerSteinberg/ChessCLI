@@ -178,7 +178,6 @@
     <ClCompile Include="PositionCommand.cpp" />
     <ClCompile Include="QuitCommand.cpp" />
     <ClCompile Include="Result.cpp" />
-    <ClCompile Include="ServeCommand.cpp" />
     <ClCompile Include="ShowCommand.cpp" />
     <ClCompile Include="TruncateCommand.cpp" />
     <ClCompile Include="UnkownCommandException.cpp" />
@@ -217,7 +216,6 @@
     <ClInclude Include="PositionCommand.h" />
     <ClInclude Include="QuitCommand.h" />
     <ClInclude Include="Result.h" />
-    <ClInclude Include="ServeCommand.h" />
     <ClInclude Include="ShowCommand.h" />
     <ClInclude Include="TruncateCommand.h" />
     <ClInclude Include="UnkownCommandException.h" />

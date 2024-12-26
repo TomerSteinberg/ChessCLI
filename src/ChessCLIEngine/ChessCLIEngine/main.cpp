@@ -20,7 +20,6 @@
 
 int main(int argc, char** argv)
 {
-	ServeCommand::initServer();
 	std::string cmd;
 	Context ctx;
 
